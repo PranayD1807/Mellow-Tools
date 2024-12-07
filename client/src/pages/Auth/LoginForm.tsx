@@ -95,8 +95,10 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
     actions.setSubmitting(true);
     try {
       const res = await userApi.signin(values);
-      if (res.err) {
-        toast.error(res.err.message);
+
+      if (res.status === "error") {
+        // Handle error response
+        toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
         const userData = res.data.data;
         dispatch(
@@ -109,7 +111,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         localStorage.setItem("actkn", res.data.token);
         toast.success(res.data.message);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
       toast.error("Something went wrong");
     } finally {

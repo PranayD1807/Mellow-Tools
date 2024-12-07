@@ -95,7 +95,6 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
   const [passwordStrength, setPasswordStrength] = useState(0);
   const dispatch = useDispatch();
 
-  // Submit function
   const onSubmit = async (
     values: {
       email: string;
@@ -113,11 +112,11 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
     actions.setSubmitting(true);
     try {
       const res = await userApi.signup(values);
-      if (res.err) {
-        toast.error(res.err.message);
+
+      if (res.status === "error") {
+        toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
         const userData = res.data.data;
-        console.log(res.data);
         dispatch(
           login({
             displayName: userData.displayName,
@@ -128,13 +127,14 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
         localStorage.setItem("actkn", res.data.token);
         toast.success(res.data.message);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
       toast.error("Something went wrong");
     } finally {
       actions.setSubmitting(false);
     }
   };
+
   // Handle password strength calculation
   const handlePasswordChange = (password: string) => {
     setPasswordStrength(calculatePasswordStrength(password));

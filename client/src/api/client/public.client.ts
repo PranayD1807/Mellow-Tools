@@ -26,20 +26,4 @@ publicClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
-publicClient.interceptors.response.use(
-  (response) => {
-    if (response && response.data) return response;
-    return response.data;
-  },
-  (err) => {
-    return {
-      err: {
-        message: err?.response?.data?.message || "Something went wrong",
-        status: err?.response?.data.status || "Unknown",
-      },
-    };
-  }
-);
-
 export default publicClient;

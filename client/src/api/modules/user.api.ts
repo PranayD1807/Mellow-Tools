@@ -1,5 +1,7 @@
 import privateClient from "../client/private.client";
 import publicClient from "../client/public.client";
+import { handleApiError } from "../helper/error.helper";
+import { ApiResponse } from "@/models/ApiResponse";
 
 const userEndpoints = {
   signin: "auth/signin",
@@ -24,14 +26,6 @@ interface PasswordUpdateData {
   password: string;
   newPassword: string;
   confirmNewPassword: string;
-}
-
-interface ApiResponse<T> {
-  data?: T;
-  err?: {
-    message: string;
-    status?: string;
-  };
 }
 
 interface UserInfo {
@@ -69,11 +63,19 @@ const userApi = {
     email,
     password,
   }: SigninData): Promise<ApiResponse<SigninResponse>> => {
-    const response = await publicClient.post<SigninResponse>(
-      userEndpoints.signin,
-      { email, password }
-    );
-    return response;
+    try {
+      const response = await publicClient.post<SigninResponse>(
+        userEndpoints.signin,
+        { email, password }
+      );
+
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<SigninResponse>(err);
+    }
   },
 
   signup: async ({
@@ -82,23 +84,39 @@ const userApi = {
     confirmPassword,
     displayName,
   }: SignupData): Promise<ApiResponse<SignupResponse>> => {
-    const response = await publicClient.post<SignupResponse>(
-      userEndpoints.signup,
-      {
-        email,
-        password,
-        confirmPassword,
-        displayName,
-      }
-    );
-    return response;
+    try {
+      const response = await publicClient.post<SignupResponse>(
+        userEndpoints.signup,
+        {
+          email,
+          password,
+          confirmPassword,
+          displayName,
+        }
+      );
+
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<SignupResponse>(err);
+    }
   },
 
   getInfo: async (): Promise<ApiResponse<GetInfoResponse>> => {
-    const response = await privateClient.get<GetInfoResponse>(
-      userEndpoints.getInfo
-    );
-    return response;
+    try {
+      const response = await privateClient.get<GetInfoResponse>(
+        userEndpoints.getInfo
+      );
+
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<GetInfoResponse>(err);
+    }
   },
 
   passwordUpdate: async ({
@@ -106,15 +124,23 @@ const userApi = {
     newPassword,
     confirmNewPassword,
   }: PasswordUpdateData): Promise<ApiResponse<PasswordUpdateResponse>> => {
-    const response = await privateClient.put<PasswordUpdateResponse>(
-      userEndpoints.passwordUpdate,
-      {
-        password,
-        newPassword,
-        confirmNewPassword,
-      }
-    );
-    return response;
+    try {
+      const response = await privateClient.put<PasswordUpdateResponse>(
+        userEndpoints.passwordUpdate,
+        {
+          password,
+          newPassword,
+          confirmNewPassword,
+        }
+      );
+
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<PasswordUpdateResponse>(err);
+    }
   },
 };
 

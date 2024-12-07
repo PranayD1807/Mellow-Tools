@@ -1,3 +1,4 @@
+import { ApiResponse } from "@/models/ApiResponse";
 import privateClient from "../client/private.client";
 
 const contactEndpoints = {
@@ -21,16 +22,6 @@ interface ContactResponse {
   mobileNumber?: string;
   email?: string;
   user: string;
-}
-
-interface ApiResponse<T> {
-  status: string;
-  results?: number;
-  data: T;
-  err?: {
-    message: string;
-    status?: string;
-  };
 }
 
 const contactApi = {
