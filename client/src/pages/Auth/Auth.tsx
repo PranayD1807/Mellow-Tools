@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import LoginForm from "./LoginForm";
-import SignupForm from "./SignupForm";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import LoginForm from "./LoginForm";
+import SignupForm from "./SignupForm";
 
 const Auth = () => {
   // authMode : LOGIN || SIGNUP

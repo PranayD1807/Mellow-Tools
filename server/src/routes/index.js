@@ -9,7 +9,7 @@ import authRoutes from "./auth.routes.js";
 import catchAsync from "../utils/catchAsync.js";
 
 router.use("/auth", authRoutes);
-router.use("/contacts", verifyJWT, contactRoutes)
+router.use("/text-templates", verifyJWT, contactRoutes)
 
 // All routes
 router.all("*", catchAsync((req, res, next) => {

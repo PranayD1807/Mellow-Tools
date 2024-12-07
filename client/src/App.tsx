@@ -8,10 +8,12 @@ import {
 
 import { useSelector } from "react-redux";
 import AppLayout from "./layout/AppLayout";
-import Auth from "./pages/Auth/Auth";
+import Auth from "./pages/auth/Auth";
 import Dashboard from "./pages/Dashboard";
 import { RootState } from "./store/store";
 import NotFound from "./pages/NotFound";
+import TextTemplates from "./pages/text-template/TextTemplates";
+import Notes from "./pages/note/Notes";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component
@@ -33,6 +35,11 @@ const router = createBrowserRouter(
     <Route path="/" element={<AppLayout />} errorElement={<NotFound />}>
       <Route index element={<ProtectedRoute component={<Dashboard />} />} />
       <Route path="auth" element={<Auth />} />
+      <Route
+        path="text-templates"
+        element={<ProtectedRoute component={<TextTemplates />} />}
+      />
+      <Route path="notes" element={<ProtectedRoute component={<Notes />} />} />
     </Route>
   )
 );

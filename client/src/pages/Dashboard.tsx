@@ -2,12 +2,19 @@ import ToolGrid from "@/components/ToolGrid";
 import { Tool } from "@/models/Tool";
 import { Flex } from "@chakra-ui/react";
 
-const toolList: [Tool] = [
+const toolList: Tool[] = [
   {
     id: "text-template",
-    label: "Text Template",
+    label: "Text Templates",
     description: "Create & Use Text Templates",
     endpoint: "/text-templates",
+    icon: "/template-logo.png",
+  },
+  {
+    id: "notes",
+    label: "Notes",
+    description: "Save quick notes",
+    endpoint: "/notes",
     icon: "/template-logo.png",
   },
 ];

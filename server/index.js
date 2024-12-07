@@ -18,9 +18,7 @@ const DB = process.env.DATABASE.replace(
 mongoose.set("strictQuery", true);
 
 mongoose
-    .connect(DB, {
-        useNewUrlParser: true,
-    })
+    .connect(DB, {})
     .then(() => console.log("DB connection successful! 👍\n"));
 
 const port = process.env.PORT || 8080;

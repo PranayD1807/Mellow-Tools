@@ -10,12 +10,15 @@ import {
 } from "@chakra-ui/react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { Tool } from "@/models/Tool";
+import { useNavigate } from "react-router-dom";
 
 interface ToolGridProps {
   tools: Tool[];
 }
 
 const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
+  const navigate = useNavigate();
+
   return (
     <Grid
       templateColumns={{
@@ -28,8 +31,15 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
       p={4}
     >
       {tools.map((tool) => (
-        <Box border="1px" borderRadius="md" boxShadow="md" p={4} pr={6}>
-          <HStack gap={4}>
+        <Box
+          border="1px"
+          borderRadius="md"
+          boxShadow="md"
+          p={4}
+          pr={6}
+          key={tool.id}
+        >
+          <HStack gap={4} alignItems="center">
             {/* Icon */}
             <Image
               src={tool.icon}
@@ -37,15 +47,19 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
               boxSize="60px"
               objectFit="contain"
             />
-            <VStack justifyContent="start" gap={1}>
-              <HStack key={tool.id} gap={6}>
+            <VStack justifyContent="start" gap={1} w="100%" alignItems="start">
+              <HStack gap={6} justifyContent="space-between" w="100%">
                 {/* Tool Label */}
                 <Text fontSize="xl" fontWeight="bold">
                   {tool.label}
                 </Text>
 
                 {/* Tool Endpoint */}
-                <IconButton variant="surface" size="2xs">
+                <IconButton
+                  variant="surface"
+                  size="2xs"
+                  onClick={() => navigate(tool.endpoint)}
+                >
                   <FaExternalLinkAlt />
                 </IconButton>
               </HStack>
