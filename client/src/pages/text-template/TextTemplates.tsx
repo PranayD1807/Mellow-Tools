@@ -5,6 +5,7 @@ import { Box, Flex, IconButton, Input, Spinner, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const TextTemplates = () => {
@@ -12,11 +13,13 @@ const TextTemplates = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  const navigate = useNavigate();
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-  const fetchData = async (query: string = "") => {
+  const fetchTemplates = async (query: string = "") => {
     setLoading(true);
     try {
       const res = await textTemplateApi.getAll(query);
@@ -34,13 +37,17 @@ const TextTemplates = () => {
     }
   };
 
-  const handleContactSearch = () => {
-    fetchData(searchTerm);
+  const handleAddTemplate = () => {
+    navigate("/text-templates/create");
+  };
+
+  const handleTemplateSearch = () => {
+    fetchTemplates(searchTerm);
   };
 
   useEffect(() => {
     if (searchTerm === "") {
-      fetchData();
+      fetchTemplates();
     }
   }, [searchTerm]);
 
@@ -70,7 +77,7 @@ const TextTemplates = () => {
           />
           <IconButton
             aria-label="Search"
-            onClick={handleContactSearch}
+            onClick={handleTemplateSearch}
             variant="subtle"
             width="auto"
           >
@@ -79,7 +86,7 @@ const TextTemplates = () => {
         </Flex>
         {/* Add Contact Button */}
         <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
-          <Button colorScheme="teal" width="100%">
+          <Button colorScheme="teal" width="100%" onClick={handleAddTemplate}>
             <HiViewGridAdd /> Add Text Template
           </Button>
         </Box>

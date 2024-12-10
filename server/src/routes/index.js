@@ -4,12 +4,12 @@ import AppError from "../utils/appError.js";
 import { verifyJWT } from "../middlewares/token.middleware.js"
 
 // routers
-import contactRoutes from "./contact.routes.js";
+import textTemplateRoutes from "./textTemplate.routes.js";
 import authRoutes from "./auth.routes.js";
 import catchAsync from "../utils/catchAsync.js";
 
 router.use("/auth", authRoutes);
-router.use("/text-templates", verifyJWT, contactRoutes)
+router.use("/text-templates", verifyJWT, textTemplateRoutes)
 
 // All routes
 router.all("*", catchAsync((req, res, next) => {

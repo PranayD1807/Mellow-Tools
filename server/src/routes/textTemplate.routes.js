@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createTextTemplate, deleteTextTemplate, getAllTextTemplates, getTextTemplate, updateTextTemplate } from "../controllers/textTemplate.controller";
+import { createTextTemplate, deleteTextTemplate, getAllTextTemplates, getTextTemplate, updateTextTemplate } from "../controllers/textTemplate.controller.js";
 
 const router = Router();
 

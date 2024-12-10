@@ -14,7 +14,7 @@ const textTemplateEndpoints = {
   delete: "text-templates/{id}",
 };
 
-interface CreateTextTemplateData {
+export interface CreateTextTemplateData {
   title: string;
   content: string;
   placeholders: Array<{
