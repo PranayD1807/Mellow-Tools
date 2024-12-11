@@ -1,4 +1,4 @@
-import { HStack, useBreakpointValue } from "@chakra-ui/react";
+import { HStack, IconButton, useBreakpointValue } from "@chakra-ui/react";
 import { chakra } from "@chakra-ui/react";
 import {
   ColorModeButton,
@@ -20,11 +20,15 @@ import {
 import { FiLogOut, FiMenu } from "react-icons/fi";
 import { RootState } from "@/store/store";
 import Logo from "./Logo";
+import { useLocation, useNavigate } from "react-router-dom";
+import { IoChevronBackOutline } from "react-icons/io5";
 
 const Header = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
   const dispatch = useDispatch();
   const { toggleColorMode, colorMode } = useColorMode();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Handle logout
   const handleLogout = () => {
@@ -45,8 +49,15 @@ const Header = () => {
       boxShadow="md"
       bg="surface"
     >
-      {/* logo */}
-      <Logo />
+      <HStack gap={4}>
+        {location.pathname != "/" && location.pathname != "/auth" && (
+          <IconButton onClick={() => navigate(-1)} variant="outline">
+            <IoChevronBackOutline />
+          </IconButton>
+        )}
+        {/* logo */}
+        <Logo />
+      </HStack>
 
       {/* Buttons or Menu based on viewport */}
       {showMenu ? (

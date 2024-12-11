@@ -27,6 +27,7 @@ const editorConfig = {
   menubar: true,
   plugins: [
     "advlist",
+    "export",
     "autolink",
     "lists",
     "link",
@@ -45,6 +46,7 @@ const editorConfig = {
     "help",
     "wordcount",
   ],
+
   toolbar:
     "undo redo | blocks | " +
     "bold italic forecolor | alignleft aligncenter " +
@@ -74,7 +76,6 @@ const CreateTextTemplate = () => {
     index: number,
     updatedValues: { defaultText: string }
   ) => {
-    console.log(updatedValues);
     setPlaceholders((prevPlaceholders) =>
       prevPlaceholders.map((placeholder, idx) =>
         idx === index
@@ -89,6 +90,7 @@ const CreateTextTemplate = () => {
       prevPlaceholders.filter((_, idx) => idx !== index)
     );
   };
+
   const submitTemplate = async () => {
     if (!editorRef.current) return;
     setIsSaving(true);
