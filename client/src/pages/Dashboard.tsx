@@ -15,7 +15,7 @@ const toolList: Tool[] = [
     label: "Notes",
     description: "Save quick notes",
     endpoint: "/notes",
-    icon: "/template-logo.png",
+    icon: "/notes-logo.png",
   },
 ];
 
