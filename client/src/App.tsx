@@ -8,7 +8,7 @@ import {
 
 import { useSelector } from "react-redux";
 import AppLayout from "./layout/AppLayout";
-import Auth from "./pages/auth/Auth";
+import Auth from "./pages/authentication/Auth";
 import Dashboard from "./pages/Dashboard";
 import { RootState } from "./store/store";
 import NotFound from "./pages/NotFound";
