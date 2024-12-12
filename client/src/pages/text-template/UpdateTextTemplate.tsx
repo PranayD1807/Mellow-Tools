@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Editor } from "@tinymce/tinymce-react";
+import { Editor as TinyMCEEditor } from "tinymce";
+
 import {
   Box,
   HStack,
@@ -63,7 +65,8 @@ const editorConfig = {
 
 const UpdateTextTemplate = () => {
   const [template, setTemplate] = useState<TextTemplate | null>(null);
-  const editorRef = useRef<tinymce.Editor | null>(null);
+  const editorRef = useRef<TinyMCEEditor | null>(null);
+
   const [placeholders, setPlaceholders] = useState<
     { tag: string; defaultText?: string }[]
   >([]);

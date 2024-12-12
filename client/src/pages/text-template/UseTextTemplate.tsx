@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Editor } from "@tinymce/tinymce-react";
+import { Editor as TinyMCEEditor } from "tinymce";
 import {
   Box,
   HStack,
@@ -57,7 +58,8 @@ const editorConfig = {
 
 const UseTextTemplate = () => {
   const [template, setTemplate] = useState<TextTemplate | null>(null);
-  const editorRef = useRef<tinymce.Editor | null>(null);
+  const editorRef = useRef<TinyMCEEditor | null>(null);
+
   const [placeholders, setPlaceholders] = useState<
     { tag: string; defaultText?: string }[]
   >([]);
@@ -66,7 +68,7 @@ const UseTextTemplate = () => {
   const { id } = useParams();
 
   const printContent = () => {
-    editorRef.current.contentWindow.print();
+    editorRef.current?.contentWindow.print();
   };
 
   const copyToClipboard = () => {
@@ -160,7 +162,7 @@ const UseTextTemplate = () => {
       newStr = newStr.split(tag).join(value); // Exact match and replace all occurrences
     });
 
-    editorRef.current.setContent(newStr);
+    editorRef.current?.setContent(newStr);
   };
 
   if (isLoading) {

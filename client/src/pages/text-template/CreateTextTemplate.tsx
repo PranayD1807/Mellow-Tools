@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
 import { Editor } from "@tinymce/tinymce-react";
+import { Editor as TinyMCEEditor } from "tinymce";
+
 import {
   Box,
   HStack,
@@ -57,7 +59,8 @@ const editorConfig = {
 };
 
 const CreateTextTemplate = () => {
-  const editorRef = useRef<tinymce.Editor | null>(null);
+  const editorRef = useRef<TinyMCEEditor | null>(null);
+
   const [placeholders, setPlaceholders] = useState<
     { tag: string; defaultText?: string }[]
   >([]);
@@ -97,7 +100,7 @@ const CreateTextTemplate = () => {
 
     const data: CreateTextTemplateData = {
       title,
-      content: editorRef.current.getContent(),
+      content: editorRef.current?.getContent(),
       placeholders: placeholders.map((p) => ({
         tag: p.tag,
         defaultValue: p.defaultText,
@@ -126,7 +129,9 @@ const CreateTextTemplate = () => {
       <Box w="60vw" h="80vh">
         <Editor
           apiKey={import.meta.env.VITE_EDITOR_KEY}
-          onInit={(_evt, editor) => (editorRef.current = editor)}
+          onInit={(_evt, editor) => {
+            editorRef.current = editor;
+          }}
           initialValue="<p>Start writing...</p>"
           init={editorConfig}
         />
