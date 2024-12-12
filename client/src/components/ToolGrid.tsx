@@ -64,9 +64,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
                 </IconButton>
               </HStack>
               {/* Tool Description */}
-              <Text fontSize="sm" color="gray.600">
-                {tool.description}{" "}
-              </Text>
+              <Text fontSize="sm">{tool.description}</Text>
             </VStack>
           </HStack>
         </Box>

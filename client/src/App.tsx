@@ -17,6 +17,7 @@ import Notes from "./pages/note/Notes";
 import CreateTextTemplate from "./pages/text-template/CreateTextTemplate";
 import UpdateTextTemplate from "./pages/text-template/UpdateTextTemplate";
 import UseTextTemplate from "./pages/text-template/UseTextTemplate";
+import "./App.css";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component

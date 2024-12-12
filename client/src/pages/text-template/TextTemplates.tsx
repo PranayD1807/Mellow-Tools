@@ -1,7 +1,16 @@
 import textTemplateApi from "@/api/modules/textTemplates.api";
+import TextTemplatesGrid from "@/components/TextTemplatesGrid";
 import { Button } from "@/components/ui/button";
 import { TextTemplate } from "@/models/TextTemplate";
-import { Box, Flex, IconButton, Input, Spinner, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Input,
+  Spinner,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -94,10 +103,15 @@ const TextTemplates = () => {
       {/* Contact Grid */}
       {loading && (
         <Flex justify="center" align="center" height="60vh">
-          <Spinner size="xl" />
+          <VStack gap={6}>
+            <Spinner size="xl" borderWidth="4px" />
+            <Text textStyle="2xl" fontWeight="bold">
+              Loading...
+            </Text>
+          </VStack>
         </Flex>
       )}
-      {!loading && <Text>Total No. Of Templates: {templates.length}</Text>}
+      {!loading && <TextTemplatesGrid templates={templates} />}
     </Flex>
   );
 };

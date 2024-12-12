@@ -14,7 +14,7 @@ const app = express();
 
 // Limit requests from the same API
 const limiter = rateLimit({
-    max: 100,
+    max: 60000,
     windowMs: 60 * 60 * 1000, // in milliseconds
     message: "Too many requests from this IP, please try again in an hour!",
 });

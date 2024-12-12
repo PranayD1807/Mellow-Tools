@@ -3,7 +3,9 @@ import { logout } from "@/store/userSlice";
 import axios, { InternalAxiosRequestConfig } from "axios";
 import queryString from "query-string";
 
-const hostUrl = "http://127.0.0.1:8080/";
+const prodUrl = "https://mellow-tools-backend.vercel.app/";
+const devUrl = "http://127.0.0.1:8080/";
+const hostUrl = import.meta.env.VITE_ENV == "PROD" ? prodUrl : devUrl;
 
 const baseURL = `${hostUrl}api/v1/`;
 

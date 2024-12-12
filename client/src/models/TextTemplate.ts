@@ -7,4 +7,6 @@ export interface TextTemplate {
     defaultValue?: string;
   }>;
   user: string;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { HStack, VStack, Input } from "@chakra-ui/react";
+import { HStack, VStack, Input, Textarea } from "@chakra-ui/react";
 import { Button } from "@/components/ui/button";
 import {
   DialogActionTrigger,
@@ -105,7 +105,7 @@ const TextTemplateDialog: React.FC<AddTextTemplateDialogProps> = ({
                     >
                       <FormikField
                         name="defaultText"
-                        as={Input}
+                        as={Textarea}
                         placeholder="Enter default text (optional)"
                         variant="outline"
                         onChange={handleChange}
