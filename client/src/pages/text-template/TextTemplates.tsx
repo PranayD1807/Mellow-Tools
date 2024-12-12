@@ -46,6 +46,22 @@ const TextTemplates = () => {
     }
   };
 
+  const handleDelete = async (templateId: string) => {
+    try {
+      const res = await textTemplateApi.delete(templateId);
+      if (res.err) {
+        toast.error(res.err.message);
+      } else {
+        setTemplates((prevTemplates) =>
+          prevTemplates.filter((template) => template.id !== templateId)
+        );
+        toast.success("Template deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to delete contact", error);
+    }
+  };
+
   const handleAddTemplate = () => {
     navigate("/text-templates/create");
   };
@@ -111,7 +127,12 @@ const TextTemplates = () => {
           </VStack>
         </Flex>
       )}
-      {!loading && <TextTemplatesGrid templates={templates} />}
+      {!loading && (
+        <TextTemplatesGrid
+          templates={templates}
+          handleDeleteTemplate={handleDelete}
+        />
+      )}
     </Flex>
   );
 };

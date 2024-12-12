@@ -1,15 +1,19 @@
 import React from "react";
-import { Grid, Text, HStack, VStack, Box } from "@chakra-ui/react";
+import { Grid, Text, HStack, VStack, Box, IconButton } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { TextTemplate } from "@/models/TextTemplate";
 import { Button } from "./ui/button";
+import { MdEdit, MdDelete } from "react-icons/md";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 interface TextTemplatesGridProps {
   templates: TextTemplate[];
+  handleDeleteTemplate: (contactId: string) => Promise<void>;
 }
 
 const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
   templates: templates,
+  handleDeleteTemplate: handleDeleteTemplate,
 }) => {
   const navigate = useNavigate();
 
@@ -53,19 +57,31 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
               </Text>
             </VStack>
             <VStack>
-              <Button
-                variant="surface"
-                size="xs"
-                px={4}
-                onClick={() =>
-                  navigate(`/text-templates/update/${template.id}`)
-                }
-              >
-                Edit
-              </Button>
+              <HStack>
+                <IconButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/text-templates/update/${template.id}`)
+                  }
+                >
+                  <MdEdit />
+                </IconButton>
+                <DeleteConfirmationDialog
+                  onDelete={() => handleDeleteTemplate(template.id)}
+                  itemName={template.title}
+                  children={
+                    <IconButton variant="outline" size="sm" color="red">
+                      <MdDelete color="red" />
+                    </IconButton>
+                  }
+                ></DeleteConfirmationDialog>
+              </HStack>
+
               <Button
                 variant="solid"
                 size="xs"
+                w="100%"
                 px={4}
                 onClick={() => navigate(`/text-templates/${template.id}`)}
               >
