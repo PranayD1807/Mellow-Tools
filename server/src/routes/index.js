@@ -2,14 +2,16 @@ import express from "express";
 const router = express.Router();
 import AppError from "../utils/appError.js";
 import { verifyJWT } from "../middlewares/token.middleware.js"
+import catchAsync from "../utils/catchAsync.js";
 
 // routers
 import textTemplateRoutes from "./textTemplate.routes.js";
 import authRoutes from "./auth.routes.js";
-import catchAsync from "../utils/catchAsync.js";
+import noteRoutes from "./note.routes.js"
 
 router.use("/auth", authRoutes);
-router.use("/text-templates", verifyJWT, textTemplateRoutes)
+router.use("/text-templates", verifyJWT, textTemplateRoutes);
+router.use("/notes", verifyJWT, noteRoutes);
 
 // All routes
 router.all("*", catchAsync((req, res, next) => {

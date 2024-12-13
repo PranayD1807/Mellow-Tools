@@ -18,9 +18,7 @@ export const getAllTextTemplates = (req, res, next) => {
     if (query) {
         preFilter = {
             ...preFilter,
-            $or: [
-                { title: { $regex: query, $options: "i" } },
-            ],
+            title: { $regex: query, $options: "i" },
         }
     }
 
