@@ -124,6 +124,7 @@ const NotesGrid: React.FC<NotesGridProps> = ({
               textOverflow="ellipsis"
               whiteSpace="pre-line"
               lineClamp={10}
+              fontSize="sm"
             >
               {note.text}
             </Text>
