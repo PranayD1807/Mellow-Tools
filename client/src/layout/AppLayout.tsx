@@ -8,7 +8,9 @@ import { ToastContainer } from "react-toastify";
 const AppLayout = () => {
   return (
     <React.Fragment>
-      <Header />
+      <Box position="sticky" top="0" left="0" width="100%" zIndex="1000">
+        <Header />
+      </Box>
       <ToastContainer
         position="bottom-left"
         theme="dark"
