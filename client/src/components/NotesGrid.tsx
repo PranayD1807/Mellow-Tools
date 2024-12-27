@@ -4,9 +4,9 @@ import {
   Text,
   HStack,
   VStack,
-  Box,
   IconButton,
   Separator,
+  GridItem,
 } from "@chakra-ui/react";
 import { MdEdit, MdDelete } from "react-icons/md";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
@@ -47,30 +47,34 @@ const NotesGrid: React.FC<NotesGridProps> = ({
 
   return (
     <Grid
+      w="100%"
       templateColumns={{
         base: "repeat(1, 1fr)",
-        sm: "repeat(2, 1fr)",
         md: "repeat(2, 1fr)",
-        lg: "repeat(3, 1fr)",
+        xl: "repeat(3, 1fr)",
       }}
       gap={5}
       p={4}
     >
       {notes.map((note) => (
-        <Box border="1px" borderRadius="md" boxShadow="md" p={4} key={note.id}>
-          <VStack>
+        <GridItem
+          minH={0}
+          minW={0}
+          flex={1}
+          border="1px"
+          borderRadius="md"
+          boxShadow="md"
+          p={4}
+          key={note.id}
+        >
+          <VStack h="200px">
             <HStack
               gap={6}
-              justifyContent="space-between"
               w="100%"
+              justifyContent="space-between"
               alignItems="start"
             >
-              <VStack
-                justifyContent="start"
-                gap={0}
-                w="100%"
-                alignItems="start"
-              >
+              <VStack justifyContent="start" gap={0} alignItems="start">
                 {/* Tool Label */}
                 <Text fontSize="xl" fontWeight="bold">
                   {note.title}
@@ -125,11 +129,12 @@ const NotesGrid: React.FC<NotesGridProps> = ({
               whiteSpace="pre-line"
               lineClamp={10}
               fontSize="sm"
+              overflowY="scroll"
             >
               {note.text}
             </Text>
           </VStack>
-        </Box>
+        </GridItem>
       ))}
     </Grid>
   );

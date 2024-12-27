@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid, Text, HStack, VStack, Box, IconButton } from "@chakra-ui/react";
+import { Grid, Text, HStack, VStack, Box } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { TextTemplate } from "@/models/TextTemplate";
 import { Button } from "./ui/button";
@@ -19,9 +19,9 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
 
   return (
     <Grid
+      w="100%"
       templateColumns={{
         base: "repeat(1, 1fr)",
-        sm: "repeat(2, 1fr)",
         md: "repeat(2, 1fr)",
         lg: "repeat(4, 1fr)",
       }}
@@ -34,10 +34,16 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
           borderRadius="md"
           boxShadow="md"
           p={4}
+          w="100%"
           key={template.id}
         >
-          {/* Icon */}
-          <HStack gap={6} justifyContent="space-between" w="100%">
+          <VStack
+            gap={6}
+            justifyContent="space-between"
+            w="100%"
+            alignItems="start"
+          >
+            {/* Icon */}
             <VStack justifyContent="start" gap={1} w="100%" alignItems="start">
               {/* Tool Label */}
               <Text fontSize="xl" fontWeight="bold">
@@ -56,39 +62,40 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
                 })}
               </Text>
             </VStack>
-            <VStack>
-              <HStack>
-                <IconButton
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    navigate(`/text-templates/update/${template.id}`)
-                  }
-                >
-                  <MdEdit />
-                </IconButton>
-                <DeleteConfirmationDialog
-                  onDelete={() => handleDeleteTemplate(template.id)}
-                  itemName={template.title}
-                  children={
-                    <IconButton variant="outline" size="sm" color="red">
-                      <MdDelete color="red" />
-                    </IconButton>
-                  }
-                ></DeleteConfirmationDialog>
-              </HStack>
 
+            <HStack w="100%">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  navigate(`/text-templates/update/${template.id}`)
+                }
+              >
+                <MdEdit />
+                Edit
+              </Button>
+              <DeleteConfirmationDialog
+                onDelete={() => handleDeleteTemplate(template.id)}
+                itemName={template.title}
+                children={
+                  <Button variant="outline" size="sm" color="red">
+                    <MdDelete color="red" />
+                    Delete
+                  </Button>
+                }
+              />
               <Button
                 variant="solid"
                 size="xs"
-                w="100%"
+                flex={1}
+                maxW="200px"
                 px={4}
                 onClick={() => navigate(`/text-templates/${template.id}`)}
               >
                 Use
               </Button>
-            </VStack>
-          </HStack>
+            </HStack>
+          </VStack>
         </Box>
       ))}
     </Grid>

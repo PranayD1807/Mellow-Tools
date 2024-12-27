@@ -21,11 +21,12 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
 
   return (
     <Grid
+      w="100%"
       templateColumns={{
         base: "repeat(1, 1fr)",
-        sm: "repeat(2, 1fr)",
         md: "repeat(2, 1fr)",
-        lg: "repeat(4, 1fr)",
+        xl: "repeat(4, 1fr)",
+        lg: "repeat(3, 1fr)",
       }}
       gap={5}
       p={4}

@@ -1,0 +1,23 @@
+/* Global thin scrollbar styling with curved thumb edges and hidden arrows */
+* {
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: gray transparent; /* Thumb: gray, Track: transparent */
+}
+
+*::-webkit-scrollbar {
+  width: 6px; /* Width of the scrollbar */
+  height: 6px; /* Height for horizontal scrollbars */
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: gray; /* Color of the scrollbar thumb */
+  border-radius: 50px; /* Fully curved edges for the thumb */
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent; /* Transparent track */
+}
+
+*::-webkit-scrollbar-button {
+  display: none; /* Hides the scrollbar arrows */
+}

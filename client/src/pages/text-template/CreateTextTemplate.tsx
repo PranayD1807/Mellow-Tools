@@ -4,13 +4,13 @@ import { Editor as TinyMCEEditor } from "tinymce";
 
 import {
   Box,
-  HStack,
   VStack,
   Text,
   IconButton,
   Textarea,
   Input,
   Separator,
+  Flex,
 } from "@chakra-ui/react";
 import TextTemplateDialog from "@/components/TextTemplateDialog";
 import { Field } from "@/components/ui/field";
@@ -25,11 +25,10 @@ import { useNavigate } from "react-router-dom";
 
 // Editor Configuration
 const editorConfig = {
-  height: "80vh",
+  height: "100%",
   menubar: true,
   plugins: [
     "advlist",
-    "export",
     "autolink",
     "lists",
     "link",
@@ -125,8 +124,15 @@ const CreateTextTemplate = () => {
   };
 
   return (
-    <HStack justifyContent="space-evenly" alignItems="center" h="100%" m={4}>
-      <Box w="60vw" h="80vh">
+    <Flex
+      flexDirection={{ base: "column", lg: "row" }}
+      justifyContent="space-evenly"
+      alignItems="center"
+      h="100%"
+      my={6}
+      m={4}
+    >
+      <Box w={{ base: "90%", lg: "60vw" }} h={{ base: "50vh", lg: "80vh" }}>
         <Editor
           apiKey={import.meta.env.VITE_EDITOR_KEY}
           onInit={(_evt, editor) => {
@@ -138,8 +144,11 @@ const CreateTextTemplate = () => {
       </Box>
 
       <VStack
-        w="30vw"
-        h="80vh"
+        w={{ base: "90%", lg: "30vw" }}
+        py={{
+          base: 4,
+          lg: 0,
+        }}
         justifyContent="space-between"
         alignItems="start"
       >
@@ -218,7 +227,7 @@ const CreateTextTemplate = () => {
           Save
         </Button>
       </VStack>
-    </HStack>
+    </Flex>
   );
 };
 

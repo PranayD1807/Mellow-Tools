@@ -48,7 +48,7 @@ const Header = () => {
       py={4}
       boxShadow="md"
       bg="surface"
-      bgColor="white"
+      bgColor="Background"
     >
       <HStack gap={4}>
         {location.pathname != "/" && location.pathname != "/auth" && (
