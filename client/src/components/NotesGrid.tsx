@@ -7,6 +7,7 @@ import {
   IconButton,
   Separator,
   GridItem,
+  Link,
 } from "@chakra-ui/react";
 import { MdEdit, MdDelete } from "react-icons/md";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
@@ -14,6 +15,8 @@ import { Note } from "@/models/note";
 import NoteDialog from "./NoteDialog";
 import { MdContentCopy } from "react-icons/md";
 import { toast } from "react-toastify";
+import Linkify from "react-linkify";
+import { LuExternalLink } from "react-icons/lu";
 
 interface NotesGridProps {
   notes: Note[];
@@ -23,6 +26,12 @@ interface NotesGridProps {
     values: { text: string; title: string }
   ) => Promise<void>;
 }
+
+const renderLinks = (href: string, text: string, key: number) => (
+  <Link key={key} href={href} color="blue.500" target="_blank">
+    {text} <LuExternalLink />
+  </Link>
+);
 
 const NotesGrid: React.FC<NotesGridProps> = ({
   notes: notes,
@@ -76,12 +85,12 @@ const NotesGrid: React.FC<NotesGridProps> = ({
             >
               <VStack justifyContent="start" gap={0} alignItems="start">
                 {/* Tool Label */}
-                <Text fontSize="xl" fontWeight="bold">
+                <Text fontSize={{ base: "md", lg: "xl" }} fontWeight="bold">
                   {note.title}
                 </Text>
 
                 {/* Tool Description */}
-                <Text fontSize="xs">
+                <Text fontSize={{ base: "2xs", lg: "xs" }}>
                   {new Date(note.updatedAt).toLocaleDateString("en-US", {
                     day: "2-digit",
                     month: "long",
@@ -96,7 +105,7 @@ const NotesGrid: React.FC<NotesGridProps> = ({
               <HStack>
                 <IconButton
                   variant="outline"
-                  size="xs"
+                  size={{ base: "2xs", lg: "xs" }}
                   onClick={() => copyToClipboard(note.text)}
                 >
                   <MdContentCopy />
@@ -105,7 +114,10 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                   onSave={(values) => handleUpdateNote(note.id, values)}
                   initialValues={{ title: note.title, text: note.text }}
                   children={
-                    <IconButton variant="outline" size="xs">
+                    <IconButton
+                      variant="outline"
+                      size={{ base: "2xs", lg: "xs" }}
+                    >
                       <MdEdit />
                     </IconButton>
                   }
@@ -115,7 +127,11 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                   onDelete={() => handleDeleteNote(note.id)}
                   itemName={note.title}
                   children={
-                    <IconButton variant="outline" size="xs" color="red">
+                    <IconButton
+                      variant="outline"
+                      size={{ base: "2xs", lg: "xs" }}
+                      color="red"
+                    >
                       <MdDelete color="red" />
                     </IconButton>
                   }
@@ -128,10 +144,10 @@ const NotesGrid: React.FC<NotesGridProps> = ({
               textOverflow="ellipsis"
               whiteSpace="pre-line"
               lineClamp={10}
-              fontSize="sm"
+              fontSize={{ base: "xs", lg: "sm" }}
               overflowY="scroll"
             >
-              {note.text}
+              <Linkify componentDecorator={renderLinks}>{note.text}</Linkify>
             </Text>
           </VStack>
         </GridItem>
