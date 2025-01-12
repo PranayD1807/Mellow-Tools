@@ -12,4 +12,4 @@ Text Template:
 3. Use Template
 
 Login/Signup
-Notes: Simple editable text notes. (auto saving)
+Notes: Simple editable text notes. 
