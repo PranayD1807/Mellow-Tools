@@ -6,16 +6,23 @@ const toolList: Tool[] = [
   {
     id: "text-template",
     label: "Text Templates",
-    description: "Create & Use Text Templates",
+    description: "Craft and Customize Text Templates Effortlessly.",
     endpoint: "/text-templates",
     icon: "/template-logo.png",
   },
   {
     id: "notes",
     label: "Notes",
-    description: "Save quick notes",
+    description: "Instantly Capture and Organize Your Notes.",
     endpoint: "/notes",
     icon: "/notes-logo.png",
+  },
+  {
+    id: "job-tracker",
+    label: "Job Tracker",
+    description: "Streamline Your Job Hunt with Ease.",
+    endpoint: "/job-tracker",
+    icon: "/job-tracker-logo.png",
   },
 ];
 

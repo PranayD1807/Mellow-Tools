@@ -34,7 +34,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
       {tools.map((tool) => (
         <Box
           border="1px"
-          borderRadius="md"
+          borderRadius="xl"
           boxShadow="md"
           p={4}
           pr={6}
@@ -45,8 +45,9 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
             <Image
               src={tool.icon}
               alt={tool.label}
-              boxSize="60px"
+              boxSize="80px"
               objectFit="contain"
+              borderRadius="xl"
             />
             <VStack justifyContent="start" gap={1} w="100%" alignItems="start">
               <HStack gap={6} justifyContent="space-between" w="100%">

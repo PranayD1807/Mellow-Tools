@@ -19,6 +19,7 @@ import UpdateTextTemplate from "./pages/text-template/UpdateTextTemplate";
 import UseTextTemplate from "./pages/text-template/UseTextTemplate";
 import "./App.css";
 import "./Scrollbar.css";
+import JobTracker from "./pages/job-tracker/JobTracker";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component
@@ -60,6 +61,10 @@ const router = createBrowserRouter(
         />
       </Route>
       <Route path="notes" element={<ProtectedRoute component={<Notes />} />} />
+      <Route
+        path="job-tracker"
+        element={<ProtectedRoute component={<JobTracker />} />}
+      />
     </Route>
   )
 );
