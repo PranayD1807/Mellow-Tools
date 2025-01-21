@@ -13,6 +13,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { toast } from "react-toastify";
@@ -105,69 +106,99 @@ const Notes = () => {
   }, [searchTerm]);
 
   return (
-    <Flex direction="column" p={4} alignItems="center" gap={6} w="100%" mt={4}>
-      <Flex
-        direction={{ base: "column", md: "row" }}
-        justify="space-between"
-        align="center"
-        mb={4}
-        width={{ base: "85%", sm: "70%", md: "60%" }}
-        gapY={2}
-      >
-        {/* Search Input */}
-        <Flex
-          direction="row"
-          width={{ base: "100%", md: "70%" }}
-          align="center"
-          mb={{ base: 4, md: 0 }}
-        >
-          <Input
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            flex="1"
-            mr={4}
-          />
-          <IconButton
-            aria-label="Search"
-            onClick={handleNoteSearch}
-            variant="subtle"
-            width="auto"
-          >
-            <IoSearch />
-          </IconButton>
-        </Flex>
-        {/* Add Contact Button */}
-        <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
-          <NoteDialog
-            children={
-              <Button colorScheme="teal" width="100%">
-                <HiViewGridAdd /> Add Note
-              </Button>
-            }
-            onSave={handleCreateNote}
-          />
-        </Box>
-      </Flex>
-      {/* Contact Grid */}
-      {loading && (
-        <Flex justify="center" align="center" height="60vh">
-          <VStack gap={6}>
-            <Spinner size="xl" borderWidth="4px" />
-            <Text textStyle="2xl" fontWeight="bold">
-              Loading...
-            </Text>
-          </VStack>
-        </Flex>
-      )}
-      {!loading && (
-        <NotesGrid
-          handleUpdateNote={handleUpdateNote}
-          notes={notes}
-          handleDeleteNote={handleDelete}
+    <>
+      <Helmet>
+        <title>Notes - Manage Your Notes Efficiently</title>
+        <meta
+          name="description"
+          content="Create, update, search, and delete notes easily. Organize your thoughts and ideas in one place."
         />
-      )}
-    </Flex>
+        <meta
+          name="keywords"
+          content="notes, note taking, create note, update note, delete note, organize notes"
+        />
+        <meta
+          property="og:title"
+          content="Notes - Manage Your Notes Efficiently"
+        />
+        <meta
+          property="og:description"
+          content="Create, update, search, and delete notes easily."
+        />
+        <meta property="og:image" content="/og-image.png" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+      <Flex
+        direction="column"
+        p={4}
+        alignItems="center"
+        gap={6}
+        w="100%"
+        mt={4}
+      >
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align="center"
+          mb={4}
+          width={{ base: "85%", sm: "70%", md: "60%" }}
+          gapY={2}
+        >
+          {/* Search Input */}
+          <Flex
+            direction="row"
+            width={{ base: "100%", md: "70%" }}
+            align="center"
+            mb={{ base: 4, md: 0 }}
+          >
+            <Input
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              flex="1"
+              mr={4}
+            />
+            <IconButton
+              aria-label="Search"
+              onClick={handleNoteSearch}
+              variant="subtle"
+              width="auto"
+            >
+              <IoSearch />
+            </IconButton>
+          </Flex>
+          {/* Add Contact Button */}
+          <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
+            <NoteDialog
+              children={
+                <Button colorScheme="teal" width="100%">
+                  <HiViewGridAdd /> Add Note
+                </Button>
+              }
+              onSave={handleCreateNote}
+            />
+          </Box>
+        </Flex>
+        {/* Contact Grid */}
+        {loading && (
+          <Flex justify="center" align="center" height="60vh">
+            <VStack gap={6}>
+              <Spinner size="xl" borderWidth="4px" />
+              <Text textStyle="2xl" fontWeight="bold">
+                Loading...
+              </Text>
+            </VStack>
+          </Flex>
+        )}
+        {!loading && (
+          <NotesGrid
+            handleUpdateNote={handleUpdateNote}
+            notes={notes}
+            handleDeleteNote={handleDelete}
+          />
+        )}
+      </Flex>
+    </>
   );
 };
 

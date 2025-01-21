@@ -84,12 +84,14 @@ const NotesGrid: React.FC<NotesGridProps> = ({
               alignItems="start"
             >
               <VStack justifyContent="start" gap={0} alignItems="start">
-                {/* Tool Label */}
-                <Text fontSize={{ base: "md", lg: "xl" }} fontWeight="bold">
+                <Text
+                  fontSize={{ base: "md", lg: "xl" }}
+                  fontWeight="bold"
+                  as="h3"
+                >
                   {note.title}
                 </Text>
 
-                {/* Tool Description */}
                 <Text fontSize={{ base: "2xs", lg: "xs" }}>
                   {new Date(note.updatedAt).toLocaleDateString("en-US", {
                     day: "2-digit",
@@ -107,6 +109,7 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                   variant="outline"
                   size={{ base: "2xs", lg: "xs" }}
                   onClick={() => copyToClipboard(note.text)}
+                  aria-label={`Copy note titled ${note.title}`}
                 >
                   <MdContentCopy />
                 </IconButton>
@@ -117,6 +120,7 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                     <IconButton
                       variant="outline"
                       size={{ base: "2xs", lg: "xs" }}
+                      aria-label={`Edit note titled ${note.title}`}
                     >
                       <MdEdit />
                     </IconButton>
@@ -131,11 +135,12 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                       variant="outline"
                       size={{ base: "2xs", lg: "xs" }}
                       color="red"
+                      aria-label={`Delete note titled ${note.title}`}
                     >
                       <MdDelete color="red" />
                     </IconButton>
                   }
-                ></DeleteConfirmationDialog>
+                />
               </HStack>
             </HStack>
             <Separator />

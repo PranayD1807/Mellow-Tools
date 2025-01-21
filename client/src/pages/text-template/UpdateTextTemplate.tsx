@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { TextTemplate } from "@/models/TextTemplate";
 import { useParams } from "react-router-dom";
 import he from "he";
+import { Helmet } from "react-helmet-async";
 
 // Editor Configuration
 const editorConfig = {
@@ -182,111 +183,135 @@ const UpdateTextTemplate = () => {
   }
 
   return (
-    <Flex
-      flexDirection={{ base: "column", lg: "row" }}
-      justifyContent="space-evenly"
-      alignItems="center"
-      h="100%"
-      my={6}
-      m={4}
-    >
-      <Box w={{ base: "90%", lg: "60vw" }} h={{ base: "50vh", lg: "80vh" }}>
-        <Editor
-          apiKey={import.meta.env.VITE_EDITOR_KEY}
-          onInit={(_evt, editor) => (editorRef.current = editor)}
-          initialValue={
-            (template && he.decode(template.content)) ||
-            "<p>Start writing...</p>"
-          }
-          init={editorConfig}
+    <>
+      <Helmet>
+        <title>Update Text Template - Edit and Customize Your Template</title>
+        <meta
+          name="description"
+          content="Update and modify your existing text templates. Change titles and content to keep your templates up-to-date."
         />
-      </Box>
+        <meta
+          name="keywords"
+          content="update text template, edit text templates, modify templates, update template content"
+        />
+        <meta
+          property="og:title"
+          content="Update Text Template - Edit and Customize Your Template"
+        />
+        <meta
+          property="og:description"
+          content="Update and modify your existing text templates. Change titles and content to keep your templates up-to-date."
+        />
+        <meta property="og:image" content="/og-image.png" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
 
-      <VStack
-        w={{ base: "90%", lg: "30vw" }}
-        py={{
-          base: 4,
-          lg: 0,
-        }}
-        justifyContent="space-between"
-        alignItems="start"
+      <Flex
+        flexDirection={{ base: "column", lg: "row" }}
+        justifyContent="space-evenly"
+        alignItems="center"
+        h="100%"
+        my={6}
+        m={4}
       >
-        {/* Title */}
-        <Field label="Template Title" required h="80px">
-          <Input
-            placeholder="My New Template"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+        <Box w={{ base: "90%", lg: "60vw" }} h={{ base: "50vh", lg: "80vh" }}>
+          <Editor
+            apiKey={import.meta.env.VITE_EDITOR_KEY}
+            onInit={(_evt, editor) => (editorRef.current = editor)}
+            initialValue={
+              (template && he.decode(template.content)) ||
+              "<p>Start writing...</p>"
+            }
+            init={editorConfig}
           />
-        </Field>
-        <Separator />
-        {/* List of placeholders */}
-        <Text fontSize="md" fontWeight="bold" h="30px">
-          Placeholder Tags:
-        </Text>
-        <Box w="100%" h="calc(80vh - 180px)">
-          <VStack
-            gap={4}
-            w="100%"
-            scrollbar="hidden"
-            overflowY="scroll"
-            h="100%"
-            pb={2}
-          >
-            {placeholders.map((placeholder, index) => (
-              <Field key={index} label={placeholder.tag} w="100%">
-                <InputGroup
-                  flex="1"
-                  w="100%"
-                  endElement={
-                    <>
-                      <IconButton
-                        aria-label="Call support"
-                        variant="ghost"
-                        m={0}
-                        p={0}
-                        onClick={() => deletePlaceholder(index)}
-                      >
-                        <MdOutlineDeleteOutline />
-                      </IconButton>
-                    </>
-                  }
-                >
-                  <Textarea
-                    w="100%"
-                    placeholder={placeholder.defaultText}
-                    value={placeholder.defaultText}
-                    onChange={(e) =>
-                      updatePlaceholder(index, {
-                        defaultText: e.target.value,
-                      })
-                    }
-                  />
-                </InputGroup>
-              </Field>
-            ))}
-          </VStack>
         </Box>
-        <Separator />
-        {/* Dialog to add new placeholder */}
-        <TextTemplateDialog
-          children={
-            <Button w="100%" variant="surface">
-              Add Placeholder
-            </Button>
-          }
-          onSave={onAddPlaceholder}
-        />
-        <Button
-          w="100%"
-          loading={isSaving}
-          loadingText="Saving..."
-          onClick={submitTemplate}
+
+        <VStack
+          w={{ base: "90%", lg: "30vw" }}
+          py={{
+            base: 4,
+            lg: 0,
+          }}
+          justifyContent="space-between"
+          alignItems="start"
         >
-          Save
-        </Button>
-      </VStack>
-    </Flex>
+          {/* Title */}
+          <Field label="Template Title" required h="80px">
+            <Input
+              placeholder="My New Template"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </Field>
+          <Separator />
+          {/* List of placeholders */}
+          <Text fontSize="md" fontWeight="bold" h="30px">
+            Placeholder Tags:
+          </Text>
+          <Box w="100%" h="calc(80vh - 180px)">
+            <VStack
+              gap={4}
+              w="100%"
+              scrollbar="hidden"
+              overflowY="scroll"
+              h="100%"
+              pb={2}
+            >
+              {placeholders.map((placeholder, index) => (
+                <Field key={index} label={placeholder.tag} w="100%">
+                  <InputGroup
+                    flex="1"
+                    w="100%"
+                    endElement={
+                      <>
+                        <IconButton
+                          aria-label="Call support"
+                          variant="ghost"
+                          m={0}
+                          p={0}
+                          onClick={() => deletePlaceholder(index)}
+                        >
+                          <MdOutlineDeleteOutline />
+                        </IconButton>
+                      </>
+                    }
+                  >
+                    <Textarea
+                      w="100%"
+                      placeholder={placeholder.defaultText}
+                      value={placeholder.defaultText}
+                      onChange={(e) =>
+                        updatePlaceholder(index, {
+                          defaultText: e.target.value,
+                        })
+                      }
+                    />
+                  </InputGroup>
+                </Field>
+              ))}
+            </VStack>
+          </Box>
+          <Separator />
+          {/* Dialog to add new placeholder */}
+          <TextTemplateDialog
+            children={
+              <Button w="100%" variant="surface">
+                Add Placeholder
+              </Button>
+            }
+            onSave={onAddPlaceholder}
+          />
+          <Button
+            w="100%"
+            loading={isSaving}
+            loadingText="Saving..."
+            onClick={submitTemplate}
+          >
+            Save
+          </Button>
+        </VStack>
+      </Flex>
+    </>
   );
 };
 

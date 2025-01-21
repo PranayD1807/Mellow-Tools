@@ -12,6 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -77,63 +78,94 @@ const TextTemplates = () => {
   }, [searchTerm]);
 
   return (
-    <Flex direction="column" p={4} alignItems="center" gap={6} w="100%" mt={4}>
-      <Flex
-        direction={{ base: "column", md: "row" }}
-        justify="space-between"
-        align="center"
-        mb={4}
-        width={{ base: "85%", sm: "70%", md: "60%" }}
-        gapY={2}
-      >
-        {/* Search Input */}
-        <Flex
-          direction="row"
-          width={{ base: "100%", md: "70%" }}
-          align="center"
-          mb={{ base: 4, md: 0 }}
-        >
-          <Input
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            flex="1"
-            mr={4}
-          />
-          <IconButton
-            aria-label="Search"
-            onClick={handleTemplateSearch}
-            variant="subtle"
-            width="auto"
-          >
-            <IoSearch />
-          </IconButton>
-        </Flex>
-        {/* Add Contact Button */}
-        <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
-          <Button colorScheme="teal" width="100%" onClick={handleAddTemplate}>
-            <HiViewGridAdd /> Add Text Template
-          </Button>
-        </Box>
-      </Flex>
-      {/* Contact Grid */}
-      {loading && (
-        <Flex justify="center" align="center" height="60vh">
-          <VStack gap={6}>
-            <Spinner size="xl" borderWidth="4px" />
-            <Text textStyle="2xl" fontWeight="bold">
-              Loading...
-            </Text>
-          </VStack>
-        </Flex>
-      )}
-      {!loading && (
-        <TextTemplatesGrid
-          templates={templates}
-          handleDeleteTemplate={handleDelete}
+    <>
+      <Helmet>
+        <title>Text Templates - Create, Update, and Manage Templates</title>
+        <meta
+          name="description"
+          content="Create, update, and manage text templates efficiently. Organize your text templates in one place."
         />
-      )}
-    </Flex>
+        <meta
+          name="keywords"
+          content="text templates, create template, update template, manage templates, organize text templates"
+        />
+        <meta
+          property="og:title"
+          content="Text Templates - Create, Update, and Manage Templates"
+        />
+        <meta
+          property="og:description"
+          content="Create, update, and manage text templates efficiently. Organize and find templates easily."
+        />
+        <meta property="og:image" content="/og-image.png" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+
+      <Flex
+        direction="column"
+        p={4}
+        alignItems="center"
+        gap={6}
+        w="100%"
+        mt={4}
+      >
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align="center"
+          mb={4}
+          width={{ base: "85%", sm: "70%", md: "60%" }}
+          gapY={2}
+        >
+          {/* Search Input */}
+          <Flex
+            direction="row"
+            width={{ base: "100%", md: "70%" }}
+            align="center"
+            mb={{ base: 4, md: 0 }}
+          >
+            <Input
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              flex="1"
+              mr={4}
+            />
+            <IconButton
+              aria-label="Search"
+              onClick={handleTemplateSearch}
+              variant="subtle"
+              width="auto"
+            >
+              <IoSearch />
+            </IconButton>
+          </Flex>
+          {/* Add Contact Button */}
+          <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
+            <Button colorScheme="teal" width="100%" onClick={handleAddTemplate}>
+              <HiViewGridAdd /> Add Text Template
+            </Button>
+          </Box>
+        </Flex>
+        {/* Contact Grid */}
+        {loading && (
+          <Flex justify="center" align="center" height="60vh">
+            <VStack gap={6}>
+              <Spinner size="xl" borderWidth="4px" />
+              <Text textStyle="2xl" fontWeight="bold">
+                Loading...
+              </Text>
+            </VStack>
+          </Flex>
+        )}
+        {!loading && (
+          <TextTemplatesGrid
+            templates={templates}
+            handleDeleteTemplate={handleDelete}
+          />
+        )}
+      </Flex>
+    </>
   );
 };
 

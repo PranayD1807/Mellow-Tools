@@ -10,15 +10,13 @@ import {
 } from "@chakra-ui/react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { Tool } from "@/models/Tool";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface ToolGridProps {
   tools: Tool[];
 }
 
 const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
-  const navigate = useNavigate();
-
   return (
     <Grid
       w="100%"
@@ -57,13 +55,12 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
                 </Text>
 
                 {/* Tool Endpoint */}
-                <IconButton
-                  variant="surface"
-                  size="2xs"
-                  onClick={() => navigate(tool.endpoint)}
-                >
-                  <FaExternalLinkAlt />
-                </IconButton>
+                {/* Update IconButton to use a Link */}
+                <Link to={tool.endpoint}>
+                  <IconButton variant="surface" size="2xs" aria-label="Visit">
+                    <FaExternalLinkAlt />
+                  </IconButton>
+                </Link>
               </HStack>
               {/* Tool Description */}
               <Text fontSize="sm">{tool.description}</Text>

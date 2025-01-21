@@ -1,6 +1,6 @@
 import React from "react";
 import { Grid, Text, HStack, VStack, Box } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { TextTemplate } from "@/models/TextTemplate";
 import { Button } from "./ui/button";
 import { MdEdit, MdDelete } from "react-icons/md";
@@ -15,8 +15,6 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
   templates: templates,
   handleDeleteTemplate: handleDeleteTemplate,
 }) => {
-  const navigate = useNavigate();
-
   return (
     <Grid
       w="100%"
@@ -36,6 +34,8 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
           p={4}
           w="100%"
           key={template.id}
+          role="article"
+          aria-labelledby={`template-${template.id}`}
         >
           <VStack
             gap={6}
@@ -43,15 +43,18 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
             w="100%"
             alignItems="start"
           >
-            {/* Icon */}
             <VStack justifyContent="start" gap={1} w="100%" alignItems="start">
-              {/* Tool Label */}
-              <Text fontSize="xl" fontWeight="bold">
+              <Text
+                id={`template-${template.id}`}
+                fontSize="xl"
+                fontWeight="bold"
+                as="h2"
+              >
                 {template.title}
               </Text>
 
-              {/* Tool Description */}
               <Text fontSize="sm">
+                Last updated on{" "}
                 {new Date(template.updatedAt).toLocaleDateString("en-US", {
                   day: "2-digit",
                   month: "long",
@@ -64,36 +67,45 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
             </VStack>
 
             <HStack w="100%">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  navigate(`/text-templates/update/${template.id}`)
-                }
-              >
-                <MdEdit />
-                Edit
-              </Button>
+              <Link to={`/text-templates/update/${template.id}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label={`Edit template ${template.title}`}
+                >
+                  <MdEdit />
+                  Edit
+                </Button>
+              </Link>
+
               <DeleteConfirmationDialog
                 onDelete={() => handleDeleteTemplate(template.id)}
                 itemName={template.title}
                 children={
-                  <Button variant="outline" size="sm" color="red">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    color="red"
+                    aria-label={`Delete template ${template.title}`}
+                  >
                     <MdDelete color="red" />
                     Delete
                   </Button>
                 }
               />
-              <Button
-                variant="solid"
-                size="xs"
-                flex={1}
-                maxW="200px"
-                px={4}
-                onClick={() => navigate(`/text-templates/${template.id}`)}
-              >
-                Use
-              </Button>
+
+              <Link to={`/text-templates/${template.id}`}>
+                <Button
+                  variant="solid"
+                  size="xs"
+                  flex={1}
+                  maxW="200px"
+                  px={4}
+                  aria-label={`Use template ${template.title}`}
+                >
+                  Use
+                </Button>
+              </Link>
             </HStack>
           </VStack>
         </Box>

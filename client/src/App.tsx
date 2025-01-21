@@ -6,6 +6,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
+import { HelmetProvider } from "react-helmet-async";
 import { useSelector } from "react-redux";
 import AppLayout from "./layout/AppLayout";
 import Auth from "./pages/auth/Auth";
@@ -70,7 +71,11 @@ const router = createBrowserRouter(
 );
 
 const App = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <HelmetProvider>
+      <RouterProvider router={router} />
+    </HelmetProvider>
+  );
 };
 
 export default App;

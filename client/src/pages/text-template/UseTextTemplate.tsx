@@ -21,6 +21,7 @@ import { FaCheck } from "react-icons/fa";
 import { TextTemplate } from "@/models/TextTemplate";
 import { useParams } from "react-router-dom";
 import he from "he";
+import { Helmet } from "react-helmet-async";
 
 // Editor Configuration
 const editorConfig = {
@@ -179,94 +180,117 @@ const UseTextTemplate = () => {
   }
 
   return (
-    <Flex
-      flexDirection={{ base: "column", lg: "row" }}
-      justifyContent="space-evenly"
-      alignItems="center"
-      h="100%"
-      m={4}
-      my={6}
-    >
-      <Box w={{ base: "90%", lg: "60vw" }} h={{ base: "50vh", lg: "80vh" }}>
-        <Editor
-          apiKey={import.meta.env.VITE_EDITOR_KEY}
-          onInit={(_evt, editor) => (editorRef.current = editor)}
-          initialValue={
-            (template && he.decode(template.content)) ||
-            "<p>Start writing...</p>"
-          }
-          init={editorConfig}
+    <>
+      <Helmet>
+        <title>Use Text Template - Apply Your Template to New Content</title>
+        <meta
+          name="description"
+          content="Easily use and apply your text templates to create new content. Customize and generate text based on your saved templates."
         />
-      </Box>
-
-      <VStack
-        w={{ base: "90%", lg: "30vw" }}
-        py={{
-          base: 4,
-          lg: 0,
-        }}
-        justifyContent="space-between"
-        alignItems="start"
+        <meta
+          name="keywords"
+          content="use text template, apply template, create content from template, generate text using template"
+        />
+        <meta
+          property="og:title"
+          content="Use Text Template - Apply Your Template to New Content"
+        />
+        <meta
+          property="og:description"
+          content="Easily use and apply your text templates to create new content. Customize and generate text based on your saved templates."
+        />
+        <meta property="og:image" content="/og-image.png" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+      <Flex
+        flexDirection={{ base: "column", lg: "row" }}
+        justifyContent="space-evenly"
+        alignItems="center"
+        h="100%"
+        m={4}
+        my={6}
       >
-        {/* Title */}
-        <Text fontWeight="bold" fontSize="xl">
-          {title}
-        </Text>
-        <Separator />
-        {/* List of placeholders */}
-        <HStack w="100%" justifyContent="space-between">
-          <Text fontSize="md" fontWeight="bold" h="30px">
-            Placeholder Tags:
-          </Text>
-          <IconButton
-            variant="outline"
-            onClick={onUsePlaceholdersHandler}
-            size="sm"
-          >
-            <FaCheck />
-          </IconButton>
-        </HStack>
-        <Box w="100%" h="calc(80vh - 180px)">
-          <VStack
-            gap={4}
-            w="100%"
-            scrollbar="hidden"
-            overflowY="scroll"
-            h="100%"
-            pb={2}
-          >
-            {placeholders.map((placeholder, index) => (
-              <Field key={index} label={placeholder.tag} w="100%">
-                <InputGroup flex="1" w="100%">
-                  <Textarea
-                    w="100%"
-                    placeholder={placeholder.defaultText}
-                    value={placeholder.defaultText}
-                    textWrap="wrap"
-                    onChange={(e) =>
-                      updatePlaceholder(index, {
-                        defaultText: e.target.value,
-                      })
-                    }
-                  />
-                </InputGroup>
-              </Field>
-            ))}
-          </VStack>
+        <Box w={{ base: "90%", lg: "60vw" }} h={{ base: "50vh", lg: "80vh" }}>
+          <Editor
+            apiKey={import.meta.env.VITE_EDITOR_KEY}
+            onInit={(_evt, editor) => (editorRef.current = editor)}
+            initialValue={
+              (template && he.decode(template.content)) ||
+              "<p>Start writing...</p>"
+            }
+            init={editorConfig}
+          />
         </Box>
-        <Separator />
 
-        {/* Dialog to add new placeholder */}
-        <HStack w="100%">
-          <Button variant="surface" flex="1" onClick={printContent}>
-            Export
-          </Button>
-          <Button flex="1" onClick={copyToClipboard}>
-            Copy
-          </Button>
-        </HStack>
-      </VStack>
-    </Flex>
+        <VStack
+          w={{ base: "90%", lg: "30vw" }}
+          py={{
+            base: 4,
+            lg: 0,
+          }}
+          justifyContent="space-between"
+          alignItems="start"
+        >
+          {/* Title */}
+          <Text fontWeight="bold" fontSize="xl">
+            {title}
+          </Text>
+          <Separator />
+          {/* List of placeholders */}
+          <HStack w="100%" justifyContent="space-between">
+            <Text fontSize="md" fontWeight="bold" h="30px">
+              Placeholder Tags:
+            </Text>
+            <IconButton
+              variant="outline"
+              onClick={onUsePlaceholdersHandler}
+              size="sm"
+            >
+              <FaCheck />
+            </IconButton>
+          </HStack>
+          <Box w="100%" h="calc(80vh - 180px)">
+            <VStack
+              gap={4}
+              w="100%"
+              scrollbar="hidden"
+              overflowY="scroll"
+              h="100%"
+              pb={2}
+            >
+              {placeholders.map((placeholder, index) => (
+                <Field key={index} label={placeholder.tag} w="100%">
+                  <InputGroup flex="1" w="100%">
+                    <Textarea
+                      w="100%"
+                      placeholder={placeholder.defaultText}
+                      value={placeholder.defaultText}
+                      textWrap="wrap"
+                      onChange={(e) =>
+                        updatePlaceholder(index, {
+                          defaultText: e.target.value,
+                        })
+                      }
+                    />
+                  </InputGroup>
+                </Field>
+              ))}
+            </VStack>
+          </Box>
+          <Separator />
+
+          {/* Dialog to add new placeholder */}
+          <HStack w="100%">
+            <Button variant="surface" flex="1" onClick={printContent}>
+              Export
+            </Button>
+            <Button flex="1" onClick={copyToClipboard}>
+              Copy
+            </Button>
+          </HStack>
+        </VStack>
+      </Flex>
+    </>
   );
 };
 
