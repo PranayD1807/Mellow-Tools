@@ -22,6 +22,8 @@ import { RootState } from "@/store/store";
 import Logo from "./Logo";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoChevronBackOutline } from "react-icons/io5";
+import { Link } from "react-router-dom";
+import { GiDeathcab } from "react-icons/gi";
 
 const Header = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
@@ -89,6 +91,13 @@ const Header = () => {
               <FiLogOut />
               Log Out
             </Button>
+          )}
+          {location.pathname == "/" && (
+            <Link to="/auth">
+              <Button variant="solid" h={10} onClick={handleLogout}>
+                <GiDeathcab /> Get Started
+              </Button>
+            </Link>
           )}
         </HStack>
       )}

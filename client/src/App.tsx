@@ -21,6 +21,7 @@ import UseTextTemplate from "./pages/text-template/UseTextTemplate";
 import "./App.css";
 import "./Scrollbar.css";
 import JobTracker from "./pages/job-tracker/JobTracker";
+import LandingPage from "./pages/landing/LandingPage";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component
@@ -40,7 +41,11 @@ const ProtectedRoute = ({ component }: PrivateRouteProps) => {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<AppLayout />} errorElement={<NotFound />}>
-      <Route index element={<ProtectedRoute component={<Dashboard />} />} />
+      <Route
+        path="dashboard"
+        element={<ProtectedRoute component={<Dashboard />} />}
+      />
+      <Route index element={<LandingPage />} />
       <Route path="auth" element={<Auth />} />
       <Route path="text-templates">
         <Route
