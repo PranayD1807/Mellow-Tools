@@ -86,15 +86,15 @@ const Header = () => {
       ) : (
         <HStack gap={4}>
           <ColorModeButton variant="outline" h={10} w={10} />
-          {isLoggedIn && (
+          {isLoggedIn && location.pathname != "/" && (
             <Button variant="outline" h={10} onClick={handleLogout}>
               <FiLogOut />
               Log Out
             </Button>
           )}
           {location.pathname == "/" && (
-            <Link to="/auth">
-              <Button variant="solid" h={10} onClick={handleLogout}>
+            <Link to={isLoggedIn ? "/dashboard" : "/auth"}>
+              <Button variant="solid" h={10}>
                 <GiDeathcab /> Get Started
               </Button>
             </Link>

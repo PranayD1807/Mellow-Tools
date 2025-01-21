@@ -19,7 +19,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [isLoggedIn, navigate]);
 
