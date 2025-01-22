@@ -345,7 +345,15 @@ const LandingPage = () => {
           </Text>
           <Separator opacity={0.6} my={4} />
         </VStack>
-        <HStack justifyContent="space-between" w="80%">
+        <Flex
+          justifyContent="space-between"
+          w="80%"
+          gap={4}
+          direction={{
+            base: "column",
+            md: "row",
+          }}
+        >
           <Text color="bg" fontSize="sm" opacity={0.6}>
             © 2025 Pranay Dhongade. All rights reserved.
           </Text>
@@ -361,7 +369,7 @@ const LandingPage = () => {
               </Text>
             </Link>
           </Text>
-        </HStack>
+        </Flex>
       </Flex>
     </Flex>
   );

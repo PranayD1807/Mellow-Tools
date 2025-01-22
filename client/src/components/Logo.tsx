@@ -8,26 +8,24 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({ invert = false }) => {
   return (
-    <Box>
-      <Link to="/dashboard">
-        <Text
-          fontSize="3xl"
-          fontFamily="'Cherry Bomb One', cursive"
-          textAlign="center"
-          alignItems="center"
-          display="flex"
-          color={invert ? "bg" : "bg.inverted"}
-        >
-          <SiRetool
-            style={{
-              display: "inline",
-              margin: "0px 15px 0px 0px",
-            }}
-          />
-          Mellow Tools
-        </Text>
-      </Link>
-    </Box>
+    <Link to="/dashboard">
+      <Text
+        fontSize="3xl"
+        fontFamily="'Cherry Bomb One', cursive"
+        textAlign="center"
+        alignItems="center"
+        display="flex"
+        color={invert ? "bg" : "bg.inverted"}
+      >
+        <SiRetool
+          style={{
+            display: "inline",
+            margin: "0px 15px 0px 0px",
+          }}
+        />
+        Mellow Tools
+      </Text>
+    </Link>
   );
 };
 
