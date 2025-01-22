@@ -22,6 +22,8 @@ import { RootState } from "@/store/store";
 import Logo from "./Logo";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoChevronBackOutline } from "react-icons/io5";
+import { Link } from "react-router-dom";
+import { GiDeathcab } from "react-icons/gi";
 
 const Header = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
@@ -84,11 +86,18 @@ const Header = () => {
       ) : (
         <HStack gap={4}>
           <ColorModeButton variant="outline" h={10} w={10} />
-          {isLoggedIn && (
+          {isLoggedIn && location.pathname != "/" && (
             <Button variant="outline" h={10} onClick={handleLogout}>
               <FiLogOut />
               Log Out
             </Button>
+          )}
+          {location.pathname == "/" && (
+            <Link to={isLoggedIn ? "/dashboard" : "/auth"}>
+              <Button variant="solid" h={10} borderRadius="3xl">
+                <GiDeathcab /> Get Started
+              </Button>
+            </Link>
           )}
         </HStack>
       )}
