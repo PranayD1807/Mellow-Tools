@@ -12,6 +12,18 @@
 			1.00
 		</priority>
 	</url>
+	<!-- dashboard -->
+	<url>
+		<loc>
+			https://mellow-tools.vercel.app/dashboard
+		</loc>
+		<lastmod>
+			2025-01-21
+		</lastmod>
+		<priority>
+			1.00
+		</priority>
+	</url>
 	<!-- Auth pages -->
 	<url>
 		<loc>

@@ -1,13 +1,31 @@
-import { Box, Image } from "@chakra-ui/react";
+import { Text } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
+import { SiRetool } from "react-icons/si";
 
-const Logo: React.FC = () => {
+interface LogoProps {
+  invert?: boolean;
+}
+
+const Logo: React.FC<LogoProps> = ({ invert = false }) => {
   return (
-    <Box>
-      <Link to="/">
-        <Image src="/logo.png" alt="Logo" h="40px"></Image>
-      </Link>
-    </Box>
+    <Link to="/dashboard">
+      <Text
+        fontSize="3xl"
+        fontFamily="'Cherry Bomb One', cursive"
+        textAlign="center"
+        alignItems="center"
+        display="flex"
+        color={invert ? "bg" : "bg.inverted"}
+      >
+        <SiRetool
+          style={{
+            display: "inline",
+            margin: "0px 15px 0px 0px",
+          }}
+        />
+        Mellow Tools
+      </Text>
+    </Link>
   );
 };
 
