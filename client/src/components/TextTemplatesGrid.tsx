@@ -54,7 +54,6 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
               </Text>
 
               <Text fontSize="sm">
-                Last updated on{" "}
                 {new Date(template.updatedAt).toLocaleDateString("en-US", {
                   day: "2-digit",
                   month: "long",
