@@ -8,7 +8,6 @@ const ContributeCard = () => {
       boxShadow="lg"
       p={6}
       w={{ base: "80%", md: "60%" }}
-      bg="white"
       mb={6}
       gap={6}
       _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
