@@ -8,6 +8,7 @@ import {
   Image,
   Separator,
   Text,
+  VStack,
 } from "@chakra-ui/react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import { useSelector } from "react-redux";
@@ -15,6 +16,9 @@ import { Link } from "react-router-dom";
 import { GiClockwork } from "react-icons/gi";
 import { BiCodeBlock } from "react-icons/bi";
 import { AiOutlineBlock } from "react-icons/ai";
+import { Avatar } from "@/components/ui/avatar";
+import ContributeCard from "@/components/ContributeCard";
+import Logo from "@/components/Logo";
 
 const bulletPoints = [
   {
@@ -34,6 +38,27 @@ const bulletPoints = [
     description:
       "Peek under the hood, tweak it, or make it your own—this is tech for everyone to build on.",
     icon: <BiCodeBlock />,
+  },
+];
+
+const testimonials = [
+  {
+    username: "John Doe",
+    content:
+      "This tool made my workflow a breeze. 🙌🔥 I can finally focus on the big picture instead of getting stuck in the small tasks. I feel like a productivity superhero now! 🦸‍♂️💪",
+    avatar: "https://randomuser.me/api/portraits/men/10.jpg",
+  },
+  {
+    username: "Jane Smith",
+    content:
+      "This is a total game changer! 🎮✨ It saved me HOURS of work that I would've otherwise spent struggling with spreadsheets. Now, I can breeze through my tasks like a pro. 😎👌 Would definitely recommend it to everyone! 🙏",
+    avatar: "https://randomuser.me/api/portraits/women/12.jpg",
+  },
+  {
+    username: "Alex Johnson",
+    content:
+      "Honestly, this is the best tool I've ever used for streamlining my work. 🚀💻 It’s simple, intuitive, and SO fast. No more wasting time on complicated setups. Now I just get things done. ✅💯",
+    avatar: "https://randomuser.me/api/portraits/men/15.jpg",
   },
 ];
 
@@ -92,10 +117,19 @@ const LandingPage = () => {
           <FaLongArrowAltDown />
         </Text>
       </Flex>
+      {/* Bullet points */}
       <Flex gap={10} p={6} px={12} direction={{ base: "column", md: "row" }}>
         {/* Bullet Points */}
         {bulletPoints.map((point, index) => (
-          <Box flex={1} key={index} borderRadius="xl" boxShadow="md" p={6}>
+          <Box
+            flex={1}
+            key={index}
+            borderRadius="xl"
+            boxShadow="md"
+            p={6}
+            transition="all 0.3s ease"
+            _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+          >
             <HStack>
               <Icon boxSize={10} mr={4}>
                 {point.icon}
@@ -111,6 +145,7 @@ const LandingPage = () => {
           </Box>
         ))}
       </Flex>
+      {/* Some text */}
       <Text
         mb={10}
         mt={20}
@@ -136,6 +171,7 @@ const LandingPage = () => {
         p={8}
         alignItems="center"
         mt={8}
+        bg="bg.subtle"
       >
         <Text
           fontSize="3xl"
@@ -161,6 +197,8 @@ const LandingPage = () => {
           borderRadius="xl"
           src="/text-templates-preview.png"
           w="80%"
+          _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+          transition="all 0.3s ease"
           alt="text templates preview"
         />
       </Flex>
@@ -186,6 +224,7 @@ const LandingPage = () => {
         direction="column"
         p={8}
         alignItems="center"
+        bg="bg.subtle"
         mt={8}
       >
         <Text
@@ -213,8 +252,116 @@ const LandingPage = () => {
           borderRadius="xl"
           src="/notes-preview.png"
           w="80%"
+          _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+          transition="all 0.3s ease"
           alt="text notes preview"
         />
+      </Flex>
+
+      {/* Testimonials */}
+      <Flex
+        w="80%"
+        my={40}
+        gap={10}
+        direction={{
+          base: "column",
+          md: "row",
+        }}
+      >
+        <VStack py={8} justifyContent="center" flex={4}>
+          <Text
+            fontSize="3xl"
+            fontWeight="bold"
+            fontFamily="Inter"
+            textAlign="center"
+          >
+            Don't Take Our Word for It…
+          </Text>
+          <Text mt={2} opacity={0.6} fontSize="xl" p={2} textAlign="center">
+            "Okay, okay, we get it. You've seen a million testimonials like
+            these, right? 😅 But hey, maybe these might just be real... or maybe
+            they're as fictional as that perfect pizza delivery time. 🍕 But who
+            needs to be serious all the time? Enjoy the laughs and see what we
+            think of the tools—whether it's real or not, we're here to keep it
+            fun! 😎"
+          </Text>
+        </VStack>
+        <VStack flex={5}>
+          {testimonials.map((el, index) => (
+            <Box
+              key={index}
+              borderRadius="lg"
+              boxShadow="md"
+              bg={index == 1 ? "bg.inverted" : ""}
+              p={6}
+              mb={4}
+              _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+              transition="all 0.3s ease"
+            >
+              <HStack gap={4} alignItems="stretch">
+                <Avatar src={el.avatar} size="md" />
+                <VStack align="start">
+                  <Text
+                    fontWeight="bold"
+                    fontSize="lg"
+                    color={index == 1 ? "bg" : ""}
+                  >
+                    {el.username}
+                  </Text>
+                  <Text
+                    fontSize="sm"
+                    color={index == 1 ? "bg" : ""}
+                    opacity={0.6}
+                  >
+                    {el.content}
+                  </Text>
+                </VStack>
+              </HStack>
+            </Box>
+          ))}
+        </VStack>
+      </Flex>
+
+      {/* Contribute */}
+
+      <ContributeCard />
+
+      {/* Footer */}
+      <Flex
+        mt={10}
+        w="100%"
+        bg="bg.inverted"
+        py={10}
+        justifyContent="center"
+        alignItems="center"
+        direction="column"
+      >
+        <VStack alignItems="start" w="80%">
+          <Logo invert={true} />
+          <Text color="bg">
+            Mellow Tools - A collection of friendly, useful tools like text
+            templates, notes, and more to enhance your productivity
+            effortlessly.
+          </Text>
+          <Separator opacity={0.6} my={4} />
+        </VStack>
+        <HStack justifyContent="space-between" w="80%">
+          <Text color="bg" fontSize="sm" opacity={0.6}>
+            © 2025 Pranay Dhongade. All rights reserved.
+          </Text>
+          <Text color="bg" fontSize="sm">
+            {"Made with ❤️ by "}
+            <Link
+              to="https://pranaydhongade.site/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Text as="span" textDecoration="underline">
+                Pranay Dhongade
+              </Text>
+            </Link>
+          </Text>
+        </HStack>
       </Flex>
     </Flex>
   );
