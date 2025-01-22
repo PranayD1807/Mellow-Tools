@@ -94,7 +94,7 @@ const Header = () => {
           )}
           {location.pathname == "/" && (
             <Link to={isLoggedIn ? "/dashboard" : "/auth"}>
-              <Button variant="solid" h={10}>
+              <Button variant="solid" h={10} borderRadius="3xl">
                 <GiDeathcab /> Get Started
               </Button>
             </Link>
