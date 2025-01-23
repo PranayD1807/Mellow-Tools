@@ -149,11 +149,12 @@ const LandingPage = () => {
       <Text
         mb={10}
         mt={20}
-        fontSize="2xl"
+        fontSize={{ base: "lg", md: "2xl" }}
         textDecoration="underline"
         textDecorationColor="bg.emphasized"
         textDecorationThickness="0.5"
         opacity={0.6}
+        w="80%"
       >
         Check out the amazing
         <Text as="span" fontWeight="bold">
@@ -196,7 +197,7 @@ const LandingPage = () => {
           boxShadow="md"
           borderRadius="xl"
           src="/text-templates-preview.png"
-          w="80%"
+          w={{ md: "80%", base: "100%" }}
           _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
           transition="all 0.3s ease"
           alt="text templates preview"
@@ -251,7 +252,7 @@ const LandingPage = () => {
           boxShadow="md"
           borderRadius="xl"
           src="/notes-preview.png"
-          w="80%"
+          w={{ md: "80%", base: "100%" }}
           _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
           transition="all 0.3s ease"
           alt="text notes preview"
