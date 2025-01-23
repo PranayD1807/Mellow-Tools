@@ -79,5 +79,38 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Function to detect if devtools are open
+      const detectDevTools = () => {
+        let isOpen = false;
+
+        // Add an event listener to catch devtools open/close
+        const devtoolsListener = () => {
+          if (isOpen || !document.documentElement) return;
+          isOpen = true;
+
+          console.log(
+            "%c⚠️ Attention! ⚠️ We kindly ask you not to tamper with our website. 🙏 If you're interested in contributing or viewing the source code, check it out here: 🌐 https://github.com/PranayD1807/Mellow-Tools",
+            "color: white; background-color: green; font-size: 16px; padding: 10px; border-radius: 5px;"
+          );
+        };
+
+        // Set interval to check for devtools status
+        setInterval(() => {
+          if (
+            (window.Firebug &&
+              window.Firebug.chrome &&
+              window.Firebug.chrome.isInitialized) ||
+            window.outerWidth - window.innerWidth > 100 ||
+            window.outerHeight - window.innerHeight > 100
+          ) {
+            devtoolsListener();
+          }
+        }, 1000);
+      };
+
+      // Call the function to start detecting devtools
+      detectDevTools();
+    </script>
   </body>
 </html>
