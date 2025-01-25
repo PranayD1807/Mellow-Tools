@@ -17,6 +17,7 @@ import BookmarkDialog from "./BookmarkDialog";
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "./ui/menu";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { Avatar } from "./ui/avatar";
+import { Tooltip } from "./ui/tooltip";
 
 interface BookmarksGridProps {
   bookmarks: Bookmark[];
@@ -45,32 +46,34 @@ const BookmarksGrid: React.FC<BookmarksGridProps> = ({
           p={2}
           _hover={{ "& > button": { opacity: 1 } }}
         >
-          <VStack
-            gap={{ base: 2, md: 2 }}
-            w="full"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Avatar
-              name={bookmark.label}
-              size={{ base: "xl", md: "2xl" }}
-              src={bookmark.logoUrl}
-            />
+          <Tooltip content={bookmark.note} disabled={!bookmark.note}>
+            <VStack
+              gap={{ base: 2, md: 2 }}
+              w="full"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Avatar
+                name={bookmark.label}
+                size={{ base: "xl", md: "2xl" }}
+                src={bookmark.logoUrl}
+              />
 
-            <LinkOverlay href={bookmark.url} target="_blank">
-              <Text
-                fontSize={{ base: "xs", lg: "sm" }}
-                overflow="hidden"
-                textOverflow="ellipsis"
-                w={{ base: "90px", md: "120px" }}
-                fontWeight="semibold"
-                textAlign="center"
-                truncate
-              >
-                {bookmark.label}
-              </Text>
-            </LinkOverlay>
-          </VStack>
+              <LinkOverlay href={bookmark.url} target="_blank">
+                <Text
+                  fontSize={{ base: "xs", lg: "sm" }}
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  w={{ base: "90px", md: "120px" }}
+                  fontWeight="semibold"
+                  textAlign="center"
+                  truncate
+                >
+                  {bookmark.label}
+                </Text>
+              </LinkOverlay>
+            </VStack>
+          </Tooltip>
 
           {/* Right: Menu */}
           <MenuRoot>

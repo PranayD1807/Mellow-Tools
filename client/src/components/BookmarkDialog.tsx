@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { HStack, VStack, Input } from "@chakra-ui/react";
+import { HStack, VStack, Input, Textarea } from "@chakra-ui/react";
 import { Button } from "@/components/ui/button";
 import {
   DialogActionTrigger,
@@ -121,7 +121,7 @@ const BookmarkDialog: React.FC<BookmarkDialogProps> = ({
 
                     {/* Note Field - Removed */}
 
-                    {/* <Field
+                    <Field
                       label="Note (Optional)"
                       errorText={errors.note}
                       invalid={touched.note && !!errors.note}
@@ -134,7 +134,7 @@ const BookmarkDialog: React.FC<BookmarkDialogProps> = ({
                         onChange={handleChange}
                         value={values.note || ""}
                       />
-                    </Field> */}
+                    </Field>
 
                     <DialogFooter justifyContent="flex-end" w="100%">
                       <DialogActionTrigger asChild>
