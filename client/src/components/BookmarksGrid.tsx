@@ -51,7 +51,11 @@ const BookmarksGrid: React.FC<BookmarksGridProps> = ({
             alignItems="center"
             justifyContent="center"
           >
-            <Avatar size={{ base: "xl", md: "2xl" }} src={bookmark.logoUrl} />
+            <Avatar
+              name={bookmark.label}
+              size={{ base: "xl", md: "2xl" }}
+              src={bookmark.logoUrl}
+            />
 
             <LinkOverlay href={bookmark.url} target="_blank">
               <Text
