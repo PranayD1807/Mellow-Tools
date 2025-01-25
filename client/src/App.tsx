@@ -22,6 +22,7 @@ import "./App.css";
 import "./Scrollbar.css";
 import JobTracker from "./pages/job-tracker/JobTracker";
 import LandingPage from "./pages/landing/LandingPage";
+import Bookmarks from "./pages/bookmarks/Bookmarks";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component
@@ -67,6 +68,10 @@ const router = createBrowserRouter(
         />
       </Route>
       <Route path="notes" element={<ProtectedRoute component={<Notes />} />} />
+      <Route
+        path="bookmarks"
+        element={<ProtectedRoute component={<Bookmarks />} />}
+      />
       <Route
         path="job-tracker"
         element={<ProtectedRoute component={<JobTracker />} />}

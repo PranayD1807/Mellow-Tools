@@ -10,7 +10,7 @@ const Logo: React.FC<LogoProps> = ({ invert = false }) => {
   return (
     <Link to="/dashboard">
       <Text
-        fontSize="3xl"
+        fontSize={{ md: "3xl", base: "lg" }}
         fontFamily="'Cherry Bomb One', cursive"
         textAlign="center"
         alignItems="center"

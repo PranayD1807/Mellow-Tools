@@ -8,10 +8,12 @@ import catchAsync from "../utils/catchAsync.js";
 import textTemplateRoutes from "./textTemplate.routes.js";
 import authRoutes from "./auth.routes.js";
 import noteRoutes from "./note.routes.js"
+import bookmarkRoutes from "./bookmark.routes.js"
 
 router.use("/auth", authRoutes);
 router.use("/text-templates", verifyJWT, textTemplateRoutes);
 router.use("/notes", verifyJWT, noteRoutes);
+router.use("/bookmarks", verifyJWT, bookmarkRoutes);
 
 // All routes
 router.all("*", catchAsync((req, res, next) => {

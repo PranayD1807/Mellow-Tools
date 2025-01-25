@@ -154,6 +154,7 @@ const LandingPage = () => {
         textDecorationColor="bg.emphasized"
         textDecorationThickness="0.5"
         opacity={0.6}
+        textAlign="center"
         w="80%"
       >
         Check out the amazing
@@ -204,19 +205,6 @@ const LandingPage = () => {
         />
       </Flex>
 
-      {/* Hold up! */}
-      <Text
-        mb={10}
-        mt={20}
-        fontSize="2xl"
-        textDecoration="underline"
-        textDecorationColor="bg.emphasized"
-        textDecorationThickness="0.5"
-        opacity={0.6}
-      >
-        Hold up! There's more!
-      </Text>
-
       {/* Notes */}
       <Flex
         w="80%"
@@ -256,6 +244,62 @@ const LandingPage = () => {
           _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
           transition="all 0.3s ease"
           alt="text notes preview"
+        />
+      </Flex>
+
+      {/* Hold up! */}
+      <Text
+        mb={10}
+        mt={20}
+        fontSize="2xl"
+        textDecoration="underline"
+        textDecorationColor="bg.emphasized"
+        textDecorationThickness="0.5"
+        textAlign="center"
+        opacity={0.6}
+      >
+        Hold up! There's more!
+      </Text>
+
+      {/* Bookmarks */}
+      <Flex
+        w="80%"
+        borderRadius="xl"
+        boxShadow="md"
+        direction="column"
+        p={8}
+        alignItems="center"
+        bg="bg.subtle"
+        mt={8}
+      >
+        <Text
+          fontSize="3xl"
+          fontWeight="bold"
+          fontFamily="Inter"
+          w="80%"
+          textAlign="center"
+        >
+          Bookmarks
+        </Text>
+        <Text mt={2} opacity={0.6} fontSize="xl" w="80%" textAlign="center">
+          "Say goodbye to endless scrolling and lost links! With your bookmarks
+          in one beautifully organized place, every favorite site is just a
+          click away. No more chaos, no more searching—just seamless access to
+          everything you love, exactly where it belongs!"
+        </Text>
+        <Link to="/bookmarks">
+          <Button variant="subtle" h={10} m={8} borderRadius="3xl" px={8}>
+            Try it out!
+          </Button>
+        </Link>
+        <Image
+          boxShadow="md"
+          borderRadius="xl"
+          src="/bookmarks-preview.png"
+          w={{ md: "80%", base: "100%" }}
+          _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+          transition="all 0.3s ease"
+          alt="bookmarks preview"
         />
       </Flex>
 
