@@ -60,12 +60,12 @@ const textTemplateApi = {
   },
 
   create: async (
-    contactData: CreateTextTemplateData
+    data: CreateTextTemplateData
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
       const response = await privateClient.post<ApiResponse<TextTemplate>>(
         textTemplateEndpoints.create,
-        contactData
+        data
       );
 
       return {
@@ -79,13 +79,13 @@ const textTemplateApi = {
 
   update: async (
     id: string,
-    contactData: CreateTextTemplateData
+    data: CreateTextTemplateData
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
       const endpoint = textTemplateEndpoints.update.replace("{id}", id);
       const response = await privateClient.patch<ApiResponse<TextTemplate>>(
         endpoint,
-        contactData
+        data
       );
 
       return {

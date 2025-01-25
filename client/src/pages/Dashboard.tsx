@@ -25,6 +25,13 @@ const toolList: Tool[] = [
     endpoint: "/job-tracker",
     icon: "/job-tracker-logo.png",
   },
+  {
+    id: "bookmark",
+    label: "Bookmarks",
+    description: "Organize Your Favorite Links Effortlessly.",
+    endpoint: "/bookmarks",
+    icon: "/bookmark-logo.png",
+  },
 ];
 
 const Dashboard = () => {

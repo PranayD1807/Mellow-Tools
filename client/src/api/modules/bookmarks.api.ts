@@ -1,29 +1,33 @@
 import { ApiResponse } from "@/models/ApiResponse";
 import privateClient from "../client/private.client";
 import { handleApiError } from "../helper/error.helper";
-import { Note } from "@/models/note";
+import { Bookmark } from "@/models/Bookmark";
 
-const noteEndpoints = {
+const bookmarkEndpoints = {
   getAll: (query?: string) =>
     query
-      ? `notes?fields=-user&query=${encodeURIComponent(query)}`
-      : "notes?fields=-user",
-  create: "notes",
-  get: "notes/{id}",
-  update: "notes/{id}",
-  delete: "notes/{id}",
+      ? `bookmarks?fields=-user&query=${encodeURIComponent(query)}`
+      : "bookmarks?fields=-user",
+  create: "bookmarks",
+  get: "bookmarks/{id}",
+  update: "bookmarks/{id}",
+  delete: "bookmarks/{id}",
 };
 
-export interface CreateNoteData {
-  title: string;
-  text: string;
+export interface CreateBookmarkData {
+  label: string;
+  note?: string;
+  url: string;
+  logoUrl?: string;
 }
 
-const noteApi = {
-  getAll: async (query?: string): Promise<ApiResponse<Note[]>> => {
+const bookmarkApi = {
+  getAll: async (query?: string): Promise<ApiResponse<Bookmark[]>> => {
     try {
-      const endpoint = noteEndpoints.getAll(query);
-      const response = await privateClient.get<ApiResponse<Note[]>>(endpoint);
+      const endpoint = bookmarkEndpoints.getAll(query);
+      const response = await privateClient.get<ApiResponse<Bookmark[]>>(
+        endpoint
+      );
 
       return {
         status: response.data.status,
@@ -35,10 +39,10 @@ const noteApi = {
     }
   },
 
-  get: async (id: string): Promise<ApiResponse<Note | null>> => {
+  get: async (id: string): Promise<ApiResponse<Bookmark | null>> => {
     try {
-      const endpoint = noteEndpoints.get.replace("{id}", id);
-      const response = await privateClient.get<ApiResponse<Note>>(endpoint);
+      const endpoint = bookmarkEndpoints.get.replace("{id}", id);
+      const response = await privateClient.get<ApiResponse<Bookmark>>(endpoint);
 
       return {
         status: response.data.status,
@@ -49,10 +53,12 @@ const noteApi = {
     }
   },
 
-  create: async (data: CreateNoteData): Promise<ApiResponse<Note | null>> => {
+  create: async (
+    data: CreateBookmarkData
+  ): Promise<ApiResponse<Bookmark | null>> => {
     try {
-      const response = await privateClient.post<ApiResponse<Note>>(
-        noteEndpoints.create,
+      const response = await privateClient.post<ApiResponse<Bookmark>>(
+        bookmarkEndpoints.create,
         data
       );
 
@@ -67,11 +73,11 @@ const noteApi = {
 
   update: async (
     id: string,
-    data: CreateNoteData
-  ): Promise<ApiResponse<Note | null>> => {
+    data: CreateBookmarkData
+  ): Promise<ApiResponse<Bookmark | null>> => {
     try {
-      const endpoint = noteEndpoints.update.replace("{id}", id);
-      const response = await privateClient.patch<ApiResponse<Note>>(
+      const endpoint = bookmarkEndpoints.update.replace("{id}", id);
+      const response = await privateClient.patch<ApiResponse<Bookmark>>(
         endpoint,
         data
       );
@@ -87,7 +93,7 @@ const noteApi = {
 
   delete: async (id: string): Promise<ApiResponse<null>> => {
     try {
-      const endpoint = noteEndpoints.delete.replace("{id}", id);
+      const endpoint = bookmarkEndpoints.delete.replace("{id}", id);
       const response = await privateClient.delete<ApiResponse<null>>(endpoint);
 
       return {
@@ -100,4 +106,4 @@ const noteApi = {
   },
 };
 
-export default noteApi;
+export default bookmarkApi;

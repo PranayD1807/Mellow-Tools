@@ -20,7 +20,7 @@ const bookmarkSchema = new mongoose.Schema({
     },
     logoUrl: {
         type: String,
-        required: true,
+        default: "https://i.ibb.co/xhcQL9Y/website.png"
     },
 }, {
     ...modelOptions,
