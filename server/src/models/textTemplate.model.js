@@ -9,7 +9,7 @@ const textTemplateSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        requried: true,
+        required: true,
     },
     content: {
         type: String,
