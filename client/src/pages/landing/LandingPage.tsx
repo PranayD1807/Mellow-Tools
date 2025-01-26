@@ -5,7 +5,6 @@ import {
   Flex,
   HStack,
   Icon,
-  Image,
   Separator,
   Text,
   VStack,
@@ -19,6 +18,8 @@ import { AiOutlineBlock } from "react-icons/ai";
 import { Avatar } from "@/components/ui/avatar";
 import ContributeCard from "@/components/ContributeCard";
 import Logo from "@/components/Logo";
+import { showcaseInfo } from "@/models/ShowcaseInfo";
+import ShowcaseCard from "@/components/ShowcaseCard";
 
 const bulletPoints = [
   {
@@ -59,6 +60,33 @@ const testimonials = [
     content:
       "Honestly, this is the best tool I've ever used for streamlining my work. 🚀💻 It’s simple, intuitive, and SO fast. No more wasting time on complicated setups. Now I just get things done. ✅💯",
     avatar: "https://randomuser.me/api/portraits/men/15.jpg",
+  },
+];
+
+const showcaseInfos: showcaseInfo[] = [
+  {
+    title: "Text Templates",
+    link: "/text-templates",
+    previewImg: "/text-templates-preview.png",
+    imgAlt: "text templates preview",
+    description:
+      '"Easily create, update, and manage all your text templates in one spot. Keep everything organized and at your fingertips, so you never have to search for them again!"',
+  },
+  {
+    title: "Text Notes",
+    link: "/notes",
+    previewImg: "/notes-preview.png",
+    imgAlt: "text notes preview",
+    description:
+      '"Keep all your text notes in one spot, organized, and easy to find. No more digging through random files — everything you need is just a tap away, right where it should be!"',
+  },
+  {
+    title: "Bookmarks",
+    link: "/bookmarks",
+    previewImg: "/bookmarks-preview.png",
+    imgAlt: "bookmarks preview",
+    description:
+      '"Say goodbye to endless scrolling and lost links! With your bookmarks in one beautifully organized place, every favorite site is just a click away. No more chaos, no more searching—just seamless access to everything you love!"',
   },
 ];
 
@@ -134,7 +162,7 @@ const LandingPage = () => {
               <Icon boxSize={10} mr={4}>
                 {point.icon}
               </Icon>
-              <Text fontWeight="bold" fontSize="xl">
+              <Text fontWeight="bold" fontSize={{ base: "lg", md: "xl" }}>
                 {point.label}
               </Text>
             </HStack>
@@ -165,93 +193,16 @@ const LandingPage = () => {
       </Text>
 
       {/* Text Template */}
-      <Flex
-        w="80%"
-        borderRadius="xl"
-        boxShadow="md"
-        direction="column"
-        p={8}
-        alignItems="center"
-        mt={8}
-        bg="bg.subtle"
-      >
-        <Text
-          fontSize="3xl"
-          fontWeight="bold"
-          fontFamily="Inter"
-          w="80%"
-          textAlign="center"
-        >
-          Text Templates
-        </Text>
-        <Text mt={2} opacity={0.6} fontSize="xl" w="80%" textAlign="center">
-          "Easily create, update, and manage all your text templates in one
-          spot. Keep everything organized and at your fingertips, so you never
-          have to search for them again!"
-        </Text>
-        <Link to="/text-templates">
-          <Button variant="subtle" h={10} m={8} borderRadius="3xl" px={8}>
-            Try it out!
-          </Button>
-        </Link>
-        <Image
-          boxShadow="md"
-          borderRadius="xl"
-          src="/text-templates-preview.png"
-          w={{ md: "80%", base: "100%" }}
-          _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
-          transition="all 0.3s ease"
-          alt="text templates preview"
-        />
-      </Flex>
+      <ShowcaseCard info={showcaseInfos[0]} />
 
       {/* Notes */}
-      <Flex
-        w="80%"
-        borderRadius="xl"
-        boxShadow="md"
-        direction="column"
-        p={8}
-        alignItems="center"
-        bg="bg.subtle"
-        mt={8}
-      >
-        <Text
-          fontSize="3xl"
-          fontWeight="bold"
-          fontFamily="Inter"
-          w="80%"
-          textAlign="center"
-        >
-          Text Notes
-        </Text>
-        <Text mt={2} opacity={0.6} fontSize="xl" w="80%" textAlign="center">
-          "We know you've been needing this! Keep all your text notes in one
-          spot, organized, and easy to find. No more digging through random
-          files — everything you need is just a tap away, right where it should
-          be!"
-        </Text>
-        <Link to="/notes">
-          <Button variant="subtle" h={10} m={8} borderRadius="3xl" px={8}>
-            Try it out!
-          </Button>
-        </Link>
-        <Image
-          boxShadow="md"
-          borderRadius="xl"
-          src="/notes-preview.png"
-          w={{ md: "80%", base: "100%" }}
-          _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
-          transition="all 0.3s ease"
-          alt="text notes preview"
-        />
-      </Flex>
+      <ShowcaseCard info={showcaseInfos[1]} />
 
       {/* Hold up! */}
       <Text
         mb={10}
         mt={20}
-        fontSize="2xl"
+        fontSize={{ base: "lg", md: "2xl" }}
         textDecoration="underline"
         textDecorationColor="bg.emphasized"
         textDecorationThickness="0.5"
@@ -262,46 +213,7 @@ const LandingPage = () => {
       </Text>
 
       {/* Bookmarks */}
-      <Flex
-        w="80%"
-        borderRadius="xl"
-        boxShadow="md"
-        direction="column"
-        p={8}
-        alignItems="center"
-        bg="bg.subtle"
-        mt={8}
-      >
-        <Text
-          fontSize="3xl"
-          fontWeight="bold"
-          fontFamily="Inter"
-          w="80%"
-          textAlign="center"
-        >
-          Bookmarks
-        </Text>
-        <Text mt={2} opacity={0.6} fontSize="xl" w="80%" textAlign="center">
-          "Say goodbye to endless scrolling and lost links! With your bookmarks
-          in one beautifully organized place, every favorite site is just a
-          click away. No more chaos, no more searching—just seamless access to
-          everything you love, exactly where it belongs!"
-        </Text>
-        <Link to="/bookmarks">
-          <Button variant="subtle" h={10} m={8} borderRadius="3xl" px={8}>
-            Try it out!
-          </Button>
-        </Link>
-        <Image
-          boxShadow="md"
-          borderRadius="xl"
-          src="/bookmarks-preview.png"
-          w={{ md: "80%", base: "100%" }}
-          _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
-          transition="all 0.3s ease"
-          alt="bookmarks preview"
-        />
-      </Flex>
+      <ShowcaseCard info={showcaseInfos[2]} />
 
       {/* Testimonials */}
       <Flex

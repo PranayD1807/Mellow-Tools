@@ -34,7 +34,13 @@ const BookmarksGrid: React.FC<BookmarksGridProps> = ({
   handleUpdateBookmark,
 }) => {
   return (
-    <Flex wrap="wrap" gap={5} p={4} justify="start" w="full">
+    <Flex
+      wrap="wrap"
+      gap={5}
+      p={4}
+      justify={{ base: "center", md: "start" }}
+      w="full"
+    >
       {bookmarks.map((bookmark) => (
         <LinkBox
           as={Flex}

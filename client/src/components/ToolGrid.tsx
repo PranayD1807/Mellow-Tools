@@ -6,11 +6,11 @@ import {
   HStack,
   VStack,
   IconButton,
-  Box,
+  LinkBox,
+  LinkOverlay,
 } from "@chakra-ui/react";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { Tool } from "@/models/Tool";
-import { Link } from "react-router-dom";
 
 interface ToolGridProps {
   tools: Tool[];
@@ -30,7 +30,7 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
       p={4}
     >
       {tools.map((tool) => (
-        <Box
+        <LinkBox
           border="1px"
           borderRadius="xl"
           boxShadow="md"
@@ -43,30 +43,32 @@ const ToolGrid: React.FC<ToolGridProps> = ({ tools: tools }) => {
             <Image
               src={tool.icon}
               alt={tool.label}
-              boxSize="80px"
+              boxSize={{ base: "60px", md: "80px" }}
               objectFit="contain"
               borderRadius="xl"
             />
             <VStack justifyContent="start" gap={1} w="100%" alignItems="start">
               <HStack gap={6} justifyContent="space-between" w="100%">
                 {/* Tool Label */}
-                <Text fontSize="xl" fontWeight="bold">
+                <Text fontSize={{ base: "md", md: "xl" }} fontWeight="bold">
                   {tool.label}
                 </Text>
 
                 {/* Tool Endpoint */}
                 {/* Update IconButton to use a Link */}
-                <Link to={tool.endpoint}>
+                <LinkOverlay href={tool.endpoint}>
                   <IconButton variant="surface" size="2xs" aria-label="Visit">
                     <FaExternalLinkAlt />
                   </IconButton>
-                </Link>
+                </LinkOverlay>
               </HStack>
               {/* Tool Description */}
-              <Text fontSize="sm">{tool.description}</Text>
+              <Text fontSize={{ base: "xs", md: "sm" }}>
+                {tool.description}
+              </Text>
             </VStack>
           </HStack>
-        </Box>
+        </LinkBox>
       ))}
     </Grid>
   );
