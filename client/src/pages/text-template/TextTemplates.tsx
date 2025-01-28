@@ -1,4 +1,5 @@
 import textTemplateApi from "@/api/modules/textTemplates.api";
+import NoItems from "@/components/NoItems";
 import TextTemplatesGrid from "@/components/TextTemplatesGrid";
 import { Button } from "@/components/ui/button";
 import { TextTemplate } from "@/models/TextTemplate";
@@ -158,12 +159,13 @@ const TextTemplates = () => {
             </VStack>
           </Flex>
         )}
-        {!loading && (
+        {!loading && templates.length != 0 && (
           <TextTemplatesGrid
             templates={templates}
             handleDeleteTemplate={handleDelete}
           />
         )}
+        {!loading && templates.length === 0 && <NoItems text="templates" />}
       </Flex>
     </>
   );

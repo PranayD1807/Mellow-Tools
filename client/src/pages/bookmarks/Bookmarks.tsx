@@ -1,6 +1,7 @@
 import bookmarkApi, { CreateBookmarkData } from "@/api/modules/bookmarks.api";
 import BookmarkDialog from "@/components/BookmarkDialog";
 import BookmarksGrid from "@/components/BookmarksGrid";
+import NoItems from "@/components/NoItems";
 import { Button } from "@/components/ui/button";
 import { Bookmark } from "@/models/Bookmark";
 import {
@@ -213,13 +214,14 @@ const Bookmarks = () => {
             </VStack>
           </Flex>
         )}
-        {!loading && (
+        {!loading && bookmarks.length != 0 && (
           <BookmarksGrid
             handleUpdateBookmark={handleUpdate}
             bookmarks={bookmarks}
             handleDeleteBookmark={handleDelete}
           />
         )}
+        {!loading && bookmarks.length === 0 && <NoItems text="bookmarks" />}
       </Flex>
     </>
   );

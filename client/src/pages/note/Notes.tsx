@@ -1,4 +1,5 @@
 import noteApi from "@/api/modules/note.api";
+import NoItems from "@/components/NoItems";
 import NoteDialog from "@/components/NoteDialog";
 import NotesGrid from "@/components/NotesGrid";
 import { Button } from "@/components/ui/button";
@@ -190,13 +191,14 @@ const Notes = () => {
             </VStack>
           </Flex>
         )}
-        {!loading && (
+        {!loading && notes.length != 0 && (
           <NotesGrid
             handleUpdateNote={handleUpdateNote}
             notes={notes}
             handleDeleteNote={handleDelete}
           />
         )}
+        {!loading && notes.length === 0 && <NoItems text="notes" />}
       </Flex>
     </>
   );
