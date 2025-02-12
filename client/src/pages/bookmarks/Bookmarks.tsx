@@ -89,7 +89,7 @@ const Bookmarks = () => {
       if (res.status === "error") {
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
-        setBookmarks((prevItems) => [...prevItems, res.data!]);
+        setBookmarks((prevItems) => [res.data!, ...prevItems]);
         toast.success("Bookmark added successfully!");
       }
     } catch (error) {
