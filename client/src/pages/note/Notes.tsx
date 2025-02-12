@@ -71,7 +71,7 @@ const Notes = () => {
         // Handle error response
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
-        setNotes((prevItems) => [...prevItems, res.data!]);
+        setNotes((prevItems) => [ res.data!, ...prevItems]);
         toast.success("Note added successfully!");
       }
     } catch (error) {
