@@ -1,15 +1,8 @@
 # Mellow-Tools
 
-Simple but highly useful tools.
+Welcome to Mellow Tools - a platform crafted out of a passion for simplifying digital workflows. My goal is to provide intuitive, user-friendly tools that help developers, designers, and tech enthusiasts alike streamline their tasks, enhance productivity, and focus on what truly matters.
 
-- Text Templates: Easily write a template text and put some Placeholders in it. Add placeholder as variables and assign default values. assign value to variables and export the text, or copy paste it
-- Notes: Simple text notes
+This repository contains the complete code regarding Mellow Tools.
 
-Text Template:
-
-1. Add Template
-2. Update Template
-3. Use Template
-
-Login/Signup
-Notes: Simple editable text notes. 
+Visit 
+![Mellow Tools](https://mellow-tools.vercel.app/) for more details about the product.
