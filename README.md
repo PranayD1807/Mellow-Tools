@@ -5,4 +5,6 @@ Welcome to Mellow Tools - a platform crafted out of a passion for simplifying di
 This repository contains the complete code regarding Mellow Tools.
 
 Visit 
-![Mellow Tools](https://mellow-tools.vercel.app/) for more details about the product.
+[Mellow Tools](https://mellow-tools.vercel.app/) for more details about the product.
+
+The project is open source and any contributions are more than welcome.
