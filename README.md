@@ -32,7 +32,7 @@ NODE_ENV=
 TOKEN_SECRET=
 ```
 
-- `DATABASE` : MongoDB Query String with password field set as <PASSWORD>. 
+- `DATABASE` : MongoDB Query String with password field set as `<PASSWORD>`. 
 Ex: `mongodb+srv://demoUser:<PASSWORD>@cluster0.example.mongodb.net/?retryWrites=true&w=majority`
 - `MONGODB_PASSWORD` : MongoDB User Password 
 - `NODE_ENV` : PROD or DEV
