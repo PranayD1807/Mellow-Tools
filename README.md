@@ -37,3 +37,10 @@ Ex: `mongodb+srv://demoUser:<PASSWORD>@cluster0.example.mongodb.net/?retryWrites
 - `MONGODB_PASSWORD` : MongoDB User Password 
 - `NODE_ENV` : PROD or DEV
 - `TOKEN_SECRET` : Secret to generate jwt tokens. 
+
+## Run Project 
+
+1. `cd client` 
+2. `npm start`
+3. `cd ../server`
+4. `npm run dev`
