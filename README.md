@@ -20,8 +20,8 @@ VITE_ENV=
 VITE_EDITOR_KEY=
 ```
 
-- VITE_ENV : PROD or DEV
-- VITE_EDITOR_KEY : Tiny MCE Editor Key
+- `VITE_ENV` : PROD or DEV
+- `VITE_EDITOR_KEY` : Tiny MCE Editor Key
 
 2. /server/.env
 
@@ -32,8 +32,8 @@ NODE_ENV=
 TOKEN_SECRET=
 ```
 
-- DATABASE : MongoDB Query String with password field set as <PASSWORD>. 
-Ex: 'mongodb+srv://demoUser:<PASSWORD>@cluster0.example.mongodb.net/?retryWrites=true&w=majority'
-- MONGODB_PASSWORD : MongoDB User Password 
-- NODE_ENV : PROD or DEV
-- TOKEN_SECRET : Secret to generate jwt tokens. 
+- `DATABASE` : MongoDB Query String with password field set as <PASSWORD>. 
+Ex: `mongodb+srv://demoUser:<PASSWORD>@cluster0.example.mongodb.net/?retryWrites=true&w=majority`
+- `MONGODB_PASSWORD` : MongoDB User Password 
+- `NODE_ENV` : PROD or DEV
+- `TOKEN_SECRET` : Secret to generate jwt tokens. 
