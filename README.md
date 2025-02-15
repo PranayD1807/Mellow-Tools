@@ -4,14 +4,13 @@ Welcome to Mellow Tools - a platform crafted out of a passion for simplifying di
 
 This repository contains the complete code regarding Mellow Tools.
 
-Visit 
-[Mellow Tools](https://mellow-tools.vercel.app/) for more details about the product.
+Visit [Mellow Tools](https://mellow-tools.vercel.app/) for more details about the product.
 
 The project is open source and any contributions are more than welcome.
 
 ## SETUP
 
-Add the following variables 
+Add the following variables
 
 1. /client/.env
 
@@ -32,15 +31,15 @@ NODE_ENV=
 TOKEN_SECRET=
 ```
 
-- `DATABASE` : MongoDB Query String with password field set as `<PASSWORD>`. 
-Ex: `mongodb+srv://demoUser:<PASSWORD>@cluster0.example.mongodb.net/?retryWrites=true&w=majority`
-- `MONGODB_PASSWORD` : MongoDB User Password 
+- `DATABASE` : MongoDB Query String with password field set as `<PASSWORD>`.
+  Ex: `mongodb+srv://demoUser:<PASSWORD>@cluster0.example.mongodb.net/?retryWrites=true&w=majority`
+- `MONGODB_PASSWORD` : MongoDB User Password
 - `NODE_ENV` : PROD or DEV
-- `TOKEN_SECRET` : Secret to generate jwt tokens. 
+- `TOKEN_SECRET` : Secret to generate jwt tokens.
 
-## Run Project 
+## Run Project
 
-1. `cd client` 
-2. `npm start`
+1. `cd client`
+2. `npm run dev`
 3. `cd ../server`
-4. `npm run dev`
+4. `npm start`
