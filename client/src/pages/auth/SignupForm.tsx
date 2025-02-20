@@ -21,8 +21,8 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import userApi from "@/api/modules/user.api";
 import { login } from "@/store/userSlice";
-import Encryption from "@/api/helper/encryption.helper";
-import { LocalStorageHelper } from "@/api/helper/localStorage.helper";
+import Encryption from "@/helper/encryption.helper";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
 
 const calculatePasswordStrength = (password: string): number => {
   let strength = 0;
@@ -165,7 +165,6 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     />
                     <PasswordStrengthMeter
                       marginTop="5px"
-                      
                       value={passwordStrength}
                       minWidth="40%"
                     />

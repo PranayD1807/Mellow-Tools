@@ -1,7 +1,7 @@
 import { UserInfo } from "@/models/UserInfo";
-import privateClient from "../client/private.client";
-import publicClient from "../client/public.client";
-import { handleApiError } from "../helper/error.helper";
+import privateClient from "@/api/client/private.client";
+import publicClient from "@/api/client/public.client";
+import { handleApiError } from "@/helper/error.helper";
 import { ApiResponse } from "@/models/ApiResponse";
 
 const userEndpoints = {

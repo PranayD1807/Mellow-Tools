@@ -1,4 +1,4 @@
-import { LocalStorageHelper } from "@/api/helper/localStorage.helper";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface UserState {

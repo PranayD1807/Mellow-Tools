@@ -1,5 +1,5 @@
 import { ApiResponse } from "@/models/ApiResponse";
-import privateClient from "../client/private.client";
+import privateClient from "@/api/client/private.client";
 
 const contactEndpoints = {
   getAll: (query?: string) =>

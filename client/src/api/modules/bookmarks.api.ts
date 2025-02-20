@@ -1,6 +1,6 @@
 import { ApiResponse } from "@/models/ApiResponse";
-import privateClient from "../client/private.client";
-import { handleApiError } from "../helper/error.helper";
+import privateClient from "@/api/client/private.client";
+import { handleApiError } from "@/helper/error.helper";
 import { Bookmark } from "@/models/Bookmark";
 
 const bookmarkEndpoints = {

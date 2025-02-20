@@ -1,6 +1,6 @@
 import { UserInfo } from "@/models/UserInfo";
-import LocalStorageConstants from "../constants/localStorage";
-import Encryption from "./encryption.helper";
+import LocalStorageConstants from "@/constants/localStorage";
+import Encryption from "@/helper/encryption.helper";
 
 export class LocalStorageHelper {
   // Save user creds to local storage

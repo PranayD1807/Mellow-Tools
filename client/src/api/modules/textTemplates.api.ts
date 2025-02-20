@@ -1,7 +1,7 @@
 import { ApiResponse } from "@/models/ApiResponse";
-import privateClient from "../client/private.client";
+import privateClient from "@/api/client/private.client";
 import { TextTemplate } from "@/models/TextTemplate";
-import { handleApiError } from "../helper/error.helper";
+import { handleApiError } from "@/helper/error.helper";
 
 const textTemplateEndpoints = {
   getAll: (query?: string) =>

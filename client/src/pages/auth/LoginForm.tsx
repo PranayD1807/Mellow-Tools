@@ -23,7 +23,7 @@ import userApi from "@/api/modules/user.api";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/userSlice";
 import { toast } from "react-toastify";
-import { LocalStorageHelper } from "@/api/helper/localStorage.helper";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
 
 // Password Strength function (all factors required)
 const calculatePasswordStrength = (password: string): number => {
