@@ -51,8 +51,10 @@ export const signupValidator = [
     ...confirmPasswordValidation("password"),
     body("displayName")
         .exists().withMessage("username is required")
-        .isLength({ min: 8 })
+        .isLength({ min: 4 })
         .withMessage("username must be minimum 8 characters"),
+    body("passwordKeySalt").exists().isString().withMessage("Something went wrong"),
+    body("encryptedAESKey").exists().isString().withMessage("Something went wrong"),
     handleValidationErrors,
 ];
 

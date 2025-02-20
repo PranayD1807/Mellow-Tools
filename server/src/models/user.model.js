@@ -21,7 +21,18 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         select: false
-    }
+    },
+    // Salt value used for deriving passwordDerivedKey.
+    passwordKeySalt: {
+        type: String,
+        required: true,
+    },
+    // Encrypted AES Key for E2E Encryption
+    encryptedAESKey: {
+        type: String,
+        required: true,
+    },
+
 }, modelOptions);
 
 userSchema.methods.setPassword = function (password) {

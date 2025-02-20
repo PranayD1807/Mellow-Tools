@@ -1,31 +1,62 @@
 class Encryption {
-  private static SALT_LENGTH = 16;
-  private static IV_LENGTH = 16;
+  private static SALT_LENGTH = 16; // Length for password key derivation salt
+  private static IV_LENGTH = 16; // Initialization vector length for AES-CBC
+  private static REFRESH_TOKEN_LENGTH = 32; // 256-bit refresh token length
 
-  // Generate a random AES key (256-bit)
+  /**
+   * Generates a new AES-256 key for encrypting/decrypting data
+   * Use this when initially setting up encryption for a user or when rotating keys
+   * @returns {Promise<CryptoKey>} A new AES-256 key
+   * @example
+   * const aesKey = await Encryption.generateAESKey();
+   */
   static async generateAESKey(): Promise<CryptoKey> {
     return await crypto.subtle.generateKey(
       {
         name: "AES-CBC",
-        length: 256, // AES-256
+        length: 256,
       },
-      true, // Can be exported
+      true,
       ["encrypt", "decrypt"]
     );
   }
 
-  // Generate a random salt for password key derivation
-  static generatePasswordKeySalt(): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(this.SALT_LENGTH));
+  /**
+   * Generates a random salt for password key derivation
+   * Use this when initially setting up a user's password or during password changes
+   * @returns {string} Base64 encoded salt string
+   * @example
+   * const salt = Encryption.generatePasswordKeySalt();
+   */
+  static generatePasswordKeySalt(): string {
+    const salt = crypto.getRandomValues(new Uint8Array(this.SALT_LENGTH));
+    return this.arrayBufferToBase64(salt.buffer);
   }
 
-  // Derive a 256-bit key from password and salt using PBKDF2
+  /**
+   * Converts a Base64 encoded salt string back to Uint8Array for internal use
+   * @param {string} saltBase64 - The Base64 encoded salt string
+   * @returns {Uint8Array} The salt as a Uint8Array
+   */
+  private static passwordKeySaltToUint8Array(saltBase64: string): Uint8Array {
+    return new Uint8Array(this.base64ToArrayBuffer(saltBase64));
+  }
+
+  /**
+   * Derives an encryption key from a password and salt using PBKDF2
+   * Use this during login or when the user needs to access their encrypted data
+   * @param {string} userPassword - The user's password
+   * @param {string} storedSalt - The Base64 encoded salt used for key derivation
+   * @returns {Promise<CryptoKey>} The derived key for encryption/decryption
+   * @example
+   * const derivedKey = await Encryption.getPasswordDerivedKey(userPassword, storedSalt);
+   */
   static async getPasswordDerivedKey(
-    password: string,
-    passwordKeySalt: Uint8Array
+    userPassword: string,
+    storedSalt: string
   ): Promise<CryptoKey> {
     const encoder = new TextEncoder();
-    const passwordBuffer = encoder.encode(password);
+    const passwordBuffer = encoder.encode(userPassword);
 
     const baseKey = await crypto.subtle.importKey(
       "raw",
@@ -38,7 +69,7 @@ class Encryption {
     return await crypto.subtle.deriveKey(
       {
         name: "PBKDF2",
-        salt: passwordKeySalt,
+        salt: this.passwordKeySaltToUint8Array(storedSalt),
         iterations: 100000,
         hash: "SHA-256",
       },
@@ -47,109 +78,125 @@ class Encryption {
         name: "AES-CBC",
         length: 256,
       },
-      false,
+      true,
       ["encrypt", "decrypt"]
     );
   }
 
+  /**
+   * Encrypts an AES key using another key (password-derived or refresh token)
+   * Use this to secure the AES key for storage
+   * @param {CryptoKey} keyToEncrypt - The AES key to be encrypted
+   * @param {CryptoKey} encryptionKey - The key used for encryption
+   * @returns {Promise<string>} Base64 encoded encrypted key with IV
+   * @example
+   * const encryptedKey = await Encryption.encryptAESKey(aesKey, derivedKey);
+   */
   static async encryptAESKey(
-    aesKey: CryptoKey,
-    passwordDerivedKey: CryptoKey
+    keyToEncrypt: CryptoKey,
+    encryptionKey: CryptoKey
   ): Promise<string> {
-    // Step 1: Generate a random IV (Initialization Vector)
-    const iv = crypto.getRandomValues(new Uint8Array(this.IV_LENGTH)); // IV length is 16 bytes
+    const iv = crypto.getRandomValues(new Uint8Array(this.IV_LENGTH));
+    const keyBuffer = await crypto.subtle.exportKey("raw", keyToEncrypt);
 
-    // Step 2: Export the AES key to an ArrayBuffer
-    const aesKeyBuffer = await crypto.subtle.exportKey("raw", aesKey); // Export the AES key to ArrayBuffer
-
-    // Step 3: Encrypt the AES key using the password-derived key (AES-CBC)
     const encrypted = await crypto.subtle.encrypt(
       {
-        name: "AES-CBC", // AES algorithm in CBC mode
-        iv: iv, // IV used in the encryption
+        name: "AES-CBC",
+        iv: iv,
       },
-      passwordDerivedKey, // The password-derived key used for encryption
-      aesKeyBuffer // The exported AES key as ArrayBuffer
+      encryptionKey,
+      keyBuffer
     );
 
-    // Step 4: Combine the IV and encrypted data into one buffer
     const combined = new Uint8Array(iv.byteLength + encrypted.byteLength);
-    combined.set(iv); // Place the IV at the start
-    combined.set(new Uint8Array(encrypted), iv.byteLength); // Append the encrypted AES key after the IV
+    combined.set(iv);
+    combined.set(new Uint8Array(encrypted), iv.byteLength);
 
-    // Step 5: Return the result as a Base64 string for easy storage
-    return this.arrayBufferToBase64(combined.buffer); // Convert to Base64 string
+    return this.arrayBufferToBase64(combined.buffer);
   }
 
-  // Decrypt the AES key using the password-derived key
+  /**
+   * Decrypts an encrypted AES key using another key (password-derived or refresh token)
+   * Use this to recover the AES key for use in data encryption/decryption
+   * @param {string} encryptedKeyString - Base64 encoded encrypted AES key with IV
+   * @param {CryptoKey} decryptionKey - The key used for decryption
+   * @returns {Promise<CryptoKey>} The decrypted AES key
+   * @example
+   * const decryptedKey = await Encryption.decryptEncryptedAESKey(encryptedKey, derivedKey);
+   */
   static async decryptEncryptedAESKey(
-    encryptedAESKey: string,
-    passwordDerivedKey: CryptoKey
+    encryptedKeyString: string,
+    decryptionKey: CryptoKey
   ): Promise<CryptoKey> {
-    const dataBuffer = this.base64ToArrayBuffer(encryptedAESKey);
-
-    // Extract IV from the start of the data
+    const dataBuffer = this.base64ToArrayBuffer(encryptedKeyString);
     const iv = new Uint8Array(dataBuffer.slice(0, this.IV_LENGTH));
     const encryptedBuffer = dataBuffer.slice(this.IV_LENGTH);
 
-    // Decrypt the AES key using the password-derived key
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: "AES-CBC",
         iv: iv,
       },
-      passwordDerivedKey,
+      decryptionKey,
       encryptedBuffer
     );
 
-    // Import the decrypted buffer as a CryptoKey
-    const decryptedKey = await crypto.subtle.importKey(
-      "raw", // Import raw key material
+    return await crypto.subtle.importKey(
+      "raw",
       decryptedBuffer,
-      { name: "AES-CBC", length: 256 }, // Algorithm info for the key
-      false, // The key is not extractable
-      ["encrypt", "decrypt"] // Allowed operations
+      { name: "AES-CBC", length: 256 },
+      true,
+      ["encrypt", "decrypt"]
     );
-
-    return decryptedKey; // Return the decrypted AES key as CryptoKey
   }
 
-  // Encrypt string data using the AES key (AES)
+  /**
+   * Encrypts string data using an AES key
+   * Use this for encrypting user data before storage
+   * @param {string} plaintext - The data to encrypt
+   * @param {CryptoKey} encryptionKey - The AES key for encryption
+   * @returns {Promise<string>} Base64 encoded encrypted data with IV
+   * @example
+   * const encryptedData = await Encryption.encryptStringData("sensitive data", aesKey);
+   */
   static async encryptStringData(
-    data: string,
-    aesKey: CryptoKey
+    plaintext: string,
+    encryptionKey: CryptoKey
   ): Promise<string> {
-    const iv = crypto.getRandomValues(new Uint8Array(this.IV_LENGTH)); // Generate random IV for each encryption
-
+    const iv = crypto.getRandomValues(new Uint8Array(this.IV_LENGTH));
     const encoder = new TextEncoder();
-    const dataBuffer = encoder.encode(data);
+    const dataBuffer = encoder.encode(plaintext);
 
     const encryptedData = await crypto.subtle.encrypt(
       {
         name: "AES-CBC",
         iv: iv,
       },
-      aesKey,
+      encryptionKey,
       dataBuffer
     );
 
-    // Combine IV and encrypted data for easy storage (Base64)
     const combined = new Uint8Array(iv.byteLength + encryptedData.byteLength);
     combined.set(iv);
     combined.set(new Uint8Array(encryptedData), iv.byteLength);
 
-    // Return Base64 string for storage
     return this.arrayBufferToBase64(combined.buffer);
   }
 
-  // Decrypt data using the AES key (AES)
+  /**
+   * Decrypts encrypted string data using an AES key
+   * Use this to recover encrypted user data
+   * @param {string} encryptedString - Base64 encoded encrypted data with IV
+   * @param {CryptoKey} decryptionKey - The AES key for decryption
+   * @returns {Promise<string>} The decrypted string data
+   * @example
+   * const decryptedData = await Encryption.decryptData(encryptedData, aesKey);
+   */
   static async decryptData(
-    encryptedData: string,
-    aesKey: CryptoKey
+    encryptedString: string,
+    decryptionKey: CryptoKey
   ): Promise<string> {
-    const dataBuffer = this.base64ToArrayBuffer(encryptedData);
-
-    // Extract IV from the start of the data
+    const dataBuffer = this.base64ToArrayBuffer(encryptedString);
     const iv = new Uint8Array(dataBuffer.slice(0, this.IV_LENGTH));
     const encryptedBuffer = dataBuffer.slice(this.IV_LENGTH);
 
@@ -158,7 +205,7 @@ class Encryption {
         name: "AES-CBC",
         iv: iv,
       },
-      aesKey,
+      decryptionKey,
       encryptedBuffer
     );
 
@@ -166,7 +213,83 @@ class Encryption {
     return decoder.decode(decryptedData);
   }
 
-  // Helper method to convert ArrayBuffer to Base64 string
+  /**
+   * Generates a cryptographically secure refresh token
+   * Use this when implementing persistent sessions or token-based authentication
+   * @returns {string} Base64 encoded refresh token
+   * @example
+   * const refreshToken = Encryption.generateRefreshToken();
+   */
+  static generateRefreshToken(): string {
+    const tokenBytes = crypto.getRandomValues(
+      new Uint8Array(this.REFRESH_TOKEN_LENGTH)
+    );
+    return this.arrayBufferToBase64(tokenBytes.buffer);
+  }
+
+  /**
+   * Converts a refresh token string to a CryptoKey for encryption/decryption
+   * @param {string} refreshToken - The Base64 encoded refresh token
+   * @returns {Promise<CryptoKey>} The refresh token as a CryptoKey
+   */
+  private static async getRefreshTokenKey(
+    refreshToken: string
+  ): Promise<CryptoKey> {
+    const tokenBuffer = this.base64ToArrayBuffer(refreshToken);
+    return await crypto.subtle.importKey(
+      "raw",
+      tokenBuffer,
+      {
+        name: "AES-CBC",
+        length: 256,
+      },
+      true,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  /**
+   * Encrypts an AES key using a refresh token
+   * Use this when implementing persistent sessions to secure the AES key
+   * @param {CryptoKey} aesKey - The AES key to encrypt
+   * @param {string} refreshToken - The refresh token for encryption
+   * @returns {Promise<string>} Base64 encoded encrypted AES key
+   * @example
+   * const encryptedKey = await Encryption.encryptAESKeyWithRefreshToken(aesKey, refreshToken);
+   */
+  static async encryptAESKeyWithRefreshToken(
+    aesKey: CryptoKey,
+    refreshToken: string
+  ): Promise<string> {
+    const refreshTokenKey = await this.getRefreshTokenKey(refreshToken);
+    return await this.encryptAESKey(aesKey, refreshTokenKey);
+  }
+
+  /**
+   * Decrypts an AES key using a refresh token
+   * Use this to recover the AES key during persistent sessions
+   * @param {string} encryptedKeyString - Base64 encoded encrypted AES key
+   * @param {string} refreshToken - The refresh token for decryption
+   * @returns {Promise<CryptoKey>} The decrypted AES key
+   * @example
+   * const decryptedKey = await Encryption.decryptAESKeyWithRefreshToken(encryptedKey, refreshToken);
+   */
+  static async decryptAESKeyWithRefreshToken(
+    encryptedKeyString: string,
+    refreshToken: string
+  ): Promise<CryptoKey> {
+    const refreshTokenKey = await this.getRefreshTokenKey(refreshToken);
+    return await this.decryptEncryptedAESKey(
+      encryptedKeyString,
+      refreshTokenKey
+    );
+  }
+
+  /**
+   * Converts an ArrayBuffer to a Base64 string
+   * @param {ArrayBuffer} buffer - The buffer to convert
+   * @returns {string} Base64 encoded string
+   */
   private static arrayBufferToBase64(buffer: ArrayBuffer): string {
     let binary = "";
     const bytes = new Uint8Array(buffer);
@@ -177,7 +300,11 @@ class Encryption {
     return window.btoa(binary);
   }
 
-  // Helper method to convert Base64 string to ArrayBuffer
+  /**
+   * Converts a Base64 string to an ArrayBuffer
+   * @param {string} base64 - The Base64 string to convert
+   * @returns {ArrayBuffer} The resulting ArrayBuffer
+   */
   private static base64ToArrayBuffer(base64: string): ArrayBuffer {
     const binaryString = window.atob(base64);
     const length = binaryString.length;
@@ -186,56 +313,6 @@ class Encryption {
       bytes[i] = binaryString.charCodeAt(i);
     }
     return bytes.buffer;
-  }
-
-  // Test Encryption Methods
-  static async testEncryptionMethods(content: string, password: string) {
-    try {
-      // Step 1: Generate AES Key
-      const aesKey: CryptoKey = await Encryption.generateAESKey();
-      console.log("Generated AES Key: ", aesKey); // Log the AES key in Base64 format for better visibility
-
-      // Step 2: Generate a salt for the password-based key derivation
-      const passwordKeySalt = Encryption.generatePasswordKeySalt();
-      console.log("Generated Password Key Salt: ", passwordKeySalt); // Log salt
-
-      // Step 3: Derive the password-derived key from the password and salt
-      const passwordDerivedKey = await Encryption.getPasswordDerivedKey(
-        password,
-        passwordKeySalt
-      );
-      console.log(
-        "Derived Password Key (Base64): ",
-        passwordDerivedKey.toString()
-      ); // Log the derived key
-
-      // Step 4: Encrypt the AES key using the password-derived key
-      const encryptedAESKey = await Encryption.encryptAESKey(
-        aesKey,
-        passwordDerivedKey
-      );
-      console.log("Encrypted AES Key (Base64): ", encryptedAESKey); // Log encrypted AES key in Base64 format
-
-      // Step 5: Decrypt the AES key using the password-derived key
-      const decryptedAESKey = await Encryption.decryptEncryptedAESKey(
-        encryptedAESKey,
-        passwordDerivedKey
-      );
-      console.log("Decrypted AES Key (Base64): ", decryptedAESKey.toString()); // Log decrypted AES key
-
-      // Step 7: Encrypt the content using the AES key
-      const encryptedData = await Encryption.encryptStringData(content, aesKey);
-      console.log("Encrypted Data (Base64): ", encryptedData); // Log the encrypted content
-
-      // Step 8: Decrypt the content using the AES key
-      const decryptedData = await Encryption.decryptData(
-        encryptedData,
-        decryptedAESKey
-      );
-      console.log("Decrypted Data: ", decryptedData); // Log decrypted content
-    } catch (error) {
-      console.error("Error during encryption/decryption: ", error);
-    }
   }
 }
 

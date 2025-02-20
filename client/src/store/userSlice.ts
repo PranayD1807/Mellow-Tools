@@ -1,3 +1,4 @@
+import { LocalStorageHelper } from "@/api/helper/localStorage.helper";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface UserState {
@@ -43,18 +44,15 @@ const userSlice = createSlice({
       state.userId = action.payload.userId;
 
       // Save to localStorage
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          displayName: action.payload.displayName,
-          email: action.payload.email,
-          userId: action.payload.userId,
-        })
+      LocalStorageHelper.setUserInfo(
+        action.payload.displayName,
+        action.payload.email,
+        action.payload.userId
       );
     },
     logout: (state) => {
       Object.assign(state, initialState);
-      localStorage.removeItem("user");
+      LocalStorageHelper.logoutUser();
     },
   },
 });

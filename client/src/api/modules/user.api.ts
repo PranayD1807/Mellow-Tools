@@ -1,3 +1,4 @@
+import { UserInfo } from "@/models/UserInfo";
 import privateClient from "../client/private.client";
 import publicClient from "../client/public.client";
 import { handleApiError } from "../helper/error.helper";
@@ -20,18 +21,14 @@ interface SignupData {
   password: string;
   confirmPassword: string;
   displayName: string;
+  encryptedAESKey: string;
+  passwordKeySalt: string;
 }
 
 interface PasswordUpdateData {
   password: string;
   newPassword: string;
   confirmNewPassword: string;
-}
-
-interface UserInfo {
-  id: string;
-  email: string;
-  displayName: string;
 }
 
 interface SigninResponse {
@@ -83,6 +80,8 @@ const userApi = {
     password,
     confirmPassword,
     displayName,
+    encryptedAESKey,
+    passwordKeySalt,
   }: SignupData): Promise<ApiResponse<SignupResponse>> => {
     try {
       const response = await publicClient.post<SignupResponse>(
@@ -92,6 +91,8 @@ const userApi = {
           password,
           confirmPassword,
           displayName,
+          encryptedAESKey,
+          passwordKeySalt,
         }
       );
 

@@ -6,7 +6,7 @@ import catchAsync from "../utils/catchAsync.js";
 
 export const signup = catchAsync(async (req, res) => {
 
-    const { email, password, displayName } = req.body;
+    const { email, password, displayName, encryptedAESKey, passwordKeySalt } = req.body;
     const checkUser = await userModel.findOne({ email });
     if (checkUser) throw new AppError("email already used", 400);
 
@@ -15,6 +15,8 @@ export const signup = catchAsync(async (req, res) => {
     user.displayName = displayName;
     user.email = email;
     user.setPassword(password);
+    user.encryptedAESKey = encryptedAESKey;
+    user.passwordKeySalt = passwordKeySalt;
 
     await user.save();
 
@@ -26,7 +28,7 @@ export const signup = catchAsync(async (req, res) => {
 
     user.password = undefined;
     user.salt = undefined;
-    
+
     res.status(201).json({
         status: "success",
         data: user,
@@ -40,7 +42,7 @@ export const signin = catchAsync(async (req, res) => {
 
     const user = await userModel
         .findOne({ email })
-        .select("username password salt id displayName email createdAt updatedAt");
+        .select("username password salt id displayName email passwordKeySalt encryptedAESKey createdAt updatedAt");
 
     if (!user) throw new AppError("User not exist", 400);
 

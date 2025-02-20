@@ -23,6 +23,7 @@ import userApi from "@/api/modules/user.api";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/userSlice";
 import { toast } from "react-toastify";
+import { LocalStorageHelper } from "@/api/helper/localStorage.helper";
 
 // Password Strength function (all factors required)
 const calculatePasswordStrength = (password: string): number => {
@@ -108,7 +109,13 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             userId: userData.id,
           })
         );
-        localStorage.setItem("actkn", res.data.token);
+
+        LocalStorageHelper.saveUserCreds({
+          userInfo: userData,
+          password: values.password,
+          jwtToken: res.data.token,
+        });
+
         toast.success(res.data.message);
       }
     } catch (error: unknown) {
