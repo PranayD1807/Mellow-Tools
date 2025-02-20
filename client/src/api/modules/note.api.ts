@@ -1,7 +1,7 @@
 import { ApiResponse } from "@/models/ApiResponse";
 import privateClient from "@/api/client/private.client";
 import { handleApiError } from "@/helper/error.helper";
-import { Note } from "@/models/note";
+import { CreateNoteData, Note } from "@/models/note";
 
 const noteEndpoints = {
   getAll: (query?: string) =>
@@ -14,20 +14,21 @@ const noteEndpoints = {
   delete: "notes/{id}",
 };
 
-export interface CreateNoteData {
-  title: string;
-  text: string;
-}
-
 const noteApi = {
   getAll: async (query?: string): Promise<ApiResponse<Note[]>> => {
     try {
       const endpoint = noteEndpoints.getAll(query);
       const response = await privateClient.get<ApiResponse<Note[]>>(endpoint);
 
+      const decryptedNotes = await Promise.all(
+        response.data.data.map(async (note) =>
+          Object.assign(new Note(), note).decrypt()
+        )
+      );
+
       return {
         status: response.data.status,
-        data: response.data.data || [],
+        data: decryptedNotes,
         results: response.data.results || 0,
       };
     } catch (err: unknown) {
@@ -40,9 +41,13 @@ const noteApi = {
       const endpoint = noteEndpoints.get.replace("{id}", id);
       const response = await privateClient.get<ApiResponse<Note>>(endpoint);
 
+      const decryptedNote = response.data.data
+        ? await Object.assign(new Note(), response.data.data).decrypt()
+        : null;
+
       return {
         status: response.data.status,
-        data: response.data.data || null,
+        data: decryptedNote,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -51,14 +56,19 @@ const noteApi = {
 
   create: async (data: CreateNoteData): Promise<ApiResponse<Note | null>> => {
     try {
+      const createNoteInstance = Object.assign(new CreateNoteData(), data);
+      const encryptedData = await createNoteInstance.encrypt();
+
       const response = await privateClient.post<ApiResponse<Note>>(
         noteEndpoints.create,
-        data
+        encryptedData
       );
 
       return {
         status: response.data.status,
-        data: response.data.data || null,
+        data: response.data.data
+          ? await Object.assign(new Note(), response.data.data).decrypt()
+          : null,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -70,15 +80,20 @@ const noteApi = {
     data: CreateNoteData
   ): Promise<ApiResponse<Note | null>> => {
     try {
+      const updateNoteInstance = Object.assign(new CreateNoteData(), data);
+      const encryptedData = await updateNoteInstance.encrypt();
+
       const endpoint = noteEndpoints.update.replace("{id}", id);
       const response = await privateClient.patch<ApiResponse<Note>>(
         endpoint,
-        data
+        encryptedData
       );
 
       return {
         status: response.data.status,
-        data: response.data.data || null,
+        data: response.data.data
+          ? await Object.assign(new Note(), response.data.data).decrypt()
+          : null,
       };
     } catch (err: unknown) {
       return handleApiError(err);

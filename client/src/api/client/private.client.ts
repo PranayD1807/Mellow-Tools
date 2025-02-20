@@ -2,7 +2,7 @@ import { store } from "@/store/store";
 import { logout } from "@/store/userSlice";
 import axios, { InternalAxiosRequestConfig } from "axios";
 import queryString from "query-string";
-import LocalStorageConstants from "@/constants/localStorage";
+import LocalStorageConstants from "@/constants/localStorage.constants";
 
 const prodUrl = "https://mellow-tools-backend.vercel.app/";
 const devUrl = "http://127.0.0.1:8080/";

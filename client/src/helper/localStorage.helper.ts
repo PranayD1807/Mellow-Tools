@@ -1,5 +1,5 @@
 import { UserInfo } from "@/models/UserInfo";
-import LocalStorageConstants from "@/constants/localStorage";
+import LocalStorageConstants from "@/constants/localStorage.constants";
 import Encryption from "@/helper/encryption.helper";
 
 export class LocalStorageHelper {
@@ -44,6 +44,24 @@ export class LocalStorageHelper {
       LocalStorageConstants.ENCRYPTED_AES_KEY_WITH_REFRESH_TOKEN,
       encryptedAesKeyWithRefreshToken
     );
+  };
+
+  static getAESKey = async (): Promise<CryptoKey | undefined> => {
+    const token = localStorage.getItem(LocalStorageConstants.AES_REFRESH_TOKEN);
+    const encryptedAesKey = localStorage.getItem(
+      LocalStorageConstants.ENCRYPTED_AES_KEY_WITH_REFRESH_TOKEN
+    );
+
+    let aesKey;
+
+    if (token && encryptedAesKey) {
+      aesKey = await Encryption.decryptAESKeyWithRefreshToken(
+        encryptedAesKey,
+        token
+      );
+    }
+
+    return aesKey;
   };
 
   static setUserInfo = (displayName: string, email: string, userId: string) => {
