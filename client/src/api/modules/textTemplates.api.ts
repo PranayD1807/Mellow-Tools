@@ -1,6 +1,6 @@
 import { ApiResponse } from "@/models/ApiResponse";
 import privateClient from "@/api/client/private.client";
-import { TextTemplate } from "@/models/TextTemplate";
+import { CreateTextTemplateData, TextTemplate } from "@/models/TextTemplate";
 import { handleApiError } from "@/helper/error.helper";
 
 const textTemplateEndpoints = {
@@ -16,15 +16,6 @@ const textTemplateEndpoints = {
   delete: "text-templates/{id}",
 };
 
-export interface CreateTextTemplateData {
-  title: string;
-  content: string;
-  placeholders: Array<{
-    tag: string;
-    defaultValue?: string;
-  }>;
-}
-
 const textTemplateApi = {
   getAll: async (query?: string): Promise<ApiResponse<TextTemplate[]>> => {
     try {
@@ -33,9 +24,15 @@ const textTemplateApi = {
         endpoint
       );
 
+      const decryptedTemplates = await Promise.all(
+        response.data.data.map(async (template) =>
+          Object.assign(new TextTemplate(), template).decrypt()
+        )
+      );
+
       return {
         status: response.data.status,
-        data: response.data.data || [],
+        data: decryptedTemplates,
         results: response.data.results || 0,
       };
     } catch (err: unknown) {
@@ -50,9 +47,13 @@ const textTemplateApi = {
         endpoint
       );
 
+      const decryptedTemplate = response.data.data
+        ? await Object.assign(new TextTemplate(), response.data.data).decrypt()
+        : null;
+
       return {
         status: response.data.status,
-        data: response.data.data || null,
+        data: decryptedTemplate,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -63,14 +64,25 @@ const textTemplateApi = {
     data: CreateTextTemplateData
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
+      const createNoteInstance = Object.assign(
+        new CreateTextTemplateData(),
+        data
+      );
+      const encryptedData = await createNoteInstance.encrypt();
+
       const response = await privateClient.post<ApiResponse<TextTemplate>>(
         textTemplateEndpoints.create,
-        data
+        encryptedData
       );
 
       return {
         status: response.data.status,
-        data: response.data.data || null,
+        data: response.data.data
+          ? await Object.assign(
+              new TextTemplate(),
+              response.data.data
+            ).decrypt()
+          : null,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -82,15 +94,26 @@ const textTemplateApi = {
     data: CreateTextTemplateData
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
+      const createNoteInstance = Object.assign(
+        new CreateTextTemplateData(),
+        data
+      );
+      const encryptedData = await createNoteInstance.encrypt();
+
       const endpoint = textTemplateEndpoints.update.replace("{id}", id);
       const response = await privateClient.patch<ApiResponse<TextTemplate>>(
         endpoint,
-        data
+        encryptedData
       );
 
       return {
         status: response.data.status,
-        data: response.data.data || null,
+        data: response.data.data
+          ? await Object.assign(
+              new TextTemplate(),
+              response.data.data
+            ).decrypt()
+          : null,
       };
     } catch (err: unknown) {
       return handleApiError(err);

@@ -1,6 +1,6 @@
 import React from "react";
 import { Grid } from "@chakra-ui/react";
-import { Note } from "@/models/note";
+import { Note } from "@/models/Note";
 import NoteItem from "./NoteItem";
 
 interface NotesGridProps {

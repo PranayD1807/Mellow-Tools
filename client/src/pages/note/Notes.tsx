@@ -3,7 +3,7 @@ import NoItems from "@/components/NoItems";
 import NoteDialog from "@/components/NoteDialog";
 import NotesGrid from "@/components/NotesGrid";
 import { Button } from "@/components/ui/button";
-import { Note } from "@/models/note";
+import { Note } from "@/models/Note";
 import {
   Box,
   Flex,
@@ -71,7 +71,7 @@ const Notes = () => {
         // Handle error response
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
-        setNotes((prevItems) => [ res.data!, ...prevItems]);
+        setNotes((prevItems) => [res.data!, ...prevItems]);
         toast.success("Note added successfully!");
       }
     } catch (error) {

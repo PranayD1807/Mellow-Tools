@@ -1,7 +1,7 @@
 import { ApiResponse } from "@/models/ApiResponse";
 import privateClient from "@/api/client/private.client";
 import { handleApiError } from "@/helper/error.helper";
-import { CreateNoteData, Note } from "@/models/note";
+import { CreateNoteData, Note } from "@/models/Note";
 
 const noteEndpoints = {
   getAll: (query?: string) =>

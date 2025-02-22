@@ -18,7 +18,7 @@ import {
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import NoteDialog from "./NoteDialog";
 import CensoredText from "./CensoredText";
-import { Note } from "@/models/note";
+import { Note } from "@/models/Note";
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "./ui/menu";
 import { toast } from "react-toastify";
 import Linkify from "react-linkify";
