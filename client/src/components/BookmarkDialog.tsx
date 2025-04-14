@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Formik, Field as FormikField } from "formik";
 import { Field } from "@/components/ui/field";
-import { CreateBookmarkData } from "@/api/modules/bookmarks.api";
+import { CreateBookmarkData } from "@/models/Bookmark";
 
 const validateBookmarkForm = (values: { label: string; url: string }) => {
   const errors: { label?: string; url?: string } = {};
@@ -70,7 +70,13 @@ const BookmarkDialog: React.FC<BookmarkDialogProps> = ({
               initialValues={formattedInitialValues}
               validate={validateBookmarkForm}
               onSubmit={async (values, actions) => {
-                await onSave(values);
+                const data = Object.assign(new CreateBookmarkData(), {
+                  label: values.label,
+                  note: values.note,
+                  url: values.url,
+                });
+
+                await onSave(data);
                 setOpen(false);
                 actions.resetForm();
               }}
