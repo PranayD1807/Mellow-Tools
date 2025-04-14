@@ -1,10 +1,10 @@
 import React from "react";
 import { Grid } from "@chakra-ui/react";
-import { Note } from "@/models/Note";
+import { TextNote } from "@/models/TextNote";
 import NoteItem from "./NoteItem";
 
 interface NotesGridProps {
-  notes: Note[];
+  notes: TextNote[];
   handleDeleteNote: (docId: string) => Promise<void>;
   handleUpdateNote: (
     docId: string,

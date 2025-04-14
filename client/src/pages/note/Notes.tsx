@@ -3,7 +3,7 @@ import NoItems from "@/components/NoItems";
 import NoteDialog from "@/components/NoteDialog";
 import NotesGrid from "@/components/NotesGrid";
 import { Button } from "@/components/ui/button";
-import { Note } from "@/models/Note";
+import { TextNote } from "@/models/TextNote";
 import {
   Box,
   Flex,
@@ -20,7 +20,7 @@ import { IoSearch } from "react-icons/io5";
 import { toast } from "react-toastify";
 
 const Notes = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<TextNote[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
 

@@ -1,6 +1,6 @@
 import { EncryptableEntity } from "./EncryptableEntity";
 
-export class Note extends EncryptableEntity {
+export class TextNote extends EncryptableEntity {
   id!: string;
   title!: string;
   text!: string;
@@ -13,7 +13,7 @@ export class Note extends EncryptableEntity {
   }
 }
 
-export class CreateNoteData extends EncryptableEntity {
+export class CreateTextNoteData extends EncryptableEntity {
   title!: string;
   text!: string;
 

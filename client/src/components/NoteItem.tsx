@@ -18,14 +18,14 @@ import {
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import NoteDialog from "./NoteDialog";
 import CensoredText from "./CensoredText";
-import { Note } from "@/models/Note";
+import { TextNote } from "@/models/TextNote";
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "./ui/menu";
 import { toast } from "react-toastify";
 import Linkify from "react-linkify";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 
 interface NoteItemProps {
-  note: Note;
+  note: TextNote;
   handleDeleteNote: (docId: string) => Promise<void>;
   handleUpdateNote: (
     docId: string,
