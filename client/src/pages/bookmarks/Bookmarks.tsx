@@ -23,6 +23,7 @@ const Bookmarks = () => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const logoKey = import.meta.env.VITE_LOGO_DEV_KEY;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -31,7 +32,7 @@ const Bookmarks = () => {
   const fetchLogoUrl = async (url: string): Promise<string | null> => {
     try {
       const domain = new URL(url).hostname;
-      return `https://logo.clearbit.com/${domain}`;
+      return `https:/img.logo.dev/${domain}?token=${logoKey}`;
     } catch (error) {
       console.error("Error fetching logo URL:", error);
       return null;
