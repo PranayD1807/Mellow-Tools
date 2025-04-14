@@ -17,13 +17,11 @@ import TextTemplateDialog from "@/components/TextTemplateDialog";
 import { Field } from "@/components/ui/field";
 import { InputGroup } from "@/components/ui/input-group";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import textTemplateApi, {
-  CreateTextTemplateData,
-} from "@/api/modules/textTemplates.api";
+import textTemplateApi from "@/api/modules/textTemplates.api";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { TextTemplate } from "@/models/TextTemplate";
+import { CreateTextTemplateData, TextTemplate } from "@/models/TextTemplate";
 import { useParams } from "react-router-dom";
 import he from "he";
 import { Helmet } from "react-helmet-async";
@@ -143,14 +141,14 @@ const UpdateTextTemplate = () => {
     if (!editorRef.current) return;
     setIsSaving(true);
 
-    const data: CreateTextTemplateData = {
+    const data = Object.assign(new CreateTextTemplateData(), {
       title,
-      content: editorRef.current.getContent(),
+      content: editorRef.current?.getContent(),
       placeholders: placeholders.map((p) => ({
         tag: p.tag,
         defaultValue: p.defaultText,
       })),
-    };
+    });
 
     try {
       const res = await textTemplateApi.update(id || "", data);

@@ -3,7 +3,7 @@ import NoItems from "@/components/NoItems";
 import NoteDialog from "@/components/NoteDialog";
 import NotesGrid from "@/components/NotesGrid";
 import { Button } from "@/components/ui/button";
-import { TextNote } from "@/models/TextNote";
+import { CreateTextNoteData, TextNote } from "@/models/TextNote";
 import {
   Box,
   Flex,
@@ -66,7 +66,12 @@ const Notes = () => {
 
   const handleCreateNote = async (values: { title: string; text: string }) => {
     try {
-      const res = await noteApi.create(values);
+      const data = Object.assign(new CreateTextNoteData(), {
+        title: values.title,
+        text: values.text,
+      });
+
+      const res = await noteApi.create(data);
       if (res.status === "error") {
         // Handle error response
         toast.error(res.err?.message || "Something went wrong");
@@ -85,7 +90,12 @@ const Notes = () => {
     values: { text: string; title: string }
   ) => {
     try {
-      const res = await noteApi.update(docId, values); // Ensure `docId` is valid
+      const data = Object.assign(new CreateTextNoteData(), {
+        title: values.title,
+        text: values.text,
+      });
+      
+      const res = await noteApi.update(docId, data); // Ensure `docId` is valid
       if (res.status === "error") {
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {

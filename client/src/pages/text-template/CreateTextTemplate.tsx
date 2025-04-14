@@ -16,13 +16,12 @@ import TextTemplateDialog from "@/components/TextTemplateDialog";
 import { Field } from "@/components/ui/field";
 import { InputGroup } from "@/components/ui/input-group";
 import { MdOutlineDeleteOutline } from "react-icons/md";
-import textTemplateApi, {
-  CreateTextTemplateData,
-} from "@/api/modules/textTemplates.api";
+import textTemplateApi from "@/api/modules/textTemplates.api";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { CreateTextTemplateData } from "@/models/TextTemplate";
 
 // Editor Configuration
 const editorConfig = {
@@ -98,14 +97,14 @@ const CreateTextTemplate = () => {
     if (!editorRef.current) return;
     setIsSaving(true);
 
-    const data: CreateTextTemplateData = {
+    const data = Object.assign(new CreateTextTemplateData(), {
       title,
       content: editorRef.current?.getContent(),
       placeholders: placeholders.map((p) => ({
         tag: p.tag,
         defaultValue: p.defaultText,
       })),
-    };
+    });
 
     try {
       const res = await textTemplateApi.create(data);
