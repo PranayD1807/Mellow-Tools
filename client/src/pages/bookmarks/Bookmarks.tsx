@@ -1,9 +1,9 @@
-import bookmarkApi, { CreateBookmarkData } from "@/api/modules/bookmarks.api";
+import bookmarkApi from "@/api/modules/bookmarks.api";
 import BookmarkDialog from "@/components/BookmarkDialog";
 import BookmarksGrid from "@/components/BookmarksGrid";
 import NoItems from "@/components/NoItems";
 import { Button } from "@/components/ui/button";
-import { Bookmark } from "@/models/Bookmark";
+import { Bookmark, CreateBookmarkData } from "@/models/Bookmark";
 import {
   Box,
   Flex,
