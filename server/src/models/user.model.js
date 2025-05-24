@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    encryptionStatus: {
+        type: String,
+        enum: ["UNENCRYPTED", "MIGRATED", "ENCRYPTED"],
+        default: "UNENCRYPTED"
+    }
 
 }, modelOptions);
 
