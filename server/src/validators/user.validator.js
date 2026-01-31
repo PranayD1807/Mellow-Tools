@@ -12,26 +12,26 @@ const handleValidationErrors = (req, res, next) => {
     next();
 };
 
-// Reusable password validation function
+// Reusable password complexity validation
+const passwordComplexity = (fieldName) => [
+    body(fieldName)
+        .isLength({ min: 8 }).withMessage(`${fieldName} minimum 8 characters`)
+        .matches(/[a-z]/).withMessage(`${fieldName} must contain at least one lowercase letter`)
+        .matches(/[A-Z]/).withMessage(`${fieldName} must contain at least one uppercase letter`)
+        .matches(/[0-9]/).withMessage(`${fieldName} must contain at least one number`)
+        .matches(/[@$!%*?&]/).withMessage(`${fieldName} must contain at least one special character (e.g., @$!%*?&)`),
+];
+
+// Reusable password validation function (default field "password")
 const passwordValidation = [
-    body("password")
-        .exists().withMessage("password is required")
-        .isLength({ min: 8 }).withMessage("password minimum 8 characters")
-        .matches(/[a-z]/).withMessage("password must contain at least one lowercase letter")
-        .matches(/[A-Z]/).withMessage("password must contain at least one uppercase letter")
-        .matches(/[0-9]/).withMessage("password must contain at least one number")
-        .matches(/[@$!%*?&]/).withMessage("password must contain at least one special character (e.g., @$!%*?&)"),
+    body("password").exists().withMessage("password is required"),
+    ...passwordComplexity("password")
 ];
 
 // Reusable confirm password validation function
 const confirmPasswordValidation = (passwordField) => [
     body("confirmPassword")
         .exists().withMessage("confirmPassword is required")
-        .isLength({ min: 8 }).withMessage("confirmPassword minimum 8 characters")
-        .matches(/[a-z]/).withMessage("confirmPassword must contain at least one lowercase letter")
-        .matches(/[A-Z]/).withMessage("confirmPassword must contain at least one uppercase letter")
-        .matches(/[0-9]/).withMessage("confirmPassword must contain at least one number")
-        .matches(/[@$!%*?&]/).withMessage("confirmPassword must contain at least one special character (e.g., @$!%*?&)")
         .custom((value, { req }) => {
             if (value !== req.body[passwordField])
                 throw new Error("confirmPassword does not match password");
@@ -60,16 +60,14 @@ export const signinValidator = [
     body("email")
         .exists().withMessage("email is required")
         .isEmail().withMessage("invalid email format"),
-    ...passwordValidation,
+    body("password").exists().withMessage("password is required"),
     handleValidationErrors,
 ];
 
 export const updatePasswordValidator = [
-    ...passwordValidation,
+    body("password").exists().withMessage("password is required"),
+    body("newPassword").exists().withMessage("newPassword is required"),
+    ...passwordComplexity("newPassword"),
     ...confirmPasswordValidation("newPassword"),
-    body("newPassword")
-        .exists().withMessage("newPassword is required")
-        .isLength({ min: 8 })
-        .withMessage("newPassword minimum 8 characters"),
     handleValidationErrors,
 ];

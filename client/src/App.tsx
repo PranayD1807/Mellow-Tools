@@ -23,6 +23,7 @@ import "./Scrollbar.css";
 import JobTracker from "./pages/job-tracker/JobTracker";
 import LandingPage from "./pages/landing/LandingPage";
 import Bookmarks from "./pages/bookmarks/Bookmarks";
+import UpdatePassword from "@/pages/auth/UpdatePassword";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component
@@ -48,6 +49,10 @@ const router = createBrowserRouter(
       />
       <Route index element={<LandingPage />} />
       <Route path="auth" element={<Auth />} />
+      <Route
+        path="update-password"
+        element={<ProtectedRoute component={<UpdatePassword />} />}
+      />
       <Route path="text-templates">
         <Route
           index
