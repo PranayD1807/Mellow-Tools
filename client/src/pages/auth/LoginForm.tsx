@@ -109,6 +109,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
           })
         );
         localStorage.setItem("actkn", res.data.token);
+        localStorage.setItem("refreshToken", res.data.refreshToken);
         toast.success(res.data.message);
       }
     } catch (error: unknown) {
