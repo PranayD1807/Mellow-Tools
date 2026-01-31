@@ -24,13 +24,20 @@ export const signup = catchAsync(async (req, res) => {
         { expiresIn: "24h" }
     );
 
+    const refreshToken = jsonwebtoken.sign(
+        { data: user.id },
+        process.env.TOKEN_SECRET,
+        { expiresIn: "7d" }
+    );
+
     user.password = undefined;
     user.salt = undefined;
-    
+
     res.status(201).json({
         status: "success",
         data: user,
         token: token,
+        refreshToken: refreshToken,
         message: "Signed-up successfully.",
     });
 });
@@ -52,6 +59,12 @@ export const signin = catchAsync(async (req, res) => {
         { expiresIn: "24h" }
     );
 
+    const refreshToken = jsonwebtoken.sign(
+        { data: user.id },
+        process.env.TOKEN_SECRET,
+        { expiresIn: "7d" }
+    );
+
     user.password = undefined;
     user.salt = undefined;
 
@@ -60,6 +73,7 @@ export const signin = catchAsync(async (req, res) => {
         data: user,
         message: "Signed-in successfully.",
         token: token,
+        refreshToken: refreshToken,
     });
 });
 
@@ -96,5 +110,34 @@ export const getInfo = catchAsync(async (req, res) => {
         data: user.getCleanData()
     });
 
+});
+
+export const refreshToken = catchAsync(async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) throw new AppError("Refresh token required", 400);
+
+    try {
+        const decoded = jsonwebtoken.verify(refreshToken, process.env.TOKEN_SECRET);
+
+        const user = await userModel.findById(decoded.data);
+
+        if (!user) throw new AppError("User not found", 404);
+
+        const token = jsonwebtoken.sign(
+            { data: user.id },
+            process.env.TOKEN_SECRET,
+            { expiresIn: "24h" }
+        );
+
+        res.status(200).json({
+            status: "success",
+            token: token,
+            message: "Token refreshed successfully.",
+        });
+
+    } catch (err) {
+        throw new AppError("Invalid or expired refresh token", 401);
+    }
 });
 

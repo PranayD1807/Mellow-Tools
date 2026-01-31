@@ -36,6 +36,7 @@ interface UserInfo {
 
 interface SigninResponse {
   token: string;
+  refreshToken: string;
   status: string;
   message: string;
   data: UserInfo;
@@ -43,6 +44,7 @@ interface SigninResponse {
 
 interface SignupResponse {
   token: string;
+  refreshToken: string;
   status: string;
   message: string;
   data: UserInfo;
