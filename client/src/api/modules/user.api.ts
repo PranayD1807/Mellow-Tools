@@ -127,12 +127,12 @@ const userApi = {
     confirmNewPassword,
   }: PasswordUpdateData): Promise<ApiResponse<PasswordUpdateResponse>> => {
     try {
-      const response = await privateClient.put<PasswordUpdateResponse>(
+      const response = await privateClient.post<PasswordUpdateResponse>(
         userEndpoints.passwordUpdate,
         {
           password,
           newPassword,
-          confirmNewPassword,
+          confirmPassword: confirmNewPassword,
         }
       );
 
