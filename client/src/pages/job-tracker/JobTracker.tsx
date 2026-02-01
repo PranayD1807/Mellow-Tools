@@ -14,7 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { statusFilterOptions, sortOptions } from "@/constants/jobApplication";
 import { useEffect, useState, useCallback } from "react";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { toast } from "react-toastify";
 
 
@@ -138,27 +138,11 @@ const JobTracker = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Job Tracker - Track Your Job Applications</title>
-        <meta
-          name="description"
-          content="Track and manage your job applications efficiently. Keep track of companies, roles, interview stages, and application status in one place."
-        />
-        <meta
-          name="keywords"
-          content="job tracker, job applications, interview tracking, career management, job search"
-        />
-        <meta
-          property="og:title"
-          content="Job Tracker - Track Your Job Applications"
-        />
-        <meta
-          property="og:description"
-          content="Track and manage your job applications efficiently."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Job Tracker"
+        description="Track and manage your job applications efficiently. Keep track of companies, roles, interview stages, and application status in one place."
+        keywords="job tracker, job applications, interview tracking, career management, job search, application status"
+      />
       <Flex
         direction="column"
         p={4}
@@ -214,7 +198,7 @@ const JobTracker = () => {
           totalResults={totalResults}
           setPage={setPage}
         />
-      </Flex>
+      </Flex >
     </>
   );
 };

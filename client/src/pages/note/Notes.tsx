@@ -14,7 +14,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { toast } from "react-toastify";
@@ -112,27 +112,11 @@ const Notes = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Notes - Manage Your Notes Efficiently</title>
-        <meta
-          name="description"
-          content="Create, update, search, and delete notes easily. Organize your thoughts and ideas in one place."
-        />
-        <meta
-          name="keywords"
-          content="notes, note taking, create note, update note, delete note, organize notes"
-        />
-        <meta
-          property="og:title"
-          content="Notes - Manage Your Notes Efficiently"
-        />
-        <meta
-          property="og:description"
-          content="Create, update, search, and delete notes easily."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Notes"
+        description="Create, update, search, and delete notes easily. Organize your thoughts and ideas in one place."
+        keywords="notes, note taking, create note, update note, delete note, organize notes"
+      />
       <Flex
         direction="column"
         p={4}

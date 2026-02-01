@@ -14,7 +14,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { toast } from "react-toastify";
@@ -137,27 +137,11 @@ const Bookmarks = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Bookmarks - Save and Organize Your Favorite Links</title>
-        <meta
-          name="description"
-          content="Save, update, and manage your favorite links easily. Keep your bookmarks organized and accessible in one place."
-        />
-        <meta
-          name="keywords"
-          content="bookmarks, save links, organize bookmarks, favorite links, manage bookmarks"
-        />
-        <meta
-          property="og:title"
-          content="Bookmarks - Save and Organize Your Favorite Links"
-        />
-        <meta
-          property="og:description"
-          content="Save, update, and manage your favorite links easily."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Bookmarks"
+        description="Save, update, and manage your favorite links easily. Keep your bookmarks organized and accessible in one place."
+        keywords="bookmarks, save links, organize bookmarks, favorite links, manage bookmarks"
+      />
 
       <Flex
         direction="column"

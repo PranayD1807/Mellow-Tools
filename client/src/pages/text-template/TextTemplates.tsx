@@ -13,7 +13,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -84,27 +84,11 @@ const TextTemplates = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Text Templates - Create, Update, and Manage Templates</title>
-        <meta
-          name="description"
-          content="Create, update, and manage text templates efficiently. Organize your text templates in one place."
-        />
-        <meta
-          name="keywords"
-          content="text templates, create template, update template, manage templates, organize text templates"
-        />
-        <meta
-          property="og:title"
-          content="Text Templates - Create, Update, and Manage Templates"
-        />
-        <meta
-          property="og:description"
-          content="Create, update, and manage text templates efficiently. Organize and find templates easily."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Text Templates"
+        description="Create, update, and manage text templates efficiently. Organize your text templates in one place."
+        keywords="text templates, create template, update template, manage templates, organize text templates"
+      />
 
       <Flex
         direction="column"
