@@ -7,35 +7,16 @@ import Pagination from "@/components/Pagination";
 import { JobApplication, CreateJobApplicationData } from "@/models/JobApplication";
 import {
   Box,
-  createListCollection,
   Flex,
   Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { statusFilterOptions, sortOptions } from "@/constants/jobApplication";
 import { useEffect, useState, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "react-toastify";
 
-const statusOptionsInput = createListCollection({
-  items: [
-    { label: "All Statuses", value: "all" },
-    { label: "Applied", value: "Applied" },
-    { label: "Interviewing", value: "Interviewing" },
-    { label: "Offer", value: "Offer" },
-    { label: "Rejected", value: "Rejected" },
-  ],
-});
-
-const sortOptionsInput = createListCollection({
-  items: [
-    { label: "Applied Date (Newest)", value: "-appliedOn" },
-    { label: "Applied Date (Oldest)", value: "appliedOn" },
-    { label: "Company (A-Z)", value: "company" },
-    { label: "Company (Z-A)", value: "-company" },
-    { label: "Last Updated", value: "-updatedAt" },
-  ],
-});
 
 const JobTracker = () => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -198,8 +179,8 @@ const JobTracker = () => {
           setPage={setPage}
           sortOrder={sortOrder}
           setSortOrder={setSortOrder}
-          statusOptions={statusOptionsInput}
-          sortOptions={sortOptionsInput}
+          statusOptions={statusFilterOptions}
+          sortOptions={sortOptions}
           handleCreateApplication={handleCreateApplication}
         />
 

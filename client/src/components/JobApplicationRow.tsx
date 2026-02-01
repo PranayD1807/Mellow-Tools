@@ -8,9 +8,9 @@ import {
     Text,
     VStack,
     Input,
-    createListCollection,
 } from "@chakra-ui/react";
 import { FiEdit2, FiTrash2, FiExternalLink, FiMapPin, FiCalendar, FiFileText } from "react-icons/fi";
+import { statusOptions, formatDate } from "@/constants/jobApplication";
 import {
     SelectContent,
     SelectItem,
@@ -39,24 +39,6 @@ interface JobApplicationRowProps {
     ) => Promise<void>;
 }
 
-const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    });
-};
-
-export const statusOptions = createListCollection({
-    items: [
-        { label: "Applied", value: "Applied" },
-        { label: "Interviewing", value: "Interviewing" },
-        { label: "Offer", value: "Offer" },
-        { label: "Rejected", value: "Rejected" },
-    ],
-});
 
 const JobApplicationRow: React.FC<JobApplicationRowProps> = ({
     application,

@@ -37,7 +37,7 @@ export const SelectItem = React.forwardRef<
 export const SelectValueText = React.forwardRef<
     HTMLSpanElement,
     ChakraSelect.ValueTextProps & {
-        children?: (items: any[]) => React.ReactNode
+        children?: (items: unknown[]) => React.ReactNode
     }
 >(function SelectValueText(props, ref) {
     const { children, ...rest } = props

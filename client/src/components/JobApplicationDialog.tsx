@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
-import { HStack, VStack, Input, Textarea, Stack, createListCollection } from "@chakra-ui/react";
+import { HStack, VStack, Input, Textarea, Stack } from "@chakra-ui/react";
+import { statusOptions } from "@/constants/jobApplication";
 import { Button } from "@/components/ui/button";
 import {
     DialogActionTrigger,
@@ -51,14 +52,6 @@ interface JobApplicationDialogProps {
     onOpenChange?: (open: boolean) => void;
 }
 
-const statusOptions = createListCollection({
-    items: [
-        { label: "Applied", value: "Applied" },
-        { label: "Interviewing", value: "Interviewing" },
-        { label: "Offer", value: "Offer" },
-        { label: "Rejected", value: "Rejected" },
-    ],
-});
 
 const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     children,
