@@ -30,6 +30,13 @@ describe('Error Handler Unit Tests', () => {
             expect(result.message).toContain('Duplicate field value');
         });
 
+        it('handleDuplicateFieldsDB should handle message without quoted value', () => {
+            const err = { message: 'duplicate key error without quotes' };
+            const result = handlers.handleDuplicateFieldsDB(err);
+            expect(result.statusCode).toBe(400);
+            expect(result.message).toContain('Duplicate field value: unknown');
+        });
+
         it('handleValidationErrorDB should return 400 AppError', () => {
             const err = { errors: { field: { message: 'Invalid field' } } };
             const result = handlers.handleValidationErrorDB(err);

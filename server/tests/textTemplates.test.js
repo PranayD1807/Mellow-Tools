@@ -2,7 +2,6 @@
 import request from 'supertest';
 import app from '../app.js';
 
-process.env.TOKEN_SECRET = 'testsecret';
 
 describe('Text Template Endpoints', () => {
     const testUser = {

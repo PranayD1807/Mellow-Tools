@@ -78,8 +78,8 @@ const globalErrorHandler = (err, req, res, next) => {
     let error = { ...err };
     error.message = err.message;
     error.stack = err.stack;
-    error.name = err.name || error.name; // Ensure name is preserved
-    error.code = err.code || error.code; // Ensure code is preserved
+    error.name = err.name;
+    error.code = err.code;
 
     if (error.name === "JsonWebTokenError") error = handleJWTError();
     if (error.name === "TokenExpiredError") error = handleJWTExpiredError();

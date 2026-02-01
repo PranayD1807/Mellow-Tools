@@ -7,6 +7,10 @@ let mongoServer;
 
 
 beforeAll(async () => {
+    // Set default environment variables for tests if they are not already set
+    process.env.TOKEN_SECRET = process.env.TOKEN_SECRET || 'test-secret-key-12345';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
     await mongoose.connect(mongoUri);

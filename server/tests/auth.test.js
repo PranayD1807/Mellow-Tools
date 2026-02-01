@@ -3,7 +3,6 @@ import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
 
-process.env.TOKEN_SECRET = 'testsecret';
 
 describe('Auth Endpoints', () => {
     const testUser = {
