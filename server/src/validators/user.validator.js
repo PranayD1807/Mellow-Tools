@@ -1,7 +1,6 @@
 import { body, validationResult } from "express-validator";
 import userModel from "../models/user.model.js";
 
-// Custom middleware to handle validation errors
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -12,7 +11,6 @@ const handleValidationErrors = (req, res, next) => {
     next();
 };
 
-// Reusable password complexity validation
 const passwordComplexity = (fieldName) => [
     body(fieldName)
         .isLength({ min: 8 }).withMessage(`${fieldName} minimum 8 characters`)
@@ -22,13 +20,11 @@ const passwordComplexity = (fieldName) => [
         .matches(/[@$!%*?&]/).withMessage(`${fieldName} must contain at least one special character (e.g., @$!%*?&)`),
 ];
 
-// Reusable password validation function (default field "password")
 const passwordValidation = [
     body("password").exists().withMessage("password is required"),
     ...passwordComplexity("password")
 ];
 
-// Reusable confirm password validation function
 const confirmPasswordValidation = (passwordField) => [
     body("confirmPassword")
         .exists().withMessage("confirmPassword is required")

@@ -6,9 +6,9 @@ import { handleApiError } from "../helper/error.helper";
 const textTemplateEndpoints = {
   getAll: (query?: string) =>
     query
-      ? `text-templates?fields=-user,-placeholders,-content&query=${encodeURIComponent(
-          query
-        )}`
+      ? `text-templates?fields=-user,-placeholders,-content&search=${encodeURIComponent(
+        query
+      )}`
       : "text-templates?fields=-user,-placeholders,-content",
   get: "text-templates/{id}",
   create: "text-templates",

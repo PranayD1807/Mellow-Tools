@@ -7,8 +7,6 @@ import catchAsync from "../utils/catchAsync.js";
 export const signup = catchAsync(async (req, res) => {
 
     const { email, password, displayName } = req.body;
-    const checkUser = await userModel.findOne({ email });
-    if (checkUser) throw new AppError("email already used", 400);
 
     const user = new userModel();
 
@@ -117,27 +115,21 @@ export const refreshToken = catchAsync(async (req, res) => {
 
     if (!refreshToken) throw new AppError("Refresh token required", 400);
 
-    try {
-        const decoded = jsonwebtoken.verify(refreshToken, process.env.TOKEN_SECRET);
+    const decoded = jsonwebtoken.verify(refreshToken, process.env.TOKEN_SECRET);
 
-        const user = await userModel.findById(decoded.data);
+    const user = await userModel.findById(decoded.data);
 
-        if (!user) throw new AppError("User not found", 404);
+    if (!user) throw new AppError("User not found", 404);
 
-        const token = jsonwebtoken.sign(
-            { data: user.id },
-            process.env.TOKEN_SECRET,
-            { expiresIn: "24h" }
-        );
+    const token = jsonwebtoken.sign(
+        { data: user.id },
+        process.env.TOKEN_SECRET,
+        { expiresIn: "24h" }
+    );
 
-        res.status(200).json({
-            status: "success",
-            token: token,
-            message: "Token refreshed successfully.",
-        });
-
-    } catch (err) {
-        throw new AppError("Invalid or expired refresh token", 401);
-    }
+    res.status(200).json({
+        status: "success",
+        token: token,
+        message: "Token refreshed successfully.",
+    });
 });
-

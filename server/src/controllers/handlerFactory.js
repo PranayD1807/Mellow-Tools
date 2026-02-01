@@ -4,7 +4,7 @@ import APIFeatures from "./../utils/apiFeatures.js";
 
 export function deleteOne(Model, preFilter = {}) {
     return catchAsync(async (req, res, next) => {
-        const doc = await Model.findByIdAndDelete({ _id: req.params.id, ...preFilter });
+        const doc = await Model.findOneAndDelete({ _id: req.params.id, ...preFilter });
 
         if (!doc) {
             return next(new AppError("No document found with that ID", 404));
@@ -19,7 +19,7 @@ export function deleteOne(Model, preFilter = {}) {
 
 export function updateOne(Model, preFilter = {}) {
     return catchAsync(async (req, res, next) => {
-        const doc = await Model.findByIdAndUpdate(
+        const doc = await Model.findOneAndUpdate(
             { _id: req.params.id, ...preFilter },
             req.body, {
             new: true,
@@ -75,7 +75,6 @@ export function getAll(Model, preFilter = {}) {
 
         const doc = await features.query;
 
-        // SEND RESPONSE
         res.status(200).json({
             status: "success",
             results: doc.length,

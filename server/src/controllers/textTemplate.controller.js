@@ -13,13 +13,14 @@ export const updateTextTemplate = (req, res, next) => {
 
 export const getAllTextTemplates = (req, res, next) => {
     let preFilter = { user: req.user.id };
-    const { query } = req.query;
+    const { search } = req.query;
 
-    if (query) {
+    if (search) {
         preFilter = {
             ...preFilter,
-            title: { $regex: query, $options: "i" },
-        }
+            title: { $regex: search, $options: "i" },
+        };
+        delete req.query.search;
     }
 
     return getAll(textTemplateModel, preFilter)(req, res, next);

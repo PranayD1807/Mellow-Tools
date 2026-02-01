@@ -13,13 +13,14 @@ export const updateBookmark = (req, res, next) => {
 
 export const getAllBookmarks = (req, res, next) => {
     let preFilter = { user: req.user.id };
-    const { query } = req.query;
+    const { search } = req.query;
 
-    if (query) {
+    if (search) {
         preFilter = {
             ...preFilter,
-            label: { $regex: query, $options: "i" },
+            label: { $regex: search, $options: "i" },
         };
+        delete req.query.search;
     }
 
     return getAll(bookmarkModel, preFilter)(req, res, next);

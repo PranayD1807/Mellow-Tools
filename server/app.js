@@ -6,7 +6,8 @@ import hpp from "hpp";
 import cors from "cors";
 import dotenv from "dotenv";
 import globalErrorHandler from "./src/controllers/error.controller.js";
-import routes from "./src/routes/index.js"; // Assuming you have a routes file
+import routes from "./src/routes/index.js";
+import AppError from "./src/utils/appError.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -48,8 +49,11 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes (Middlewares too)
 app.use("/api/v1", routes);
+
+app.all("*", (req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
 
 // Error handling middleware
 app.use(globalErrorHandler);

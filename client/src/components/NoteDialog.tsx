@@ -30,10 +30,12 @@ const validateForm = (values: { title: string; text?: string }) => {
 };
 
 interface NoteDialogProps {
-  children: ReactNode;
+  children?: ReactNode;
   onSave: (values: { title: string; text: string }) => Promise<void>;
   initialValues?: Partial<{ title: string; text: string }>;
   title?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const NoteDialog: React.FC<NoteDialogProps> = ({
@@ -41,8 +43,19 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
   onSave,
   initialValues = {},
   title = "Add Note",
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  const setOpen = (newOpen: boolean) => {
+    if (setControlledOpen) {
+      setControlledOpen(newOpen);
+    } else {
+      setUncontrolledOpen(newOpen);
+    }
+  };
 
   const formattedInitialValues = {
     title: initialValues.title || "",
@@ -58,7 +71,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
         open={open}
         onOpenChange={(e) => setOpen(e.open)}
       >
-        <DialogTrigger asChild>{children}</DialogTrigger>
+        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

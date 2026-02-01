@@ -6,7 +6,7 @@ import { Note } from "@/models/note";
 const noteEndpoints = {
   getAll: (query?: string) =>
     query
-      ? `notes?fields=-user&query=${encodeURIComponent(query)}`
+      ? `notes?fields=-user&search=${encodeURIComponent(query)}`
       : "notes?fields=-user",
   create: "notes",
   get: "notes/{id}",
