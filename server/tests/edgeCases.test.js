@@ -176,10 +176,10 @@ describe('Edge Cases and Missing Branches', () => {
 
     describe('Error Controller Non-API Routes', () => {
         let originalEnv;
-        beforeAll(() => {
+        beforeEach(() => {
             originalEnv = process.env.NODE_ENV;
         });
-        afterAll(() => {
+        afterEach(() => {
             process.env.NODE_ENV = originalEnv;
         });
 
@@ -192,6 +192,13 @@ describe('Edge Cases and Missing Branches', () => {
 
         it('should handle non-API route error in PROD mode', async () => {
             process.env.NODE_ENV = 'PROD';
+            const res = await request(app).get('/some-web-page');
+            expect(res.statusCode).toBe(404);
+            expect(res.body).toHaveProperty('title', 'Something went wrong!');
+        });
+
+        it('should handle non-API route error in unknown environment (falls back to DEV-like behavior)', async () => {
+            process.env.NODE_ENV = 'UNKNOWN';
             const res = await request(app).get('/some-web-page');
             expect(res.statusCode).toBe(404);
             expect(res.body).toHaveProperty('title', 'Something went wrong!');

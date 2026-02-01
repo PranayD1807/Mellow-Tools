@@ -18,7 +18,7 @@ class APIFeatures {
 
         // Handle $in operator specifically
         for (const key in parsedQuery) {
-            if (parsedQuery[key].$in) {
+            if (parsedQuery[key].$in && typeof parsedQuery[key].$in === 'string') {
                 parsedQuery[key].$in = parsedQuery[key].$in.split(',');
             }
         }

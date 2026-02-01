@@ -77,8 +77,9 @@ const globalErrorHandler = (err, req, res, next) => {
 
     let error = { ...err };
     error.message = err.message;
-    error.name = err.name;
-    error.code = err.code;
+    error.stack = err.stack;
+    error.name = err.name || error.name; // Ensure name is preserved
+    error.code = err.code || error.code; // Ensure code is preserved
 
     if (error.name === "JsonWebTokenError") error = handleJWTError();
     if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
@@ -92,6 +93,9 @@ const globalErrorHandler = (err, req, res, next) => {
             error = handleValidationErrorDB(error);
 
         sendErrorProd(error, req, res);
+    } else {
+        // Fallback for any other environment
+        sendErrorDev(error, req, res);
     }
 };
 
