@@ -57,6 +57,8 @@ const NoteItem: React.FC<NoteItemProps> = ({
   handleDeleteNote,
   handleUpdateNote,
 }) => {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
   const copyToClipboard = (content: string) => {
@@ -130,27 +132,36 @@ const NoteItem: React.FC<NoteItemProps> = ({
                   Copy
                 </MenuItem>
 
-                <NoteDialog
-                  onSave={(values) => handleUpdateNote(note.id, values)}
-                  initialValues={{ title: note.title, text: note.text }}
-                >
-                  <MenuItem value="edit">
-                    <MdEdit />
-                    Edit
-                  </MenuItem>
-                </NoteDialog>
+                <MenuItem value="edit" onSelect={() => setIsEditDialogOpen(true)}>
+                  <MdEdit />
+                  Edit
+                </MenuItem>
 
-                <DeleteConfirmationDialog
-                  onDelete={() => handleDeleteNote(note.id)}
-                  itemName={note.title}
+                <MenuItem
+                  value="delete"
+                  color="red"
+                  onSelect={() => setIsDeleteDialogOpen(true)}
                 >
-                  <MenuItem value="delete" color="red">
-                    <MdDelete />
-                    Delete
-                  </MenuItem>
-                </DeleteConfirmationDialog>
+                  <MdDelete />
+                  Delete
+                </MenuItem>
               </MenuContent>
             </MenuRoot>
+
+            <NoteDialog
+              open={isEditDialogOpen}
+              onOpenChange={setIsEditDialogOpen}
+              onSave={(values) => handleUpdateNote(note.id, values)}
+              initialValues={{ title: note.title, text: note.text }}
+              title="Edit Note"
+            />
+
+            <DeleteConfirmationDialog
+              open={isDeleteDialogOpen}
+              onOpenChange={setIsDeleteDialogOpen}
+              onDelete={() => handleDeleteNote(note.id)}
+              itemName={note.title}
+            />
           </HStack>
         </HStack>
 

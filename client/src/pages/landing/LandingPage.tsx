@@ -20,6 +20,7 @@ import ContributeCard from "@/components/ContributeCard";
 import Logo from "@/components/Logo";
 import { showcaseInfo } from "@/models/ShowcaseInfo";
 import ShowcaseCard from "@/components/ShowcaseCard";
+import SEO from "@/components/SEO";
 
 const bulletPoints = [
   {
@@ -95,6 +96,7 @@ const LandingPage = () => {
 
   return (
     <Flex direction="column" w="full" overflowX="hidden" alignItems="center">
+      <SEO />
       {/* Introduction */}
       <Flex
         overflow="hidden"

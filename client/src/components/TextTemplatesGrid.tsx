@@ -15,6 +15,8 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
   templates: templates,
   handleDeleteTemplate: handleDeleteTemplate,
 }) => {
+  const [deletingTemplate, setDeletingTemplate] = React.useState<TextTemplate | null>(null);
+
   return (
     <Grid
       w="100%"
@@ -77,21 +79,16 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
                 </Button>
               </Link>
 
-              <DeleteConfirmationDialog
-                onDelete={() => handleDeleteTemplate(template.id)}
-                itemName={template.title}
-                children={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    color="red"
-                    aria-label={`Delete template ${template.title}`}
-                  >
-                    <MdDelete color="red" />
-                    Delete
-                  </Button>
-                }
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                color="red"
+                onClick={() => setDeletingTemplate(template)}
+                aria-label={`Delete template ${template.title}`}
+              >
+                <MdDelete color="red" />
+                Delete
+              </Button>
 
               <Link to={`/text-templates/${template.id}`}>
                 <Button
@@ -109,6 +106,16 @@ const TextTemplatesGrid: React.FC<TextTemplatesGridProps> = ({
           </VStack>
         </Box>
       ))}
+
+      {/* Delete Dialog */}
+      {deletingTemplate && (
+        <DeleteConfirmationDialog
+          open={!!deletingTemplate}
+          onOpenChange={(isOpen) => !isOpen && setDeletingTemplate(null)}
+          onDelete={() => handleDeleteTemplate(deletingTemplate.id)}
+          itemName={deletingTemplate.title}
+        />
+      )}
     </Grid>
   );
 };

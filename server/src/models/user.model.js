@@ -48,6 +48,13 @@ userSchema.methods.validPassword = function (password) {
     return this.password === hash;
 };
 
+userSchema.methods.getCleanData = function () {
+    const user = this.toObject();
+    delete user.password;
+    delete user.salt;
+    return user;
+};
+
 const userModel = mongoose.model("User", userSchema);
 
 export default userModel;

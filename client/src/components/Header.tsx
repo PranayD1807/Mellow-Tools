@@ -3,8 +3,8 @@ import { chakra } from "@chakra-ui/react";
 import {
   ColorModeButton,
   ColorModeIcon,
-  useColorMode,
 } from "@/components/ui/color-mode";
+import { useColorMode } from "@/hooks/ui/use-color-mode";
 
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/userSlice";
