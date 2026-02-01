@@ -4,10 +4,13 @@ import {
     getAllJobApplications,
     getJobApplication,
     updateJobApplication,
-    deleteJobApplication
+    deleteJobApplication,
+    getJobApplicationStats
 } from "../controllers/jobApplication.controller.js";
 
 const router = express.Router();
+
+router.get("/stats", getJobApplicationStats);
 
 router.post("/", createJobApplication);
 

@@ -12,18 +12,9 @@ export const updateTextTemplate = (req, res, next) => {
 };
 
 export const getAllTextTemplates = (req, res, next) => {
-    let preFilter = { user: req.user.id };
-    const { search } = req.query;
-
-    if (search) {
-        preFilter = {
-            ...preFilter,
-            title: { $regex: search, $options: "i" },
-        };
-        delete req.query.search;
-    }
-
-    return getAll(textTemplateModel, preFilter)(req, res, next);
+    const preFilter = { user: req.user.id };
+    const searchableFields = ['title', 'tag', 'defaultText'];
+    return getAll(textTemplateModel, preFilter, searchableFields)(req, res, next);
 };
 
 export const getTextTemplate = (req, res, next) => {

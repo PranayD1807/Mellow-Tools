@@ -12,7 +12,8 @@ describe('handlerFactory - Unit Tests', () => {
             findOneAndUpdate: jest.fn(),
             create: jest.fn(),
             findOne: jest.fn(),
-            find: jest.fn()
+            find: jest.fn(),
+            countDocuments: jest.fn()
         };
         mockReq = {
             params: { id: '123' },
@@ -111,18 +112,39 @@ describe('handlerFactory - Unit Tests', () => {
             mockQuery.select = jest.fn().mockReturnThis();
             mockQuery.skip = jest.fn().mockReturnThis();
             mockQuery.limit = jest.fn().mockReturnThis();
+            mockQuery.getFilter = jest.fn().mockReturnValue({});
 
             mockModel.find.mockReturnValue(mockQuery);
+            mockModel.countDocuments.mockResolvedValue(1);
 
             const handler = factory.getAll(mockModel);
             await handler(mockReq, mockRes, next);
 
+            expect(next).not.toHaveBeenCalled();
             expect(mockModel.find).toHaveBeenCalledWith({});
+            expect(mockModel.countDocuments).toHaveBeenCalled();
             expect(mockRes.status).toHaveBeenCalledWith(200);
             expect(mockRes.json).toHaveBeenCalledWith(expect.objectContaining({
                 results: 1,
                 data: mockDocs
             }));
+        });
+    });
+
+    describe('createOne', () => {
+        it('should create a new document', async () => {
+            const mockDoc = { id: '123', name: 'Test' };
+            mockModel.create.mockResolvedValue(mockDoc);
+
+            const handler = factory.createOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.create).toHaveBeenCalledWith(mockReq.body);
+            expect(mockRes.status).toHaveBeenCalledWith(201);
+            expect(mockRes.json).toHaveBeenCalledWith({
+                status: 'success',
+                data: mockDoc
+            });
         });
     });
 });

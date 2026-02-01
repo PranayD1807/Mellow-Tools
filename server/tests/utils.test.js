@@ -52,6 +52,35 @@ describe('Utils and Factory Edge Cases', () => {
                 expect(res.body.data[0].text).toBeUndefined();
             }
         });
+
+        it('should handle search with searchableFields', async () => {
+            await request(app).post('/api/v1/notes').set('Authorization', `Bearer ${token}`).send({ title: 'Apple', text: 'Fruit' });
+            await request(app).post('/api/v1/notes').set('Authorization', `Bearer ${token}`).send({ title: 'Banana', text: 'Fruit' });
+
+            const res = await request(app)
+                .get('/api/v1/notes?search=Apple')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.results).toBe(1);
+            expect(res.body.data[0].title).toBe('Apple');
+        });
+
+        it('should handle sorting with createdAt already in query', async () => {
+            const res = await request(app)
+                .get('/api/v1/notes?sort=createdAt')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toBe(200);
+        });
+
+        it('should handle descending sort for stable secondary sort', async () => {
+            const res = await request(app)
+                .get('/api/v1/notes?sort=-title')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toBe(200);
+        });
     });
 
     describe('handlerFactory - getOne with Populate', () => {

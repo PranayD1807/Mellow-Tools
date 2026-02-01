@@ -72,11 +72,15 @@ const TextTemplates = () => {
     fetchTemplates(searchTerm);
   };
 
-  useEffect(() => {
-    if (searchTerm === "") {
-      fetchTemplates();
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleTemplateSearch();
     }
-  }, [searchTerm]);
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
 
   return (
     <>
@@ -129,6 +133,7 @@ const TextTemplates = () => {
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchChange}
+              onKeyDown={handleKeyPress}
               flex="1"
               mr={4}
             />

@@ -64,6 +64,12 @@ const Notes = () => {
     fetchNotes(searchTerm);
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleNoteSearch();
+    }
+  };
+
   const handleCreateNote = async (values: { title: string; text: string }) => {
     try {
       const res = await noteApi.create(values);
@@ -71,7 +77,7 @@ const Notes = () => {
         // Handle error response
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
-        setNotes((prevItems) => [ res.data!, ...prevItems]);
+        setNotes((prevItems) => [res.data!, ...prevItems]);
         toast.success("Note added successfully!");
       }
     } catch (error) {
@@ -101,10 +107,8 @@ const Notes = () => {
   };
 
   useEffect(() => {
-    if (searchTerm === "") {
-      fetchNotes();
-    }
-  }, [searchTerm]);
+    fetchNotes();
+  }, []);
 
   return (
     <>
@@ -156,6 +160,7 @@ const Notes = () => {
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchChange}
+              onKeyDown={handleKeyPress}
               flex="1"
               mr={4}
             />

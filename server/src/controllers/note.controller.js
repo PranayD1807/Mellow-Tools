@@ -12,21 +12,9 @@ export const updateNote = (req, res, next) => {
 };
 
 export const getAllNotes = (req, res, next) => {
-    let preFilter = { user: req.user.id };
-    const { search } = req.query;
-
-    if (search) {
-        preFilter = {
-            ...preFilter,
-            $or: [
-                { title: { $regex: search, $options: "i" } },
-                { text: { $regex: search, $options: "i" } },
-            ],
-        };
-        delete req.query.search;
-    }
-
-    return getAll(noteModel, preFilter)(req, res, next);
+    const preFilter = { user: req.user.id };
+    const searchableFields = ['title', 'text'];
+    return getAll(noteModel, preFilter, searchableFields)(req, res, next);
 };
 
 export const getNote = (req, res, next) => {

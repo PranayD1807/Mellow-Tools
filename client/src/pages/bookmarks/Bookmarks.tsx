@@ -77,6 +77,12 @@ const Bookmarks = () => {
     fetchBookmarks(searchTerm);
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleNoteSearch();
+    }
+  };
+
   const handleCreateBookmark = async (values: CreateBookmarkData) => {
     try {
       const logoUrl = await fetchLogoUrl(values.url);
@@ -180,6 +186,7 @@ const Bookmarks = () => {
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchChange}
+              onKeyDown={handleKeyPress}
               flex="1"
               mr={4}
             />

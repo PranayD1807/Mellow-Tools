@@ -183,4 +183,32 @@ describe('Job Application Endpoints', () => {
             expect(getRes.statusCode).toEqual(404);
         });
     });
+
+    describe('GET /api/v1/job-applications/stats', () => {
+        it('should return job application statistics', async () => {
+            const jobs = [
+                { company: 'Company A', role: 'Role A', status: 'Applied', location: 'Remote', interviewStage: 'Screening' },
+                { company: 'Company B', role: 'Role B', status: 'Interviewing', location: 'Remote', interviewStage: 'Technical' },
+                { company: 'Company C', role: 'Role C', status: 'Applied', location: 'Remote', interviewStage: 'Screening' }
+            ];
+
+            for (const job of jobs) {
+                await request(app)
+                    .post('/api/v1/job-applications')
+                    .set('Authorization', `Bearer ${token}`)
+                    .send(job);
+            }
+
+            const res = await request(app)
+                .get('/api/v1/job-applications/stats')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.data).toHaveProperty('total', 3);
+            expect(res.body.data).toHaveProperty('Applied', 2);
+            expect(res.body.data).toHaveProperty('Interviewing', 1);
+            expect(res.body.data).toHaveProperty('Offer', 0);
+            expect(res.body.data).toHaveProperty('Rejected', 0);
+        });
+    });
 });
