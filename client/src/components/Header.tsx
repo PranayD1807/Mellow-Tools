@@ -40,6 +40,31 @@ const Header = () => {
     dispatch(logout());
   };
 
+  const handleBack = () => {
+    const path = location.pathname;
+
+    if (path.startsWith("/text-templates/")) {
+      navigate("/text-templates");
+    } else if (
+      [
+        "/text-templates",
+        "/notes",
+        "/bookmarks",
+        "/job-tracker",
+        "/update-password",
+        "/dashboard",
+      ].includes(path)
+    ) {
+      if (path === "/dashboard") {
+        navigate("/");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      navigate(-1);
+    }
+  };
+
   // Determine whether to show the menu (mobile) or full buttons (desktop)
   const showMenu = useBreakpointValue({ base: true, md: false }); // true for mobile, false for desktop
 
@@ -57,7 +82,7 @@ const Header = () => {
     >
       <HStack gap={4}>
         {location.pathname != "/" && location.pathname != "/auth" && (
-          <IconButton onClick={() => navigate(-1)} variant="outline">
+          <IconButton onClick={handleBack} variant="outline">
             <IoChevronBackOutline />
           </IconButton>
         )}
