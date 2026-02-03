@@ -1,7 +1,6 @@
 import {
   createBrowserRouter,
   createRoutesFromElements,
-  Navigate,
   Route,
   RouterProvider,
 } from "react-router-dom";
@@ -25,6 +24,8 @@ import LandingPage from "./pages/landing/LandingPage";
 import Bookmarks from "./pages/bookmarks/Bookmarks";
 import UpdatePassword from "@/pages/auth/UpdatePassword";
 
+import LoginBanner from "./components/LoginBanner";
+
 interface PrivateRouteProps {
   // Expect a JSX element as a component
   component: JSX.Element;
@@ -35,8 +36,13 @@ const ProtectedRoute = ({ component }: PrivateRouteProps) => {
   // Check if the user is logged in
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
 
-  // Redirect if not logged in
-  return isLoggedIn ? component : <Navigate to="/auth" />;
+  // Instead of redirecting, we render the component but show a login banner if not logged in
+  return (
+    <>
+      {!isLoggedIn && <LoginBanner />}
+      {component}
+    </>
+  );
 };
 
 // router and routes
