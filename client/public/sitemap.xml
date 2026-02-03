@@ -5,7 +5,7 @@
 			https://mellow-tools.vercel.app/
 		</loc>
 		<lastmod>
-			2025-01-22T10:49:35+01:00
+			2026-02-03T17:21:00+00:00
 		</lastmod>
 		<priority>
 			0.8
@@ -16,7 +16,7 @@
 			https://mellow-tools.vercel.app/dashboard
 		</loc>
 		<lastmod>
-			2025-01-22T10:49:35+01:00
+			2026-02-03T17:21:00+00:00
 		</lastmod>
 		<priority>
 			1.0
@@ -27,7 +27,7 @@
 			https://mellow-tools.vercel.app/text-templates
 		</loc>
 		<lastmod>
-			2025-01-22T10:49:35+01:00
+			2026-02-03T17:21:00+00:00
 		</lastmod>
 		<priority>
 			1.0
@@ -38,7 +38,7 @@
 			https://mellow-tools.vercel.app/notes
 		</loc>
 		<lastmod>
-			2025-01-22T10:49:35+01:00
+			2026-02-03T17:21:00+00:00
 		</lastmod>
 		<priority>
 			1.0
@@ -49,7 +49,18 @@
 			https://mellow-tools.vercel.app/job-tracker
 		</loc>
 		<lastmod>
-			2025-01-22T10:49:35+01:00
+			2026-02-03T17:21:00+00:00
+		</lastmod>
+		<priority>
+			1.0
+		</priority>
+	</url>
+	<url>
+		<loc>
+			https://mellow-tools.vercel.app/bookmarks
+		</loc>
+		<lastmod>
+			2026-02-03T17:21:00+00:00
 		</lastmod>
 		<priority>
 			1.0
@@ -60,18 +71,7 @@
 			https://mellow-tools.vercel.app/auth
 		</loc>
 		<lastmod>
-			2025-01-22T10:49:35+01:00
-		</lastmod>
-		<priority>
-			1.0
-		</priority>
-	</url>
-	<url>
-		<loc>
-			https://mellow-tools.vercel.app/create
-		</loc>
-		<lastmod>
-			2025-01-22T10:49:35+01:00
+			2026-02-03T17:21:00+00:00
 		</lastmod>
 		<priority>
 			1.0

@@ -18,8 +18,11 @@ import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const TextTemplates = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
   const [templates, setTemplates] = useState<TextTemplate[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -31,6 +34,10 @@ const TextTemplates = () => {
   };
 
   const fetchTemplates = async (query: string = "") => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await textTemplateApi.getAll(query);
@@ -79,8 +86,12 @@ const TextTemplates = () => {
   };
 
   useEffect(() => {
-    fetchTemplates();
-  }, []);
+    if (isLoggedIn) {
+      fetchTemplates();
+    } else {
+      setLoading(false);
+    }
+  }, [isLoggedIn]);
 
   return (
     <>
@@ -98,45 +109,47 @@ const TextTemplates = () => {
         w="100%"
         mt={4}
       >
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          justify="space-between"
-          align="center"
-          mb={4}
-          width={{ base: "85%", sm: "70%", md: "60%" }}
-          gapY={2}
-        >
-          {/* Search Input */}
+        {isLoggedIn && (
           <Flex
-            direction="row"
-            width={{ base: "100%", md: "70%" }}
+            direction={{ base: "column", md: "row" }}
+            justify="space-between"
             align="center"
-            mb={{ base: 4, md: 0 }}
+            mb={4}
+            width={{ base: "85%", sm: "70%", md: "60%" }}
+            gapY={2}
           >
-            <Input
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              onKeyDown={handleKeyPress}
-              flex="1"
-              mr={4}
-            />
-            <IconButton
-              aria-label="Search"
-              onClick={handleTemplateSearch}
-              variant="subtle"
-              width="auto"
+            {/* Search Input */}
+            <Flex
+              direction="row"
+              width={{ base: "100%", md: "70%" }}
+              align="center"
+              mb={{ base: 4, md: 0 }}
             >
-              <IoSearch />
-            </IconButton>
+              <Input
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyPress}
+                flex="1"
+                mr={4}
+              />
+              <IconButton
+                aria-label="Search"
+                onClick={handleTemplateSearch}
+                variant="subtle"
+                width="auto"
+              >
+                <IoSearch />
+              </IconButton>
+            </Flex>
+            {/* Add Contact Button */}
+            <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
+              <Button colorScheme="teal" width="100%" onClick={handleAddTemplate}>
+                <HiViewGridAdd /> Add Text Template
+              </Button>
+            </Box>
           </Flex>
-          {/* Add Contact Button */}
-          <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
-            <Button colorScheme="teal" width="100%" onClick={handleAddTemplate}>
-              <HiViewGridAdd /> Add Text Template
-            </Button>
-          </Box>
-        </Flex>
+        )}
         {/* Contact Grid */}
         {loading && (
           <Flex justify="center" align="center" height="60vh">

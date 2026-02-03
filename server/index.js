@@ -19,7 +19,7 @@ mongoose.set("strictQuery", true);
 
 mongoose
     .connect(DB, {
-        dbName: "prod"
+        dbName: process.env.NODE_ENV === "PROD" ? "prod" : "dev"
     })
     .then(() => console.log("DB connection successful! 👍\n"));
 

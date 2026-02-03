@@ -16,9 +16,12 @@ import { statusFilterOptions, sortOptions } from "@/constants/jobApplication";
 import { useEffect, useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 
 const JobTracker = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchInput, setSearchInput] = useState<string>("");
@@ -32,13 +35,18 @@ const JobTracker = () => {
   const limit = 20;
 
   const fetchStats = useCallback(async () => {
+    if (!isLoggedIn) return;
     const res = await jobApplicationApi.getStats();
     if (res.status === "success" && res.data) {
       setStats(res.data);
     }
-  }, []);
+  }, [isLoggedIn]);
 
   const fetchApplications = useCallback(async () => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const params = {
@@ -64,7 +72,7 @@ const JobTracker = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, statusFilter, sortOrder, page, limit]);
+  }, [searchTerm, statusFilter, sortOrder, page, limit, isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -153,20 +161,22 @@ const JobTracker = () => {
       >
         <JobTrackerStats stats={stats} />
 
-        <JobTrackerFilters
-          searchInput={searchInput}
-          setSearchInput={setSearchInput}
-          handleSearch={handleSearch}
-          handleKeyPress={handleKeyPress}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          setPage={setPage}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          statusOptions={statusFilterOptions}
-          sortOptions={sortOptions}
-          handleCreateApplication={handleCreateApplication}
-        />
+        {isLoggedIn && (
+          <JobTrackerFilters
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
+            handleSearch={handleSearch}
+            handleKeyPress={handleKeyPress}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            setPage={setPage}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
+            statusOptions={statusFilterOptions}
+            sortOptions={sortOptions}
+            handleCreateApplication={handleCreateApplication}
+          />
+        )}
 
         {/* Applications List */}
         {loading && (

@@ -66,6 +66,14 @@ const testimonials = [
 
 const showcaseInfos: showcaseInfo[] = [
   {
+    title: "Job Tracker",
+    link: "/job-tracker",
+    previewImg: "/job-tracker-preview.png",
+    imgAlt: "job tracker preview",
+    description:
+      '"Stay on top of your job hunt! Track every application, monitor status updates, and manage interview schedules all in one streamlined dashboard."',
+  },
+  {
     title: "Text Templates",
     link: "/text-templates",
     previewImg: "/text-templates-preview.png",
@@ -194,11 +202,14 @@ const LandingPage = () => {
         below that make your experience even better!
       </Text>
 
-      {/* Text Template */}
+      {/* Job Tracker */}
       <ShowcaseCard info={showcaseInfos[0]} />
 
-      {/* Notes */}
+      {/* Text Template */}
       <ShowcaseCard info={showcaseInfos[1]} />
+
+      {/* Notes */}
+      <ShowcaseCard info={showcaseInfos[2]} />
 
       {/* Hold up! */}
       <Text
@@ -215,7 +226,7 @@ const LandingPage = () => {
       </Text>
 
       {/* Bookmarks */}
-      <ShowcaseCard info={showcaseInfos[2]} />
+      <ShowcaseCard info={showcaseInfos[3]} />
 
       {/* Testimonials */}
       <Flex
