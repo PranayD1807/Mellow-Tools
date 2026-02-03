@@ -10,6 +10,16 @@ export default defineConfig({
     tsconfigPaths(),
     sitemapPlugin({
       hostname: "https://mellow-tools.vercel.app/",
+      dynamicRoutes: [
+        "/dashboard",
+        "/auth",
+        "/update-password",
+        "/text-templates",
+        "/text-templates/create",
+        "/notes",
+        "/bookmarks",
+        "/job-tracker",
+      ],
     }),
   ],
 });
