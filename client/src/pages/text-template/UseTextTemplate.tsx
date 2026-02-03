@@ -3,21 +3,20 @@ import { Editor } from "@tinymce/tinymce-react";
 import { Editor as TinyMCEEditor } from "tinymce";
 import {
   Box,
-  HStack,
   VStack,
   Text,
-  IconButton,
   Textarea,
   Separator,
-  Flex,
   Spinner,
+  Flex,
+  HStack,
 } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { InputGroup } from "@/components/ui/input-group";
 import textTemplateApi from "@/api/modules/textTemplates.api";
 import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
-import { FaCheck } from "react-icons/fa";
+import { FaMagic, FaCopy, FaFileExport } from "react-icons/fa";
 import { TextTemplate } from "@/models/TextTemplate";
 import { useParams } from "react-router-dom";
 import he from "he";
@@ -159,8 +158,10 @@ const UseTextTemplate = () => {
     // Iterate over all placeholders and replace their tags with their values
     let newStr = str;
     placeholders.forEach(({ tag, defaultText }) => {
-      const value = defaultText || "";
-      newStr = newStr.split(tag).join(value); // Exact match and replace all occurrences
+      const value = defaultText?.trim() || "";
+      if (value !== "") {
+        newStr = newStr.split(tag).join(value); // Exact match and replace all occurrences
+      }
     });
 
     editorRef.current?.setContent(newStr);
@@ -237,26 +238,17 @@ const UseTextTemplate = () => {
           </Text>
           <Separator />
           {/* List of placeholders */}
-          <HStack w="100%" justifyContent="space-between">
-            <Text fontSize="md" fontWeight="bold" h="30px">
-              Placeholder Tags:
-            </Text>
-            <IconButton
-              variant="outline"
-              onClick={onUsePlaceholdersHandler}
-              size="sm"
-            >
-              <FaCheck />
-            </IconButton>
-          </HStack>
+          <Text fontSize="md" fontWeight="bold" h="30px">
+            Placeholder Tags:
+          </Text>
           <Box w="100%" h="calc(80vh - 180px)">
             <VStack
               gap={4}
               w="100%"
-              scrollbar="hidden"
-              overflowY="scroll"
+              overflowY="auto"
               h="100%"
               pb={2}
+              pr={2}
             >
               {placeholders.map((placeholder, index) => (
                 <Field key={index} label={placeholder.tag} w="100%">
@@ -280,14 +272,31 @@ const UseTextTemplate = () => {
           <Separator />
 
           {/* Dialog to add new placeholder */}
-          <HStack w="100%">
-            <Button variant="surface" flex="1" onClick={printContent}>
-              Export
+          <VStack w="100%" gap={3}>
+            <Button
+              variant="solid"
+              w="100%"
+              onClick={onUsePlaceholdersHandler}
+            >
+              <FaMagic /> Apply Placeholders
             </Button>
-            <Button flex="1" onClick={copyToClipboard}>
-              Copy
-            </Button>
-          </HStack>
+            <HStack w="100%" gap={3}>
+              <Button
+                variant="surface"
+                flex="1"
+                onClick={copyToClipboard}
+              >
+                <FaCopy /> Copy Content
+              </Button>
+              <Button
+                variant="surface"
+                flex="1"
+                onClick={printContent}
+              >
+                <FaFileExport /> Export PDF
+              </Button>
+            </HStack>
+          </VStack>
         </VStack>
       </Flex>
     </>
