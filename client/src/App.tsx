@@ -23,6 +23,7 @@ import JobTracker from "./pages/job-tracker/JobTracker";
 import LandingPage from "./pages/landing/LandingPage";
 import Bookmarks from "./pages/bookmarks/Bookmarks";
 import UpdatePassword from "@/pages/auth/UpdatePassword";
+import TwoFactorAuth from "./pages/auth/TwoFactorAuth";
 
 import LoginBanner from "./components/LoginBanner";
 
@@ -58,6 +59,10 @@ const router = createBrowserRouter(
       <Route
         path="update-password"
         element={<ProtectedRoute component={<UpdatePassword />} />}
+      />
+      <Route
+        path="2fa"
+        element={<ProtectedRoute component={<TwoFactorAuth />} />}
       />
       <Route path="text-templates">
         <Route

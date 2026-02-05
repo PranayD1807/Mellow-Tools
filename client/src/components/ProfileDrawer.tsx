@@ -36,6 +36,11 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ open, onOpenChange }) => 
         navigate("/update-password");
     };
 
+    const handleTwoFactor = () => {
+        onOpenChange({ open: false });
+        navigate("/2fa");
+    };
+
     const avatarUrl = `https://api.dicebear.com/9.x/notionists/svg?seed=${user.displayName || "user"}`;
 
     return (
@@ -73,6 +78,16 @@ const ProfileDrawer: React.FC<ProfileDrawerProps> = ({ open, onOpenChange }) => 
                                 data-testid="change-password-drawer-button"
                             >
                                 Change Password 🔒
+                            </Button>
+                        </Box>
+                        <Box>
+                            <Button
+                                variant="outline"
+                                width="100%"
+                                onClick={handleTwoFactor}
+                                data-testid="2fa-drawer-button"
+                            >
+                                Two-Factor Auth 🛡️
                             </Button>
                         </Box>
                     </VStack>

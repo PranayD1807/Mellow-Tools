@@ -16,7 +16,6 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 
-// icons
 import { FiLogOut, FiMenu, FiUser } from "react-icons/fi";
 import { RootState } from "@/store/store";
 import Logo from "./Logo";
@@ -53,6 +52,7 @@ const Header = () => {
         "/job-tracker",
         "/update-password",
         "/dashboard",
+        "/2fa",
       ].includes(path)
     ) {
       if (path === "/dashboard") {

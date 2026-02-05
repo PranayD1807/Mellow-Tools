@@ -27,19 +27,19 @@ const bulletPoints = [
     label: "Get Stuff Done",
     description:
       "Smash through your tasks faster than ever with tools that keep you on top of your game.",
-    icon: <GiClockwork />,
+    icon: GiClockwork,
   },
   {
     label: "So Easy, It's Fun",
     description:
       "No manuals needed! Dive in and enjoy tools that just make sense, no matter your skill level.",
-    icon: <AiOutlineBlock />,
+    icon: AiOutlineBlock,
   },
   {
     label: "Open for All",
     description:
       "Peek under the hood, tweak it, or make it your own—this is tech for everyone to build on.",
-    icon: <BiCodeBlock />,
+    icon: BiCodeBlock,
   },
 ];
 
@@ -105,7 +105,6 @@ const LandingPage = () => {
   return (
     <Flex direction="column" w="full" overflowX="hidden" alignItems="center">
       <SEO />
-      {/* Introduction */}
       <Flex
         overflow="hidden"
         h="90vh"
@@ -155,7 +154,6 @@ const LandingPage = () => {
           <FaLongArrowAltDown />
         </Text>
       </Flex>
-      {/* Bullet points */}
       <Flex gap={10} p={6} px={12} direction={{ base: "column", md: "row" }}>
         {/* Bullet Points */}
         {bulletPoints.map((point, index) => (
@@ -169,9 +167,7 @@ const LandingPage = () => {
             _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
           >
             <HStack>
-              <Icon boxSize={10} mr={4}>
-                {point.icon}
-              </Icon>
+              <Icon boxSize={10} mr={4} as={point.icon} />
               <Text fontWeight="bold" fontSize={{ base: "lg", md: "xl" }}>
                 {point.label}
               </Text>
@@ -183,7 +179,6 @@ const LandingPage = () => {
           </Box>
         ))}
       </Flex>
-      {/* Some text */}
       <Text
         mb={10}
         mt={20}
@@ -202,16 +197,13 @@ const LandingPage = () => {
         below that make your experience even better!
       </Text>
 
-      {/* Job Tracker */}
       <ShowcaseCard info={showcaseInfos[0]} />
 
       {/* Text Template */}
       <ShowcaseCard info={showcaseInfos[1]} />
 
-      {/* Notes */}
       <ShowcaseCard info={showcaseInfos[2]} />
 
-      {/* Hold up! */}
       <Text
         mb={10}
         mt={20}
@@ -225,10 +217,8 @@ const LandingPage = () => {
         Hold up! There's more!
       </Text>
 
-      {/* Bookmarks */}
       <ShowcaseCard info={showcaseInfos[3]} />
 
-      {/* Testimonials */}
       <Flex
         w="80%"
         my={40}
@@ -292,11 +282,9 @@ const LandingPage = () => {
         </VStack>
       </Flex>
 
-      {/* Contribute */}
 
       <ContributeCard />
 
-      {/* Footer */}
       <Flex
         mt={10}
         w="100%"
