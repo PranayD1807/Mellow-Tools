@@ -2,6 +2,8 @@
 import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
+import otplib from 'otplib';
+const { authenticator } = otplib;
 
 
 describe('Auth Endpoints', () => {
@@ -177,6 +179,95 @@ describe('Auth Endpoints', () => {
             const res = await request(app).get('/api/v1/non-existent-route');
             expect(res.statusCode).toEqual(404);
             expect(res.body.message).toMatch(/Can't find/i);
+        });
+    });
+
+    describe('2FA Flows', () => {
+        beforeEach(async () => {
+            const res = await request(app).post('/api/v1/auth/signup').send(testUser);
+            token = res.body.token;
+        });
+
+        it('should generate 2FA secret', async () => {
+            const res = await request(app)
+                .post('/api/v1/auth/2fa/generate')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.data.secret).toBeDefined();
+            expect(res.body.data.qrCode).toBeDefined();
+        });
+
+        it('should enable 2FA with valid token', async () => {
+            // Generate first
+            const genRes = await request(app)
+                .post('/api/v1/auth/2fa/generate')
+                .set('Authorization', `Bearer ${token}`);
+            const secret = genRes.body.data.secret;
+
+            // Verify
+            const { authenticator } = await import('otplib');
+            const otp = authenticator.generate(secret);
+
+            const res = await request(app)
+                .post('/api/v1/auth/2fa/verify')
+                .set('Authorization', `Bearer ${token}`)
+                .send({ token: otp });
+
+            expect(res.statusCode).toEqual(200);
+        });
+
+        it('should require 2FA on login when enabled', async () => {
+            // Generate & Enable
+            const genRes = await request(app).post('/api/v1/auth/2fa/generate').set('Authorization', `Bearer ${token}`);
+            const secret = genRes.body.data.secret;
+            const { authenticator } = await import('otplib');
+            const otp = authenticator.generate(secret);
+            await request(app).post('/api/v1/auth/2fa/verify').set('Authorization', `Bearer ${token}`).send({ token: otp });
+
+            // Login
+            const res = await request(app).post('/api/v1/auth/signin').send({ email: testUser.email, password: testUser.password });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.status).toEqual('2fa_required');
+            expect(res.body.userId).toBeDefined();
+        });
+
+        it('should validate 2FA and login', async () => {
+            // Enable 2FA
+            const genRes = await request(app).post('/api/v1/auth/2fa/generate').set('Authorization', `Bearer ${token}`);
+            const secret = genRes.body.data.secret;
+            const { authenticator } = await import('otplib');
+            const otp = authenticator.generate(secret);
+            await request(app).post('/api/v1/auth/2fa/verify').set('Authorization', `Bearer ${token}`).send({ token: otp });
+
+            // Login first step
+            const loginRes = await request(app).post('/api/v1/auth/signin').send({ email: testUser.email, password: testUser.password });
+            const userId = loginRes.body.userId;
+
+            // Validate 2FA
+            const otp2 = authenticator.generate(secret);
+            const validateRes = await request(app).post('/api/v1/auth/2fa/validate').send({ userId, token: otp2 });
+
+            expect(validateRes.statusCode).toEqual(200);
+            expect(validateRes.body.token).toBeDefined();
+        });
+
+        it('should disable 2FA', async () => {
+            // Enable 2FA
+            const genRes = await request(app).post('/api/v1/auth/2fa/generate').set('Authorization', `Bearer ${token}`);
+            const secret = genRes.body.data.secret;
+            const { authenticator } = await import('otplib');
+            const otp = authenticator.generate(secret);
+            await request(app).post('/api/v1/auth/2fa/verify').set('Authorization', `Bearer ${token}`).send({ token: otp });
+
+            // Disable
+            const disableRes = await request(app).post('/api/v1/auth/2fa/disable').set('Authorization', `Bearer ${token}`);
+            expect(disableRes.statusCode).toEqual(200);
+
+            // Login should not require 2FA
+            const res = await request(app).post('/api/v1/auth/signin').send({ email: testUser.email, password: testUser.password });
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.status).toEqual('success');
         });
     });
 });

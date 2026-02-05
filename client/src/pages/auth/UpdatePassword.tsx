@@ -6,8 +6,21 @@ import {
     Separator,
 } from "@chakra-ui/react";
 import UpdatePasswordForm from "@/components/UpdatePasswordForm";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const UpdatePassword = () => {
+    const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isLoggedIn) {
+            navigate("/auth");
+        }
+    }, [isLoggedIn, navigate]);
+
     return (
         <Flex align="center" justify="center" mt={10} width="100%">
             <Box

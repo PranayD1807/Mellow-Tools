@@ -140,9 +140,15 @@ const JobTracker = () => {
   };
 
   useEffect(() => {
-    fetchApplications();
-    fetchStats();
-  }, [statusFilter, sortOrder, page, fetchApplications, fetchStats]);
+    if (isLoggedIn) {
+      fetchApplications();
+      fetchStats();
+    } else {
+      setApplications([]);
+      setStats({ total: 0, Applied: 0, Interviewing: 0, Offer: 0, Rejected: 0 });
+      setLoading(false);
+    }
+  }, [statusFilter, sortOrder, page, fetchApplications, fetchStats, isLoggedIn]);
 
   return (
     <>

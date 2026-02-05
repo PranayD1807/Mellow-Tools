@@ -28,6 +28,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   onOpenChange: setControlledOpen,
 }) => {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
   const setOpen = (newOpen: boolean) => {
@@ -39,8 +40,13 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   };
 
   const handleConfirmDelete = async () => {
-    await onDelete();
-    setOpen(false);
+    setIsDeleting(true);
+    try {
+      await onDelete();
+      setOpen(false);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -69,9 +75,16 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
         {/* Dialog Footer */}
         <DialogFooter justifyContent="flex-end" w="100%">
           <DialogActionTrigger asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isDeleting}>
+              Cancel
+            </Button>
           </DialogActionTrigger>
-          <Button colorScheme="red" onClick={handleConfirmDelete}>
+          <Button
+            colorScheme="red"
+            onClick={handleConfirmDelete}
+            loading={isDeleting}
+            loadingText="Deleting..."
+          >
             Delete
           </Button>
         </DialogFooter>

@@ -12,7 +12,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -33,7 +33,7 @@ const TextTemplates = () => {
     setSearchTerm(e.target.value);
   };
 
-  const fetchTemplates = async (query: string = "") => {
+  const fetchTemplates = useCallback(async (query: string = "") => {
     if (!isLoggedIn) {
       setLoading(false);
       return;
@@ -53,7 +53,7 @@ const TextTemplates = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggedIn]);
 
   const handleDelete = async (templateId: string) => {
     try {
@@ -89,9 +89,10 @@ const TextTemplates = () => {
     if (isLoggedIn) {
       fetchTemplates();
     } else {
+      setTemplates([]);
       setLoading(false);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchTemplates]);
 
   return (
     <>

@@ -13,7 +13,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -42,7 +42,7 @@ const Bookmarks = () => {
     }
   };
 
-  const fetchBookmarks = async (query: string = "") => {
+  const fetchBookmarks = useCallback(async (query: string = "") => {
     if (!isLoggedIn) {
       setLoading(false);
       return;
@@ -62,7 +62,7 @@ const Bookmarks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -142,9 +142,10 @@ const Bookmarks = () => {
         fetchBookmarks();
       }
     } else {
+      setBookmarks([]);
       setLoading(false);
     }
-  }, [searchTerm, isLoggedIn]);
+  }, [searchTerm, isLoggedIn, fetchBookmarks]);
 
   return (
     <>

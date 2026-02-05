@@ -194,6 +194,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     <FormikField
                       name="displayName"
                       as={Input}
+                      autoComplete="name"
                       placeholder="Your Name"
                       variant="outline"
                       onChange={handleChange}
@@ -211,6 +212,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     <FormikField
                       name="email"
                       as={Input}
+                      autoComplete="username"
                       placeholder="me@example.com"
                       variant="outline"
                       onChange={handleChange}
@@ -228,6 +230,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     <FormikField
                       name="password"
                       as={PasswordInput}
+                      autoComplete="new-password"
                       placeholder="Enter your password"
                       variant="outline"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,6 +258,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     <FormikField
                       name="confirmPassword"
                       as={PasswordInput}
+                      autoComplete="new-password"
                       placeholder="Confirm your password"
                       variant="outline"
                       onChange={handleChange}
