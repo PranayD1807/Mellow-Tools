@@ -117,6 +117,7 @@ const Notes = () => {
     if (isLoggedIn) {
       fetchNotes();
     } else {
+      setNotes([]);
       setLoading(false);
     }
   }, [isLoggedIn]);

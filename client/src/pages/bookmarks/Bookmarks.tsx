@@ -142,6 +142,7 @@ const Bookmarks = () => {
         fetchBookmarks();
       }
     } else {
+      setBookmarks([]);
       setLoading(false);
     }
   }, [searchTerm, isLoggedIn]);

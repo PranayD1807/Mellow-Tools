@@ -89,6 +89,7 @@ const TextTemplates = () => {
     if (isLoggedIn) {
       fetchTemplates();
     } else {
+      setTemplates([]);
       setLoading(false);
     }
   }, [isLoggedIn]);

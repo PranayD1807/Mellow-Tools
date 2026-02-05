@@ -14,6 +14,9 @@ import userApi, { UserInfo } from "@/api/modules/user.api";
 import { Button } from "@/components/ui/button";
 import TwoFactorSetup from "@/components/TwoFactorSetup";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useNavigate } from "react-router-dom";
 import {
     DialogActionTrigger,
     DialogBody,
@@ -33,6 +36,8 @@ const TwoFactorAuth = () => {
     const [isSetupOpen, setIsSetupOpen] = useState(false);
     const [disableLoading, setDisableLoading] = useState(false);
     const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
+    const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
+    const navigate = useNavigate();
 
     const fetchUserInfo = async () => {
         try {
@@ -48,8 +53,12 @@ const TwoFactorAuth = () => {
     };
 
     useEffect(() => {
-        fetchUserInfo();
-    }, []);
+        if (!isLoggedIn) {
+            navigate("/auth");
+        } else {
+            fetchUserInfo();
+        }
+    }, [isLoggedIn, navigate]);
 
     const handleDisable2FA = async () => {
         setIsDisableDialogOpen(false);
