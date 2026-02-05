@@ -118,7 +118,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         localStorage.setItem("refreshToken", res.data.refreshToken);
         toast.success("Login successful!");
       }
-    } catch (error) {
+    } catch (_) {
       setLoading(false);
       toast.error("An error occurred");
     }

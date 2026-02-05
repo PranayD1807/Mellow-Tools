@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
     Box,
     VStack,
@@ -39,15 +39,7 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
     const [otp, setOtp] = useState<string>("");
     const [loading, setLoading] = useState(false);
 
-    React.useEffect(() => {
-        if (isOpen) {
-            setStep("loading");
-            setOtp("");
-            loadQRCode();
-        }
-    }, [isOpen]);
-
-    const loadQRCode = async () => {
+    const loadQRCode = useCallback(async () => {
         try {
             const res = await userApi.generate2FA();
             if (res.err) {
@@ -60,11 +52,19 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({
                 setQrCode(res.data.data.qrCode);
                 setStep("intro");
             }
-        } catch (error) {
+        } catch (_) {
             toast.error("An error occurred");
             onClose();
         }
-    };
+    }, [onClose]);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setStep("loading");
+            setOtp("");
+            loadQRCode();
+        }
+    }, [isOpen, loadQRCode]);
 
     const handleVerify = async () => {
         if (!otp) return;

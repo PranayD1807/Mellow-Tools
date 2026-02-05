@@ -45,7 +45,7 @@ const TwoFactorAuth = () => {
             if (res.data && res.data.data) {
                 setUser(res.data.data);
             }
-        } catch (error) {
+        } catch (_) {
             console.error("Failed to fetch user info");
         } finally {
             setLoading(false);

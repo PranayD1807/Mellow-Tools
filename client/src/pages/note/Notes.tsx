@@ -13,7 +13,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -31,7 +31,7 @@ const Notes = () => {
     setSearchTerm(e.target.value);
   };
 
-  const fetchNotes = async (query: string = "") => {
+  const fetchNotes = useCallback(async (query: string = "") => {
     if (!isLoggedIn) {
       setLoading(false);
       return;
@@ -51,7 +51,7 @@ const Notes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -120,7 +120,7 @@ const Notes = () => {
       setNotes([]);
       setLoading(false);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchNotes]);
 
   return (
     <>
