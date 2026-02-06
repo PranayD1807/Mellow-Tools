@@ -3,8 +3,8 @@ import { chakra } from "@chakra-ui/react";
 import {
   ColorModeButton,
   ColorModeIcon,
-  useColorMode,
 } from "@/components/ui/color-mode";
+import { useColorMode } from "@/hooks/ui/use-color-mode";
 
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/store/userSlice";
@@ -16,14 +16,15 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 
-// icons
-import { FiLogOut, FiMenu } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiUser } from "react-icons/fi";
 import { RootState } from "@/store/store";
 import Logo from "./Logo";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { GiDeathcab } from "react-icons/gi";
+import ProfileDrawer from "./ProfileDrawer";
+import { useState } from "react";
 
 const Header = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
@@ -31,10 +32,37 @@ const Header = () => {
   const { toggleColorMode, colorMode } = useColorMode();
   const location = useLocation();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // Handle logout
   const handleLogout = () => {
     dispatch(logout());
+  };
+
+  const handleBack = () => {
+    const path = location.pathname;
+
+    if (path.startsWith("/text-templates/")) {
+      navigate("/text-templates");
+    } else if (
+      [
+        "/text-templates",
+        "/notes",
+        "/bookmarks",
+        "/job-tracker",
+        "/update-password",
+        "/dashboard",
+        "/2fa",
+      ].includes(path)
+    ) {
+      if (path === "/dashboard") {
+        navigate("/");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      navigate(-1);
+    }
   };
 
   // Determine whether to show the menu (mobile) or full buttons (desktop)
@@ -54,7 +82,7 @@ const Header = () => {
     >
       <HStack gap={4}>
         {location.pathname != "/" && location.pathname != "/auth" && (
-          <IconButton onClick={() => navigate(-1)} variant="outline">
+          <IconButton onClick={handleBack} variant="outline">
             <IoChevronBackOutline />
           </IconButton>
         )}
@@ -76,10 +104,20 @@ const Header = () => {
               {colorMode === "light" ? "Dark Mode" : "Light Mode"}
             </MenuItem>
             {isLoggedIn && (
-              <MenuItem value="log-out" onClick={handleLogout}>
-                <FiLogOut />
-                Logout
-              </MenuItem>
+              <>
+                <MenuItem
+                  value="profile"
+                  onClick={() => setProfileOpen(true)}
+                  data-testid="profile-menu-item"
+                >
+                  <FiUser />
+                  Profile
+                </MenuItem>
+                <MenuItem value="log-out" onClick={handleLogout}>
+                  <FiLogOut />
+                  Logout
+                </MenuItem>
+              </>
             )}
           </MenuContent>
         </MenuRoot>
@@ -87,10 +125,19 @@ const Header = () => {
         <HStack gap={4}>
           <ColorModeButton variant="outline" h={10} w={10} />
           {isLoggedIn && location.pathname != "/" && (
-            <Button variant="outline" h={10} onClick={handleLogout}>
-              <FiLogOut />
-              Log Out
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setProfileOpen(true)}
+                data-testid="profile-button"
+              >
+                <FiUser />
+              </Button>
+              <Button variant="outline" h={10} onClick={handleLogout}>
+                <FiLogOut />
+                Log Out
+              </Button>
+            </>
           )}
           {location.pathname == "/" && (
             <Link to={isLoggedIn ? "/dashboard" : "/auth"}>
@@ -101,6 +148,10 @@ const Header = () => {
           )}
         </HStack>
       )}
+      <ProfileDrawer
+        open={profileOpen}
+        onOpenChange={(e) => setProfileOpen(e.open)}
+      />
     </chakra.header>
   );
 };

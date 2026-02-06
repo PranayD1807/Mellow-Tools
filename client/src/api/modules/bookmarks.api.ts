@@ -6,7 +6,7 @@ import { Bookmark, CreateBookmarkData } from "@/models/Bookmark";
 const bookmarkEndpoints = {
   getAll: (query?: string) =>
     query
-      ? `bookmarks?fields=-user&query=${encodeURIComponent(query)}`
+      ? `bookmarks?fields=-user&search=${encodeURIComponent(query)}`
       : "bookmarks?fields=-user",
   create: "bookmarks",
   get: "bookmarks/{id}",

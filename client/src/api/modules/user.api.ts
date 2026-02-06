@@ -9,6 +9,10 @@ const userEndpoints = {
   signup: "auth/signup",
   getInfo: "auth/get-info",
   passwordUpdate: "auth/update-password",
+  generate2FA: "auth/2fa/generate",
+  verify2FA: "auth/2fa/verify",
+  validate2FA: "auth/2fa/validate",
+  disable2FA: "auth/2fa/disable",
 };
 
 interface SigninData {
@@ -32,14 +36,17 @@ interface PasswordUpdateData {
 }
 
 interface SigninResponse {
-  token: string;
+  token?: string;
+  refreshToken?: string;
   status: string;
   message: string;
-  data: UserInfo;
+  data?: UserInfo;
+  userId?: string; // For 2FA required case
 }
 
 interface SignupResponse {
   token: string;
+  refreshToken: string;
   status: string;
   message: string;
   data: UserInfo;
@@ -53,6 +60,32 @@ interface PasswordUpdateResponse {
 interface GetInfoResponse {
   status: string;
   data: UserInfo;
+}
+
+interface Generate2FAResponse {
+  status: string;
+  data: {
+    secret: string;
+    qrCode: string;
+  };
+}
+
+interface Verify2FAResponse {
+  status: string;
+  message: string;
+}
+
+interface Validate2FAResponse {
+  status: string;
+  message: string;
+  token: string;
+  refreshToken: string;
+  data: UserInfo;
+}
+
+interface Disable2FAResponse {
+  status: string;
+  message: string;
 }
 
 const userApi = {
@@ -107,7 +140,7 @@ const userApi = {
 
   getInfo: async (): Promise<ApiResponse<GetInfoResponse>> => {
     try {
-      const response = await privateClient.get<GetInfoResponse>(
+      const response = await privateClient.post<GetInfoResponse>(
         userEndpoints.getInfo
       );
 
@@ -126,12 +159,12 @@ const userApi = {
     confirmNewPassword,
   }: PasswordUpdateData): Promise<ApiResponse<PasswordUpdateResponse>> => {
     try {
-      const response = await privateClient.put<PasswordUpdateResponse>(
+      const response = await privateClient.post<PasswordUpdateResponse>(
         userEndpoints.passwordUpdate,
         {
           password,
           newPassword,
-          confirmNewPassword,
+          confirmPassword: confirmNewPassword,
         }
       );
 
@@ -141,6 +174,67 @@ const userApi = {
       };
     } catch (err: unknown) {
       return handleApiError<PasswordUpdateResponse>(err);
+    }
+  },
+
+  generate2FA: async (): Promise<ApiResponse<Generate2FAResponse>> => {
+    try {
+      const response = await privateClient.post<Generate2FAResponse>(
+        userEndpoints.generate2FA
+      );
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<Generate2FAResponse>(err);
+    }
+  },
+
+  verify2FA: async (token: string): Promise<ApiResponse<Verify2FAResponse>> => {
+    try {
+      const response = await privateClient.post<Verify2FAResponse>(
+        userEndpoints.verify2FA,
+        { token }
+      );
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<Verify2FAResponse>(err);
+    }
+  },
+
+  validate2FA: async (
+    userId: string,
+    token: string
+  ): Promise<ApiResponse<Validate2FAResponse>> => {
+    try {
+      const response = await publicClient.post<Validate2FAResponse>(
+        userEndpoints.validate2FA,
+        { userId, token }
+      );
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<Validate2FAResponse>(err);
+    }
+  },
+
+  disable2FA: async (): Promise<ApiResponse<Disable2FAResponse>> => {
+    try {
+      const response = await privateClient.post<Disable2FAResponse>(
+        userEndpoints.disable2FA
+      );
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<Disable2FAResponse>(err);
     }
   },
 };

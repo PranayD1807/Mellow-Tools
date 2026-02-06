@@ -13,13 +13,16 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { useEffect, useState, useCallback } from "react";
+import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const Notes = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
   const [notes, setNotes] = useState<TextNote[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -28,7 +31,11 @@ const Notes = () => {
     setSearchTerm(e.target.value);
   };
 
-  const fetchNotes = async (query: string = "") => {
+  const fetchNotes = useCallback(async (query: string = "") => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await noteApi.getAll(query);
@@ -44,7 +51,7 @@ const Notes = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -62,6 +69,12 @@ const Notes = () => {
 
   const handleNoteSearch = () => {
     fetchNotes(searchTerm);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleNoteSearch();
+    }
   };
 
   const handleCreateNote = async (values: { title: string; text: string }) => {
@@ -111,34 +124,21 @@ const Notes = () => {
   };
 
   useEffect(() => {
-    if (searchTerm === "") {
+    if (isLoggedIn) {
       fetchNotes();
+    } else {
+      setNotes([]);
+      setLoading(false);
     }
-  }, [searchTerm]);
+  }, [isLoggedIn, fetchNotes]);
 
   return (
     <>
-      <Helmet>
-        <title>Notes - Manage Your Notes Efficiently</title>
-        <meta
-          name="description"
-          content="Create, update, search, and delete notes easily. Organize your thoughts and ideas in one place."
-        />
-        <meta
-          name="keywords"
-          content="notes, note taking, create note, update note, delete note, organize notes"
-        />
-        <meta
-          property="og:title"
-          content="Notes - Manage Your Notes Efficiently"
-        />
-        <meta
-          property="og:description"
-          content="Create, update, search, and delete notes easily."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Notes"
+        description="Create, update, search, and delete notes easily. Organize your thoughts and ideas in one place."
+        keywords="notes, note taking, create note, update note, delete note, organize notes"
+      />
       <Flex
         direction="column"
         p={4}
@@ -147,49 +147,52 @@ const Notes = () => {
         w="100%"
         mt={4}
       >
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          justify="space-between"
-          align="center"
-          mb={4}
-          width={{ base: "85%", sm: "70%", md: "60%" }}
-          gapY={2}
-        >
-          {/* Search Input */}
+        {isLoggedIn && (
           <Flex
-            direction="row"
-            width={{ base: "100%", md: "70%" }}
+            direction={{ base: "column", md: "row" }}
+            justify="space-between"
             align="center"
-            mb={{ base: 4, md: 0 }}
+            mb={4}
+            width={{ base: "85%", sm: "70%", md: "60%" }}
+            gapY={2}
           >
-            <Input
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              flex="1"
-              mr={4}
-            />
-            <IconButton
-              aria-label="Search"
-              onClick={handleNoteSearch}
-              variant="subtle"
-              width="auto"
+            {/* Search Input */}
+            <Flex
+              direction="row"
+              width={{ base: "100%", md: "70%" }}
+              align="center"
+              mb={{ base: 4, md: 0 }}
             >
-              <IoSearch />
-            </IconButton>
+              <Input
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyPress}
+                flex="1"
+                mr={4}
+              />
+              <IconButton
+                aria-label="Search"
+                onClick={handleNoteSearch}
+                variant="subtle"
+                width="auto"
+              >
+                <IoSearch />
+              </IconButton>
+            </Flex>
+            {/* Add Contact Button */}
+            <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
+              <NoteDialog
+                children={
+                  <Button colorScheme="teal" width="100%">
+                    <HiViewGridAdd /> Add Note
+                  </Button>
+                }
+                onSave={handleCreateNote}
+              />
+            </Box>
           </Flex>
-          {/* Add Contact Button */}
-          <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
-            <NoteDialog
-              children={
-                <Button colorScheme="teal" width="100%">
-                  <HiViewGridAdd /> Add Note
-                </Button>
-              }
-              onSave={handleCreateNote}
-            />
-          </Box>
-        </Flex>
+        )}
         {/* Contact Grid */}
         {loading && (
           <Flex justify="center" align="center" height="60vh">

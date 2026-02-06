@@ -12,17 +12,9 @@ export const updateBookmark = (req, res, next) => {
 };
 
 export const getAllBookmarks = (req, res, next) => {
-    let preFilter = { user: req.user.id };
-    const { query } = req.query;
-
-    if (query) {
-        preFilter = {
-            ...preFilter,
-            label: { $regex: query, $options: "i" },
-        };
-    }
-
-    return getAll(bookmarkModel, preFilter)(req, res, next);
+    const preFilter = { user: req.user.id };
+    const searchableFields = ['label', 'url', 'note'];
+    return getAll(bookmarkModel, preFilter, searchableFields)(req, res, next);
 };
 
 export const getBookmark = (req, res, next) => {

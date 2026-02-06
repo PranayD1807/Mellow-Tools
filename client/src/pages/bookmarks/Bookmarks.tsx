@@ -13,13 +13,16 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { useEffect, useState, useCallback } from "react";
+import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 const Bookmarks = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -39,7 +42,11 @@ const Bookmarks = () => {
     }
   };
 
-  const fetchBookmarks = async (query: string = "") => {
+  const fetchBookmarks = useCallback(async (query: string = "") => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await bookmarkApi.getAll(query);
@@ -55,7 +62,7 @@ const Bookmarks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -75,6 +82,12 @@ const Bookmarks = () => {
 
   const handleNoteSearch = () => {
     fetchBookmarks(searchTerm);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleNoteSearch();
+    }
   };
 
   const handleCreateBookmark = async (values: CreateBookmarkData) => {
@@ -124,34 +137,23 @@ const Bookmarks = () => {
   };
 
   useEffect(() => {
-    if (searchTerm === "") {
-      fetchBookmarks();
+    if (isLoggedIn) {
+      if (searchTerm === "") {
+        fetchBookmarks();
+      }
+    } else {
+      setBookmarks([]);
+      setLoading(false);
     }
-  }, [searchTerm]);
+  }, [searchTerm, isLoggedIn, fetchBookmarks]);
 
   return (
     <>
-      <Helmet>
-        <title>Bookmarks - Save and Organize Your Favorite Links</title>
-        <meta
-          name="description"
-          content="Save, update, and manage your favorite links easily. Keep your bookmarks organized and accessible in one place."
-        />
-        <meta
-          name="keywords"
-          content="bookmarks, save links, organize bookmarks, favorite links, manage bookmarks"
-        />
-        <meta
-          property="og:title"
-          content="Bookmarks - Save and Organize Your Favorite Links"
-        />
-        <meta
-          property="og:description"
-          content="Save, update, and manage your favorite links easily."
-        />
-        <meta property="og:image" content="/og-image.png" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <SEO
+        title="Bookmarks"
+        description="Save, update, and manage your favorite links easily. Keep your bookmarks organized and accessible in one place."
+        keywords="bookmarks, save links, organize bookmarks, favorite links, manage bookmarks"
+      />
 
       <Flex
         direction="column"
@@ -161,49 +163,52 @@ const Bookmarks = () => {
         w="100%"
         mt={4}
       >
-        <Flex
-          direction={{ base: "column", md: "row" }}
-          justify="space-between"
-          align="center"
-          mb={4}
-          width={{ base: "85%", sm: "70%", md: "60%" }}
-          gapY={2}
-        >
-          {/* Search Input */}
+        {isLoggedIn && (
           <Flex
-            direction="row"
-            width={{ base: "100%", md: "70%" }}
+            direction={{ base: "column", md: "row" }}
+            justify="space-between"
             align="center"
-            mb={{ base: 4, md: 0 }}
+            mb={4}
+            width={{ base: "85%", sm: "70%", md: "60%" }}
+            gapY={2}
           >
-            <Input
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              flex="1"
-              mr={4}
-            />
-            <IconButton
-              aria-label="Search"
-              onClick={handleNoteSearch}
-              variant="subtle"
-              width="auto"
+            {/* Search Input */}
+            <Flex
+              direction="row"
+              width={{ base: "100%", md: "70%" }}
+              align="center"
+              mb={{ base: 4, md: 0 }}
             >
-              <IoSearch />
-            </IconButton>
+              <Input
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyPress}
+                flex="1"
+                mr={4}
+              />
+              <IconButton
+                aria-label="Search"
+                onClick={handleNoteSearch}
+                variant="subtle"
+                width="auto"
+              >
+                <IoSearch />
+              </IconButton>
+            </Flex>
+            {/* Add Bookmark Button */}
+            <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
+              <BookmarkDialog
+                children={
+                  <Button colorScheme="teal" width="100%">
+                    <HiViewGridAdd /> Add Bookmark
+                  </Button>
+                }
+                onSave={handleCreateBookmark}
+              />
+            </Box>
           </Flex>
-          {/* Add Bookmark Button */}
-          <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
-            <BookmarkDialog
-              children={
-                <Button colorScheme="teal" width="100%">
-                  <HiViewGridAdd /> Add Bookmark
-                </Button>
-              }
-              onSave={handleCreateBookmark}
-            />
-          </Box>
-        </Flex>
+        )}
         {/* Contact Grid */}
         {loading && (
           <Flex justify="center" align="center" height="60vh">

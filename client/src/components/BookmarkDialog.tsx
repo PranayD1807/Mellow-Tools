@@ -31,10 +31,12 @@ const validateBookmarkForm = (values: { label: string; url: string }) => {
 };
 
 interface BookmarkDialogProps {
-  children: ReactNode;
+  children?: ReactNode;
   onSave: (values: CreateBookmarkData) => Promise<void>;
   initialValues?: Partial<CreateBookmarkData>;
   title?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const BookmarkDialog: React.FC<BookmarkDialogProps> = ({
@@ -42,8 +44,19 @@ const BookmarkDialog: React.FC<BookmarkDialogProps> = ({
   onSave,
   initialValues = {},
   title = "Add Bookmark",
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  const setOpen = (newOpen: boolean) => {
+    if (setControlledOpen) {
+      setControlledOpen(newOpen);
+    } else {
+      setUncontrolledOpen(newOpen);
+    }
+  };
 
   const formattedInitialValues = {
     label: initialValues.label || "",
@@ -60,7 +73,7 @@ const BookmarkDialog: React.FC<BookmarkDialogProps> = ({
         open={open}
         onOpenChange={(e) => setOpen(e.open)}
       >
-        <DialogTrigger asChild>{children}</DialogTrigger>
+        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

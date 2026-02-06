@@ -2,7 +2,6 @@ import React from "react";
 import {
   Flex,
   Text,
-  HStack,
   IconButton,
   LinkOverlay,
   LinkBox,
@@ -32,6 +31,9 @@ const BookmarksGrid: React.FC<BookmarksGridProps> = ({
   handleDeleteBookmark,
   handleUpdateBookmark,
 }) => {
+  const [editingBookmark, setEditingBookmark] = React.useState<Bookmark | null>(null);
+  const [deletingBookmark, setDeletingBookmark] = React.useState<Bookmark | null>(null);
+
   return (
     <Flex
       wrap="wrap"
@@ -98,36 +100,47 @@ const BookmarksGrid: React.FC<BookmarksGridProps> = ({
               </IconButton>
             </MenuTrigger>
             <MenuContent>
-              <MenuItem value="edit">
-                <BookmarkDialog
-                  onSave={(values) => handleUpdateBookmark(bookmark.id, values)}
-                  initialValues={{
-                    label: bookmark.label,
-                    note: bookmark.note,
-                    url: bookmark.url,
-                  }}
-                >
-                  <HStack>
-                    <MdEdit />
-                    Edit
-                  </HStack>
-                </BookmarkDialog>
+              <MenuItem value="edit" onSelect={() => setEditingBookmark(bookmark)}>
+                <MdEdit />
+                Edit
               </MenuItem>
-              <MenuItem value="delete">
-                <DeleteConfirmationDialog
-                  onDelete={() => handleDeleteBookmark(bookmark.id)}
-                  itemName={bookmark.label}
-                >
-                  <HStack color="red">
-                    <MdDelete />
-                    Delete
-                  </HStack>
-                </DeleteConfirmationDialog>
+              <MenuItem
+                value="delete"
+                color="red"
+                onSelect={() => setDeletingBookmark(bookmark)}
+              >
+                <MdDelete />
+                Delete
               </MenuItem>
             </MenuContent>
           </MenuRoot>
         </LinkBox>
       ))}
+
+      {/* Edit Dialog */}
+      {editingBookmark && (
+        <BookmarkDialog
+          open={!!editingBookmark}
+          onOpenChange={(isOpen) => !isOpen && setEditingBookmark(null)}
+          onSave={(values) => handleUpdateBookmark(editingBookmark.id, values)}
+          initialValues={{
+            label: editingBookmark.label,
+            note: editingBookmark.note,
+            url: editingBookmark.url,
+          }}
+          title="Edit Bookmark"
+        />
+      )}
+
+      {/* Delete Dialog */}
+      {deletingBookmark && (
+        <DeleteConfirmationDialog
+          open={!!deletingBookmark}
+          onOpenChange={(isOpen) => !isOpen && setDeletingBookmark(null)}
+          onDelete={() => handleDeleteBookmark(deletingBookmark.id)}
+          itemName={deletingBookmark.label}
+        />
+      )}
     </Flex>
   );
 };

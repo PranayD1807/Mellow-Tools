@@ -87,7 +87,43 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
   toggleAuthMode,
 }) => {
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [is2FARequired, setIs2FARequired] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const dispatch = useDispatch();
+
+  const handle2FASubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId || !otp) return;
+    setLoading(true);
+
+    try {
+      const res = await userApi.validate2FA(userId, otp);
+      setLoading(false);
+
+      if (res.status === "error") {
+        toast.error(res.err?.message || "Invalid code");
+      } else if (res.data) {
+        const userData = res.data.data!;
+
+        dispatch(
+          login({
+            displayName: userData.displayName,
+            email: userData.email,
+            userId: userData.id,
+          })
+        );
+        localStorage.setItem("actkn", res.data.token);
+        localStorage.setItem("refreshToken", res.data.refreshToken);
+        toast.success("Login successful!");
+      }
+    } catch (_) {
+      setLoading(false);
+      toast.error("An error occurred");
+    }
+  };
 
   const onSubmit = async (
     values: { email: string; password: string },
@@ -98,10 +134,13 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
       const res = await userApi.signin(values);
 
       if (res.status === "error") {
-        // Handle error response
         toast.error(res.err?.message || "Something went wrong");
+      } else if (res.status === "2fa_required" && res.data?.userId) {
+        setIs2FARequired(true);
+        setUserId(res.data.userId); // userId is on the response object based on user.api.ts interface update
+        toast.info("Two-Factor Authentication Required");
       } else if (res.data) {
-        const userData = res.data.data;
+        const userData = res.data.data!;
         dispatch(
           login({
             displayName: userData.displayName,
@@ -114,6 +153,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
           userInfo: userData,
           password: values.password,
           jwtToken: res.data.token,
+          refreshToken: res.data.refreshToken,
         });
 
         toast.success(res.data.message);
@@ -126,31 +166,84 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
     }
   };
 
-  // Handle password strength calculation
   const handlePasswordChange = (password: string) => {
     setPasswordStrength(calculatePasswordStrength(password));
   };
 
-  // Conditional image display for large screens
-  const showImage = useBreakpointValue({ base: false, md: true }); // Show on md and larger screens
+  const showImage = useBreakpointValue({ base: false, md: true });
+  const containerWidth2FA = useBreakpointValue({ base: "90%", sm: "400px" });
+  const containerWidthLogin = useBreakpointValue({ base: "90%", sm: "80%", md: "70%" });
+  const imageWidth = { base: "0", md: "40%" };
+  const formWidth = { base: "100%", md: "60%" };
+
+
+  if (is2FARequired) {
+    return (
+      <Flex align="center" justify="center" mt={10}>
+        <Box
+          p={8}
+          rounded="md"
+          w="100%"
+          maxW={containerWidth2FA}
+          boxShadow="md"
+          bg="bg.surface"
+        >
+          <Heading fontSize="xl" textAlign="center" mb={6}>
+            Two-Factor Authentication
+          </Heading>
+          <Text textAlign="center" mb={4} color="fg.muted">
+            Enter the 6-digit code from your authenticator app.
+          </Text>
+          <form onSubmit={handle2FASubmit}>
+            <VStack gap={4}>
+              <Input
+                placeholder="Enter 6-digit code"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                maxLength={6}
+                textAlign="center"
+                fontSize="lg"
+                letterSpacing="widest"
+              />
+              <Button
+                type="submit"
+                width="full"
+                colorScheme="blue"
+                loading={loading}
+              >
+                Verify
+              </Button>
+              <Button
+                variant="ghost"
+                width="full"
+                onClick={() => setIs2FARequired(false)}
+              >
+                Back to Login
+              </Button>
+            </VStack>
+          </form>
+        </Box>
+      </Flex>
+    );
+  }
 
   return (
     <Flex align="center" justify="center" mt={10}>
       <Box
         display="flex"
-        flexDirection={{ base: "column", md: "row" }} // Stack vertically on small screens, row on larger
+        flexDirection={{ base: "column", md: "row" }}
         p={8}
         gap={4}
         rounded="md"
-        w={useBreakpointValue({ base: "90%", sm: "80%", md: "70%" })}
+        w={containerWidthLogin}
         boxShadow="md"
+        bg="bg.surface"
         alignItems="center"
         justifyContent="center"
       >
-        {/* Image or content on the left (visible on md and larger screens) */}
         {showImage && (
           <Box
-            w={{ base: "0", md: "40%" }} // Hide on mobile (base), show on medium screens (md)
+            w={imageWidth}
             display="flex"
             justifyContent="center"
             alignItems="center"
@@ -169,7 +262,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         )}
 
         <Box
-          w={{ base: "100%", md: "60%" }}
+          w={formWidth}
           display="flex"
           flexDirection="column"
           gap="10px"
@@ -184,8 +277,8 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               email: "",
               password: "",
             }}
-            validate={validate} // using the extracted validate function
-            onSubmit={onSubmit} // using the extracted onSubmit function
+            validate={validate}
+            onSubmit={onSubmit}
           >
             {({
               handleSubmit,
@@ -267,6 +360,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             justifyContent="center"
             margin="20px"
             fontSize="sm"
+            color="fg.muted"
           >
             Don't have an account?
             <Button onClick={toggleAuthMode} variant="subtle">

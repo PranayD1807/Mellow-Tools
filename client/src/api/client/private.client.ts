@@ -38,11 +38,44 @@ privateClient.interceptors.request.use(
 
 privateClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     console.log("Error Occured: ", error);
     if (error.response?.status === 401) {
-      store.dispatch(logout());
-      window.location.href = "/auth";
+      const refreshToken = localStorage.getItem(LocalStorageConstants.REFRESH_TOKEN);
+      const actkn = localStorage.getItem(LocalStorageConstants.JWT_TOKEN);
+
+      // prevent infinite loop if refresh token is invalid
+      if (error.config.__isRetryRequest) {
+        localStorage.removeItem(LocalStorageConstants.JWT_TOKEN);
+        localStorage.removeItem(LocalStorageConstants.REFRESH_TOKEN);
+        store.dispatch(logout());
+        window.location.href = "/auth";
+        return Promise.reject(error);
+      }
+
+      if (refreshToken && actkn) {
+        error.config.__isRetryRequest = true;
+        try {
+          const { data } = await axios.post(`${baseURL}auth/refresh-token`, { refreshToken });
+
+          if (data.status === "success" && data.token) {
+            localStorage.setItem(LocalStorageConstants.JWT_TOKEN, data.token);
+            error.config.headers["Authorization"] = `Bearer ${data.token}`;
+            return privateClient(error.config);
+          }
+        } catch (refreshError) {
+          console.log("Token refresh failed:", refreshError);
+          localStorage.removeItem(LocalStorageConstants.JWT_TOKEN);
+          localStorage.removeItem(LocalStorageConstants.REFRESH_TOKEN);
+          store.dispatch(logout());
+          window.location.href = "/auth";
+        }
+      } else {
+        localStorage.removeItem(LocalStorageConstants.JWT_TOKEN);
+        localStorage.removeItem(LocalStorageConstants.REFRESH_TOKEN);
+        store.dispatch(logout());
+        window.location.href = "/auth";
+      }
     }
     return Promise.reject(error);
   }
