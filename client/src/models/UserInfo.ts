@@ -4,4 +4,5 @@ export interface UserInfo {
   displayName: string;
   passwordKeySalt: string;
   encryptedAESKey: string;
+  isTwoFactorEnabled?: boolean;
 }

@@ -8,10 +8,12 @@ export class LocalStorageHelper {
     userInfo,
     password,
     jwtToken,
+    refreshToken,
   }: {
     userInfo: UserInfo;
     password: string;
-    jwtToken: string;
+    jwtToken?: string;
+    refreshToken?: string;
   }) => {
     // Derive password key
     const passwordDerivedKey: CryptoKey =
@@ -33,7 +35,8 @@ export class LocalStorageHelper {
     const encryptedAesKeyWithRefreshToken: string =
       await Encryption.encryptAESKeyWithRefreshToken(aesKey, aesRefreshToken);
 
-    localStorage.setItem(LocalStorageConstants.JWT_TOKEN, jwtToken);
+    localStorage.setItem(LocalStorageConstants.JWT_TOKEN, jwtToken || "");
+    localStorage.setItem(LocalStorageConstants.REFRESH_TOKEN, refreshToken || "");
 
     localStorage.setItem(
       LocalStorageConstants.AES_REFRESH_TOKEN,
