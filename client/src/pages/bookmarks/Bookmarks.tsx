@@ -1,6 +1,8 @@
 import bookmarkApi from "@/api/modules/bookmarks.api";
+import { useIterativeSearch } from "@/hooks/useIterativeSearch";
 import BookmarkDialog from "@/components/BookmarkDialog";
 import BookmarksGrid from "@/components/BookmarksGrid";
+import SearchingLoader from "@/components/SearchingLoader";
 import NoItems from "@/components/NoItems";
 import { Button } from "@/components/ui/button";
 import { Bookmark, CreateBookmarkData } from "@/models/Bookmark";
@@ -9,11 +11,10 @@ import {
   Flex,
   IconButton,
   Input,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -23,13 +24,43 @@ import { RootState } from "@/store/store";
 
 const Bookmarks = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [searchInput, setSearchInput] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const logoKey = import.meta.env.VITE_LOGO_DEV_KEY;
 
+  const fetchBookmarksCallback = useCallback((page: number, limit: number) => {
+    return bookmarkApi.getAll({ page, limit });
+  }, []);
+
+  const filterFunction = useCallback((item: Bookmark, query: string) => {
+    const lowerQuery = query.toLowerCase();
+    return !!(
+      (item.label && item.label.toLowerCase().includes(lowerQuery)) ||
+      (item.note && item.note.toLowerCase().includes(lowerQuery)) ||
+      (item.url && item.url.toLowerCase().includes(lowerQuery))
+    );
+  }, []);
+
+  const {
+    items: bookmarks,
+    setItems: setBookmarks,
+    loading,
+    isSearching,
+    currentPage,
+    hasMore,
+    hasPrev,
+    nextPage,
+    prevPage,
+  } = useIterativeSearch<Bookmark>({
+    fetchFunction: fetchBookmarksCallback,
+    searchQuery: searchTerm,
+    filterFunction,
+    pageSize: 40,
+    enabled: isLoggedIn,
+  });
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setSearchInput(e.target.value);
   };
 
   const fetchLogoUrl = async (url: string): Promise<string | null> => {
@@ -41,28 +72,6 @@ const Bookmarks = () => {
       return null;
     }
   };
-
-  const fetchBookmarks = useCallback(async (query: string = "") => {
-    if (!isLoggedIn) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await bookmarkApi.getAll(query);
-
-      if (res.status === "error") {
-        toast.error(res.err?.message || "Something went wrong");
-      } else if (res.status === "success" && res.data) {
-        setBookmarks(res.data);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }, [isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -81,7 +90,7 @@ const Bookmarks = () => {
   };
 
   const handleNoteSearch = () => {
-    fetchBookmarks(searchTerm);
+    setSearchTerm(searchInput);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -90,9 +99,9 @@ const Bookmarks = () => {
     }
   };
 
-  const handleCreateBookmark = async (values: CreateBookmarkData) => {
+  const handleCreateBookmark = async (values: Partial<CreateBookmarkData>) => {
     try {
-      const logoUrl = await fetchLogoUrl(values.url);
+      const logoUrl = await fetchLogoUrl(values.url || "");
       const dataWithLogo = values;
 
       if (logoUrl) {
@@ -112,9 +121,9 @@ const Bookmarks = () => {
     }
   };
 
-  const handleUpdate = async (docId: string, values: CreateBookmarkData) => {
+  const handleUpdate = async (docId: string, values: Partial<CreateBookmarkData>) => {
     try {
-      const logoUrl = await fetchLogoUrl(values.url);
+      const logoUrl = await fetchLogoUrl(values.url || "");
       const dataWithLogo = values;
 
       if (logoUrl) {
@@ -135,17 +144,6 @@ const Bookmarks = () => {
       toast.error("Something went wrong");
     }
   };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      if (searchTerm === "") {
-        fetchBookmarks();
-      }
-    } else {
-      setBookmarks([]);
-      setLoading(false);
-    }
-  }, [searchTerm, isLoggedIn, fetchBookmarks]);
 
   return (
     <>
@@ -181,7 +179,7 @@ const Bookmarks = () => {
             >
               <Input
                 placeholder="Search..."
-                value={searchTerm}
+                value={searchInput}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyPress}
                 flex="1"
@@ -210,24 +208,52 @@ const Bookmarks = () => {
           </Flex>
         )}
         {/* Contact Grid */}
-        {loading && (
+        {loading && bookmarks.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
-              <Spinner size="xl" borderWidth="4px" />
-              <Text textStyle="2xl" fontWeight="bold">
-                Loading...
-              </Text>
+              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading bookmarks..."} />
             </VStack>
           </Flex>
         )}
-        {!loading && bookmarks.length != 0 && (
-          <BookmarksGrid
-            handleUpdateBookmark={handleUpdate}
-            bookmarks={bookmarks}
-            handleDeleteBookmark={handleDelete}
-          />
+
+        {!loading && bookmarks.length === 0 && !isSearching && <NoItems text="bookmarks" />}
+
+        {(bookmarks.length > 0 || isSearching) && (
+          <>
+            <BookmarksGrid
+              handleUpdateBookmark={handleUpdate}
+              bookmarks={bookmarks}
+              handleDeleteBookmark={handleDelete}
+            />
+            {bookmarks.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+
+            {/* Pagination Controls */}
+            {isLoggedIn && bookmarks.length > 0 && !isSearching && (
+              <Flex justify="center" align="center" gap={4} py={6}>
+                <Button
+                  onClick={prevPage}
+                  disabled={!hasPrev}
+                  variant="outline"
+                  size="sm"
+                >
+                  Previous
+                </Button>
+                <Text fontSize="sm" fontWeight="medium">
+                  Page {currentPage + 1}
+                </Text>
+                <Button
+                  onClick={nextPage}
+                  disabled={!hasMore}
+                  variant="outline"
+                  size="sm"
+                  loading={loading}
+                >
+                  Next
+                </Button>
+              </Flex>
+            )}
+          </>
         )}
-        {!loading && bookmarks.length === 0 && <NoItems text="bookmarks" />}
       </Flex>
     </>
   );

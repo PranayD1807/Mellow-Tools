@@ -3,12 +3,12 @@ import JobApplicationTable from "@/components/JobApplicationTable";
 import NoItems from "@/components/NoItems";
 import JobTrackerStats from "@/components/JobTrackerStats";
 import JobTrackerFilters from "@/components/JobTrackerFilters";
-import Pagination from "@/components/Pagination";
 import { JobApplication, CreateJobApplicationData } from "@/models/JobApplication";
+import { Button } from "@/components/ui/button";
+import SearchingLoader from "@/components/SearchingLoader";
 import {
   Box,
   Flex,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -18,21 +18,53 @@ import SEO from "@/components/SEO";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-
+import { useIterativeSearch } from "@/hooks/useIterativeSearch";
 
 const JobTracker = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
-  const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("-appliedOn");
   const [stats, setStats] = useState({ total: 0, Applied: 0, Interviewing: 0, Offer: 0, Rejected: 0 });
-  const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalResults, setTotalResults] = useState<number>(0);
-  const limit = 20;
+
+
+
+  const stableFetchFunction = useCallback((page: number, limit: number) => {
+    return jobApplicationApi.getAll({
+      page,
+      limit,
+      status: statusFilter,
+      sort: sortOrder
+    });
+  }, [statusFilter, sortOrder]);
+  const filterFunction = useCallback((app: JobApplication, query: string) => {
+    const lowerQuery = query.toLowerCase();
+    return !!(
+      (app.company && app.company.toLowerCase().includes(lowerQuery)) ||
+      (app.role && app.role.toLowerCase().includes(lowerQuery)) ||
+      (app.location && app.location.toLowerCase().includes(lowerQuery)) ||
+      (app.note && app.note.toLowerCase().includes(lowerQuery))
+    );
+  }, []);
+
+  const {
+    items: applications,
+    setItems: setApplications,
+    loading,
+    isSearching,
+    currentPage,
+    hasMore,
+    hasPrev,
+    nextPage,
+    prevPage,
+  } = useIterativeSearch<JobApplication>({
+    fetchFunction: stableFetchFunction,
+    searchQuery: searchTerm,
+    filterFunction,
+    pageSize: 20,
+    enabled: isLoggedIn,
+  });
 
   const fetchStats = useCallback(async () => {
     if (!isLoggedIn) return;
@@ -41,38 +73,6 @@ const JobTracker = () => {
       setStats(res.data);
     }
   }, [isLoggedIn]);
-
-  const fetchApplications = useCallback(async () => {
-    if (!isLoggedIn) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const params = {
-        search: searchTerm || undefined,
-        status: statusFilter === "all" ? undefined : statusFilter,
-        sort: sortOrder,
-        page,
-        limit,
-      };
-
-      const res = await jobApplicationApi.getAll(params);
-
-      if (res.status === "error") {
-        toast.error(res.err?.message || "Something went wrong");
-      } else if (res.status === "success" && res.data) {
-        setApplications(res.data || []);
-        setTotalPages(res.totalPages || 1);
-        setTotalResults(res.totalResults || 0);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }, [searchTerm, statusFilter, sortOrder, page, limit, isLoggedIn]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -91,8 +91,8 @@ const JobTracker = () => {
     }
   };
 
+
   const handleSearch = () => {
-    setPage(1);
     setSearchTerm(searchInput);
   };
 
@@ -102,7 +102,7 @@ const JobTracker = () => {
     }
   };
 
-  const handleCreateApplication = async (values: CreateJobApplicationData) => {
+  const handleCreateApplication = async (values: Partial<CreateJobApplicationData>) => {
     try {
       const res = await jobApplicationApi.create(values);
       if (res.status === "error") {
@@ -120,7 +120,7 @@ const JobTracker = () => {
 
   const handleUpdateApplication = async (
     docId: string,
-    values: CreateJobApplicationData
+    values: Partial<CreateJobApplicationData>
   ) => {
     try {
       const res = await jobApplicationApi.update(docId, values);
@@ -139,16 +139,14 @@ const JobTracker = () => {
     }
   };
 
+
   useEffect(() => {
     if (isLoggedIn) {
-      fetchApplications();
       fetchStats();
     } else {
-      setApplications([]);
       setStats({ total: 0, Applied: 0, Interviewing: 0, Offer: 0, Rejected: 0 });
-      setLoading(false);
     }
-  }, [statusFilter, sortOrder, page, fetchApplications, fetchStats, isLoggedIn]);
+  }, [isLoggedIn, fetchStats]);
 
   return (
     <>
@@ -175,7 +173,7 @@ const JobTracker = () => {
             handleKeyPress={handleKeyPress}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
-            setPage={setPage}
+            setPage={() => { }}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
             statusOptions={statusFilterOptions}
@@ -184,17 +182,15 @@ const JobTracker = () => {
           />
         )}
 
-        {/* Applications List */}
-        {loading && (
+
+        {loading && applications.length === 0 && (
           <Flex justify="center" align="center" height="30vh">
             <VStack gap={4}>
-              <Spinner size="lg" borderWidth="3px" />
-              <Text textStyle="xl" fontWeight="medium">
-                Loading...
-              </Text>
+              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading matches..."} />
             </VStack>
           </Flex>
         )}
+
         {!loading && applications.length !== 0 && (
           <Box width={{ base: "95%", sm: "90%", md: "95%", lg: "90%" }}>
             <JobApplicationTable
@@ -204,16 +200,39 @@ const JobTracker = () => {
             />
           </Box>
         )}
-        {!loading && applications.length === 0 && (
+
+        {!loading && applications.length === 0 && !isSearching && (
           <NoItems text="job applications" />
         )}
 
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalResults={totalResults}
-          setPage={setPage}
-        />
+        {applications.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+
+
+        {isLoggedIn && applications.length > 0 && !isSearching && (
+          <Flex justify="center" align="center" gap={4} py={6}>
+            <Button
+              onClick={prevPage}
+              disabled={!hasPrev}
+              variant="outline"
+              size="sm"
+            >
+              Previous
+            </Button>
+            <Text fontSize="sm" fontWeight="medium">
+              Page {currentPage + 1}
+            </Text>
+            <Button
+              onClick={nextPage}
+              disabled={!hasMore}
+              variant="outline"
+              size="sm"
+              loading={loading}
+            >
+              Next
+            </Button>
+          </Flex>
+        )}
+
       </Flex >
     </>
   );

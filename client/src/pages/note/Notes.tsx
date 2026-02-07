@@ -1,19 +1,20 @@
 import noteApi from "@/api/modules/note.api";
+import { useIterativeSearch } from "@/hooks/useIterativeSearch";
 import NoItems from "@/components/NoItems";
 import NoteDialog from "@/components/NoteDialog";
 import NotesGrid from "@/components/NotesGrid";
+import SearchingLoader from "@/components/SearchingLoader";
 import { Button } from "@/components/ui/button";
-import { CreateTextNoteData, TextNote } from "@/models/TextNote";
+import { TextNote, CreateTextNoteData } from "@/models/TextNote";
 import {
   Box,
   Flex,
   IconButton,
   Input,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -23,35 +24,76 @@ import { RootState } from "@/store/store";
 
 const Notes = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
-  const [notes, setNotes] = useState<TextNote[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [searchInput, setSearchInput] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
+  const fetchNotesCallback = useCallback((page: number, limit: number) => {
+    return noteApi.getAll({ page, limit });
+  }, []);
+
+  const filterFunction = useCallback((note: TextNote, query: string) => {
+    const lowerQuery = query.toLowerCase();
+    return !!(
+      (note.title && note.title.toLowerCase().includes(lowerQuery)) ||
+      (note.text && note.text.toLowerCase().includes(lowerQuery))
+    );
+  }, []);
+
+  const {
+    items: notes,
+    setItems: setNotes,
+    loading,
+    isSearching,
+    currentPage,
+    hasMore,
+    hasPrev,
+    nextPage,
+    prevPage,
+  } = useIterativeSearch<TextNote>({
+    fetchFunction: fetchNotesCallback,
+    searchQuery: searchTerm,
+    filterFunction,
+    pageSize: 20,
+    enabled: isLoggedIn,
+  });
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setSearchInput(e.target.value);
   };
 
-  const fetchNotes = useCallback(async (query: string = "") => {
-    if (!isLoggedIn) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+  const handleCreateNote = async (
+    data: Partial<CreateTextNoteData>
+  ): Promise<void> => {
     try {
-      const res = await noteApi.getAll(query);
-
+      const res = await noteApi.create(data);
       if (res.status === "error") {
         toast.error(res.err?.message || "Something went wrong");
-      } else if (res.status === "success" && res.data) {
-        setNotes(res.data);
+      } else if (res.data) {
+        setNotes((prevItems) => [res.data!, ...prevItems]);
+        toast.success("Note added successfully!");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error adding note:", error);
       toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
     }
-  }, [isLoggedIn]);
+  };
+
+  const handleUpdate = async (docId: string, values: Partial<CreateTextNoteData>) => {
+    try {
+      const res = await noteApi.update(docId, values);
+      if (res.status === "error") {
+        toast.error(res.err?.message || "Something went wrong");
+      } else if (res.data) {
+        toast.success("Note updated successfully!");
+        setNotes((prevItems) =>
+          prevItems.map((note) => (note.id === docId ? res.data || note : note))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating note:", error);
+      toast.error("Something went wrong");
+    }
+  };
 
   const handleDelete = async (docId: string) => {
     try {
@@ -68,7 +110,7 @@ const Notes = () => {
   };
 
   const handleNoteSearch = () => {
-    fetchNotes(searchTerm);
+    setSearchTerm(searchInput);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -77,68 +119,14 @@ const Notes = () => {
     }
   };
 
-  const handleCreateNote = async (values: { title: string; text: string }) => {
-    try {
-      const data = Object.assign(new CreateTextNoteData(), {
-        title: values.title,
-        text: values.text,
-      });
-
-      const res = await noteApi.create(data);
-      if (res.status === "error") {
-        // Handle error response
-        toast.error(res.err?.message || "Something went wrong");
-      } else if (res.data) {
-        setNotes((prevItems) => [res.data!, ...prevItems]);
-        toast.success("Note added successfully!");
-      }
-    } catch (error) {
-      console.error("Error adding template:", error);
-      toast.error("Something went wrong");
-    }
-  };
-
-  const handleUpdateNote = async (
-    docId: string,
-    values: { text: string; title: string }
-  ) => {
-    try {
-      const data = Object.assign(new CreateTextNoteData(), {
-        title: values.title,
-        text: values.text,
-      });
-      
-      const res = await noteApi.update(docId, data); // Ensure `docId` is valid
-      if (res.status === "error") {
-        toast.error(res.err?.message || "Something went wrong");
-      } else if (res.data) {
-        toast.success("Note updated successfully!");
-        setNotes((prevItems) =>
-          prevItems.map((note) => (note.id === docId ? res.data || note : note))
-        );
-      }
-    } catch (error) {
-      console.error("Error updating note:", error);
-      toast.error("Something went wrong");
-    }
-  };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchNotes();
-    } else {
-      setNotes([]);
-      setLoading(false);
-    }
-  }, [isLoggedIn, fetchNotes]);
-
   return (
     <>
       <SEO
         title="Notes"
-        description="Create, update, search, and delete notes easily. Organize your thoughts and ideas in one place."
-        keywords="notes, note taking, create note, update note, delete note, organize notes"
+        description="Create, update, and manage your notes effortlessly. Keep your ideas and important information organized in one place."
+        keywords="notes, create notes, update notes, manage notes, organize notes"
       />
+
       <Flex
         direction="column"
         p={4}
@@ -165,7 +153,7 @@ const Notes = () => {
             >
               <Input
                 placeholder="Search..."
-                value={searchTerm}
+                value={searchInput}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyPress}
                 flex="1"
@@ -180,7 +168,7 @@ const Notes = () => {
                 <IoSearch />
               </IconButton>
             </Flex>
-            {/* Add Contact Button */}
+            {/* Add Note Button */}
             <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
               <NoteDialog
                 children={
@@ -194,24 +182,52 @@ const Notes = () => {
           </Flex>
         )}
         {/* Contact Grid */}
-        {loading && (
+        {loading && notes.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
-              <Spinner size="xl" borderWidth="4px" />
-              <Text textStyle="2xl" fontWeight="bold">
-                Loading...
-              </Text>
+              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading notes..."} />
             </VStack>
           </Flex>
         )}
-        {!loading && notes.length != 0 && (
-          <NotesGrid
-            handleUpdateNote={handleUpdateNote}
-            notes={notes}
-            handleDeleteNote={handleDelete}
-          />
+
+        {!loading && notes.length === 0 && !isSearching && <NoItems text="notes" />}
+
+        {(notes.length > 0 || isSearching) && (
+          <>
+            <NotesGrid
+              handleUpdateNote={handleUpdate}
+              notes={notes}
+              handleDeleteNote={handleDelete}
+            />
+            {notes.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+
+            {/* Pagination Controls */}
+            {isLoggedIn && notes.length > 0 && !isSearching && (
+              <Flex justify="center" align="center" gap={4} py={6}>
+                <Button
+                  onClick={prevPage}
+                  disabled={!hasPrev}
+                  variant="outline"
+                  size="sm"
+                >
+                  Previous
+                </Button>
+                <Text fontSize="sm" fontWeight="medium">
+                  Page {currentPage + 1}
+                </Text>
+                <Button
+                  onClick={nextPage}
+                  disabled={!hasMore}
+                  variant="outline"
+                  size="sm"
+                  loading={loading}
+                >
+                  Next
+                </Button>
+              </Flex>
+            )}
+          </>
         )}
-        {!loading && notes.length === 0 && <NoItems text="notes" />}
       </Flex>
     </>
   );

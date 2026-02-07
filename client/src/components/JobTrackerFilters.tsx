@@ -31,7 +31,7 @@ interface JobTrackerFiltersProps {
     setSortOrder: (value: string) => void;
     statusOptions: ListCollection<{ label: string; value: string }>;
     sortOptions: ListCollection<{ label: string; value: string }>;
-    handleCreateApplication: (values: CreateJobApplicationData) => Promise<void>;
+    handleCreateApplication: (values: Partial<CreateJobApplicationData>) => Promise<void>;
 }
 
 const JobTrackerFilters: React.FC<JobTrackerFiltersProps> = ({

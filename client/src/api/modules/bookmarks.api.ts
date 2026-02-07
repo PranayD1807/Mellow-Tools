@@ -4,10 +4,7 @@ import { handleApiError } from "@/helper/error.helper";
 import { Bookmark, CreateBookmarkData } from "@/models/Bookmark";
 
 const bookmarkEndpoints = {
-  getAll: (query?: string) =>
-    query
-      ? `bookmarks?fields=-user&search=${encodeURIComponent(query)}`
-      : "bookmarks?fields=-user",
+
   create: "bookmarks",
   get: "bookmarks/{id}",
   update: "bookmarks/{id}",
@@ -15,9 +12,15 @@ const bookmarkEndpoints = {
 };
 
 const bookmarkApi = {
-  getAll: async (query?: string): Promise<ApiResponse<Bookmark[]>> => {
+  getAll: async (params: { page?: number; limit?: number } = {}): Promise<ApiResponse<Bookmark[]>> => {
     try {
-      const endpoint = bookmarkEndpoints.getAll(query);
+      const queryParams = new URLSearchParams();
+      queryParams.append("fields", "-user");
+      if (params.page) queryParams.append("page", params.page.toString());
+      if (params.limit) queryParams.append("limit", params.limit.toString());
+
+      const endpoint = `bookmarks?${queryParams.toString()}`;
+
       const response = await privateClient.get<ApiResponse<Bookmark[]>>(
         endpoint
       );
@@ -32,6 +35,10 @@ const bookmarkApi = {
         status: response.data.status,
         data: decryptedBookmarks,
         results: response.data.results || 0,
+        page: response.data.page || 1,
+        limit: response.data.limit || params.limit || 10,
+        totalPages: response.data.totalPages || 0,
+        totalResults: response.data.totalResults || 0,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -57,7 +64,7 @@ const bookmarkApi = {
   },
 
   create: async (
-    data: CreateBookmarkData
+    data: Partial<CreateBookmarkData>
   ): Promise<ApiResponse<Bookmark | null>> => {
     try {
       const createItemInstance = Object.assign(new CreateBookmarkData(), data);
@@ -81,7 +88,7 @@ const bookmarkApi = {
 
   update: async (
     id: string,
-    data: CreateBookmarkData
+    data: Partial<CreateBookmarkData>
   ): Promise<ApiResponse<Bookmark | null>> => {
     try {
       const updateItemInstance = Object.assign(new CreateBookmarkData(), data);

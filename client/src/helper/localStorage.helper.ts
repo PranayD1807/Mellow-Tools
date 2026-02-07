@@ -31,7 +31,6 @@ export class LocalStorageHelper {
     // generate refesh token
     const aesRefreshToken: string = Encryption.generateRefreshToken();
 
-    // encrypt aes key with refresh token and store it
     const encryptedAesKeyWithRefreshToken: string =
       await Encryption.encryptAESKeyWithRefreshToken(aesKey, aesRefreshToken);
 

@@ -25,12 +25,12 @@ const passwordValidation = [
     ...passwordComplexity("password")
 ];
 
-const confirmPasswordValidation = (passwordField) => [
-    body("confirmPassword")
-        .exists().withMessage("confirmPassword is required")
+const confirmPasswordValidation = (passwordField, confirmField = "confirmPassword") => [
+    body(confirmField)
+        .exists().withMessage(`${confirmField} is required`)
         .custom((value, { req }) => {
             if (value !== req.body[passwordField])
-                throw new Error("confirmPassword does not match password");
+                throw new Error(`${confirmField} does not match ${passwordField}`);
             return true;
         }),
 ];
@@ -66,6 +66,6 @@ export const updatePasswordValidator = [
     body("password").exists().withMessage("password is required"),
     body("newPassword").exists().withMessage("newPassword is required"),
     ...passwordComplexity("newPassword"),
-    ...confirmPasswordValidation("newPassword"),
+    ...confirmPasswordValidation("newPassword", "confirmNewPassword"),
     handleValidationErrors,
 ];

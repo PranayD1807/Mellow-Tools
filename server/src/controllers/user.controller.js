@@ -24,7 +24,7 @@ const generateTokens = (userId) => {
 };
 
 export const signup = catchAsync(async (req, res) => {
-    const { email, password, displayName } = req.body;
+    const { email, password, displayName, encryptedAESKey, passwordKeySalt } = req.body;
 
     const user = new userModel({ displayName, email });
     await user.save();
@@ -37,9 +37,14 @@ export const signup = catchAsync(async (req, res) => {
 
     const { token, refreshToken } = generateTokens(user.id);
 
+    // Convert Mongoose document to plain object so we can attach extra fields
+    const userData = user.toObject();
+    userData.passwordKeySalt = passwordKeySalt;
+    userData.encryptedAESKey = encryptedAESKey;
+
     res.status(201).json({
         status: "success",
-        data: user,
+        data: userData,
         token: token,
         refreshToken: refreshToken,
         message: "Signed-up successfully.",
@@ -67,12 +72,15 @@ export const signin = catchAsync(async (req, res) => {
     }
 
     const { token, refreshToken } = generateTokens(user.id);
-    user.passwordKeySalt = auth.passwordKeySalt;
-    user.encryptedAESKey = auth.encryptedAESKey;
+
+    // Convert Mongoose document to plain object so we can attach extra fields
+    const userData = user.toObject();
+    userData.passwordKeySalt = auth.passwordKeySalt;
+    userData.encryptedAESKey = auth.encryptedAESKey;
 
     res.status(200).json({
         status: "success",
-        data: user,
+        data: userData,
         message: "Signed-in successfully.",
         token: token,
         refreshToken: refreshToken,
@@ -80,7 +88,7 @@ export const signin = catchAsync(async (req, res) => {
 });
 
 export const updatePassword = catchAsync(async (req, res) => {
-    const { password, newPassword } = req.body;
+    const { password, newPassword, encryptedAESKey, passwordKeySalt } = req.body;
 
     const auth = await authModel.findOne({ user: req.user.id }).select("+password +salt");
     if (!auth) throw new AppError("Unauthorized", 401);
@@ -88,11 +96,36 @@ export const updatePassword = catchAsync(async (req, res) => {
     if (!auth.validPassword(password)) throw new AppError("Wrong password", 400);
 
     auth.setPassword(newPassword);
+
+    // Update encryption keys if provided (Essential for E2E encryption rotation)
+    if (encryptedAESKey && passwordKeySalt) {
+        auth.encryptedAESKey = encryptedAESKey;
+        auth.passwordKeySalt = passwordKeySalt;
+    }
+
     await auth.save();
 
     res.status(200).json({
         status: "success",
         message: "Password updated successfully.",
+    });
+});
+
+export const migrateEncryption = catchAsync(async (req, res) => {
+    const { encryptedAESKey, passwordKeySalt } = req.body;
+
+    const auth = await authModel.findOne({ user: req.user.id });
+    if (!auth) throw new AppError("User not found", 404);
+
+    auth.encryptedAESKey = encryptedAESKey;
+    auth.passwordKeySalt = passwordKeySalt;
+    auth.encryptionStatus = "MIGRATED";
+
+    await auth.save();
+
+    res.status(200).json({
+        status: "success",
+        message: "Encryption migrated successfully.",
     });
 });
 
@@ -172,7 +205,7 @@ export const validate2FA = catchAsync(async (req, res) => {
     const user = await userModel.findById(userId);
     if (!user) throw new AppError("User not found", 404);
 
-    const auth = await authModel.findOne({ user: userId }).select("+twoFactorSecret +isTwoFactorEnabled");
+    const auth = await authModel.findOne({ user: userId }).select("+twoFactorSecret +isTwoFactorEnabled +encryptedAESKey +passwordKeySalt");
     if (!auth || !auth.isTwoFactorEnabled) throw new AppError("2FA not enabled", 400);
 
     const isValid = authenticator.check(token, auth.twoFactorSecret);
@@ -180,9 +213,14 @@ export const validate2FA = catchAsync(async (req, res) => {
 
     const tokens = generateTokens(userId);
 
+    // Convert Mongoose document to plain object so we can attach extra fields
+    const userData = user.toObject();
+    userData.passwordKeySalt = auth.passwordKeySalt;
+    userData.encryptedAESKey = auth.encryptedAESKey;
+
     res.status(200).json({
         status: "success",
-        data: user,
+        data: userData,
         message: "Signed-in successfully.",
         token: tokens.token,
         refreshToken: tokens.refreshToken

@@ -1,13 +1,62 @@
 
-import mongoose from "mongoose";
+
+import mongoose from "../server/node_modules/mongoose/index.js";
 import dotenv from "dotenv";
+import crypto from "crypto";
 import User from "../server/src/models/user.model.js";
+import Auth from "../server/src/models/auth.model.js";
 import JobApplication from "../server/src/models/jobApplication.model.js";
 import Bookmark from "../server/src/models/bookmark.model.js";
 import Note from "../server/src/models/note.model.js";
 import TextTemplate from "../server/src/models/textTemplate.model.js";
 
 dotenv.config({ path: "../server/.env" });
+
+const ITERATIONS = 600000;
+const KEY_LENGTH = 32; // 256 bits
+const IV_LENGTH = 12; // 96 bits for GCM
+
+const arrayBufferToBase64 = (buffer) => {
+    return buffer.toString('base64');
+};
+
+const base64ToBuffer = (base64) => {
+    return Buffer.from(base64, 'base64');
+};
+
+const generateSalt = () => {
+    return crypto.randomBytes(16).toString('base64');
+};
+
+const generateAESKey = () => {
+    return crypto.randomBytes(KEY_LENGTH);
+};
+
+const deriveKey = (password, saltBase64) => {
+    const salt = base64ToBuffer(saltBase64);
+    return crypto.pbkdf2Sync(password, salt, ITERATIONS, KEY_LENGTH, 'sha256');
+};
+
+const encryptData = (text, key) => {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+
+    let encrypted = cipher.update(text, 'utf8');
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+    const tag = cipher.getAuthTag();
+
+
+
+    const combined = Buffer.concat([iv, encrypted, tag]);
+    return arrayBufferToBase64(combined);
+};
+
+const encryptAESKey = (keyToEncrypt, kek) => {
+
+    return encryptData(keyToEncrypt, kek);
+};
+
 
 const seedFull = async () => {
     try {
@@ -22,200 +71,118 @@ const seedFull = async () => {
         });
         console.log("DB connection successful! 👍");
 
-        // Targeted user for testing
-        const email = "test@test.com";
+        // Targeted user
+        const email = "mellow@test.com";
+        const password = "User@1234";
+
         let user = await User.findOne({ email });
 
+
+        const masterKey = generateAESKey(); // The raw master key used to encrypt data
+        const salt = generateSalt();
+        const kek = deriveKey(password, salt);
+        const encryptedAESKey = encryptAESKey(masterKey, kek);
+
         if (!user) {
-            console.log("Creating new demo user...");
+            console.log("Creating new user...");
             user = new User({
-                displayName: "Demo User",
+                displayName: "Mellow User",
                 email: email,
             });
-            user.setPassword("User@1234");
             await user.save();
         } else {
-            console.log("User exists, resetting password for access...");
-            user.setPassword("User@1234");
-            await user.save();
+            console.log("User exists.");
         }
 
-        console.log(`Seeding data for user: ${user.email} (${user._id})`);
 
-        // --- CLEAR EXISTING DATA ---
+        console.log("Resetting Auth and Keys...");
+        await Auth.deleteMany({ user: user._id });
+        const auth = new Auth({ user: user._id });
+        auth.setPassword(password);
+        auth.encryptedAESKey = encryptedAESKey;
+        auth.passwordKeySalt = salt;
+        auth.encryptionStatus = "ENCRYPTED";
+        auth.isTwoFactorEnabled = false;
+        await auth.save();
+
+        console.log(`Seeding data for user: ${user.email} (${user._id})`);
+        console.log("This might take a moment...");
+
+
         await JobApplication.deleteMany({ user: user._id });
         await Bookmark.deleteMany({ user: user._id });
         await Note.deleteMany({ user: user._id });
         await TextTemplate.deleteMany({ user: user._id });
 
         // --- SEED JOB APPLICATIONS ---
-        const jobs = [
-            {
+        const companies = ["Google", "Netflix", "Meta", "Amazon", "Spotify", "Apple", "Microsoft", "Uber", "Airbnb", "Stripe"];
+        const roles = ["Frontend Engineer", "Backend Engineer", "Full Stack Dev", "SDE II", "Staff Engineer", "UI Engineer"];
+        const locations = ["Remote", "NYC", "London", "San Francisco", "Bangalore", "Berlin"];
+        const statuses = ["Applied", "Interviewing", "Offer", "Rejected"];
+
+        const jobDocs = [];
+        for (let i = 0; i < 500; i++) {
+            const company = companies[i % companies.length];
+            const role = roles[i % roles.length];
+
+            jobDocs.push({
                 user: user._id,
-                company: "Google",
-                role: "Frontend Engineer",
-                location: "Mountain View, CA",
-                status: "Offer",
-                jobLink: "https://careers.google.com/jobs/results/",
-                appliedOn: new Date("2024-01-15"),
-                note: "Received offer letter via email. Negotiating salary.",
-                interviewStage: "Final Round",
-            },
-            {
-                user: user._id,
-                company: "Netflix",
-                role: "Senior UI Engineer",
-                location: "Los Gatos, CA (Remote)",
-                status: "Interviewing",
-                jobLink: "https://jobs.netflix.com/",
-                appliedOn: new Date("2024-02-01"),
-                note: "Scheduled system design round.",
-                interviewStage: "System Design",
-                nextInterviewDate: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000),
-            },
-            {
-                user: user._id,
-                company: "Meta",
-                role: "Full Stack Developer",
-                location: "Menlo Park, CA",
-                status: "Rejected",
-                jobLink: "https://www.metacareers.com/",
-                appliedOn: new Date("2023-12-10"),
-                note: "Rejected after onsite loop.",
-                interviewStage: "Onsite",
-            },
-            {
-                user: user._id,
-                company: "Amazon",
-                role: "SDE II",
-                location: "Seattle, WA",
-                status: "Applied",
-                jobLink: "https://www.amazon.jobs/",
-                appliedOn: new Date(),
-                note: "Applied with referral from John Doe.",
-                interviewStage: "Screening",
-            },
-            {
-                user: user._id,
-                company: "Spotify",
-                role: "Web Developer",
-                location: "New York, NY",
-                status: "Interviewing",
-                jobLink: "https://www.lifeatspotify.com/",
-                appliedOn: new Date("2024-01-20"),
-                note: "Recruiter screen went well.",
-                interviewStage: "Technical Screen",
-                nextInterviewDate: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000),
-            },
-            {
-                user: user._id,
-                company: "Airbnb",
-                role: "Software Engineer, Host Platform",
-                location: "San Francisco, CA",
-                status: "Offer",
-                jobLink: "https://careers.airbnb.com/",
-                appliedOn: new Date("2024-01-05"),
-                note: "Accepted offer! Start date: March 1st.",
-                interviewStage: "Offer Extended",
-            },
-            {
-                user: user._id,
-                company: "Linear",
-                role: "Frontend Developer",
-                location: "Remote",
-                status: "Interviewing",
-                jobLink: "https://linear.app/careers",
-                appliedOn: new Date("2024-02-05"),
-                note: "Take-home assignment received.",
-                interviewStage: "Take Home",
-                nextInterviewDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),
-            },
-        ];
-        await JobApplication.insertMany(jobs);
-        console.log("- Jobs seeded");
+                company: encryptData(`${company} ${i}`, masterKey),
+                role: encryptData(role, masterKey),
+                location: encryptData(locations[i % locations.length], masterKey),
+                status: statuses[i % statuses.length], // Unencrypted
+                jobLink: encryptData(`https://jobs.${company.toLowerCase()}.com/${i}`, masterKey),
+                appliedOn: new Date(Date.now() - Math.floor(Math.random() * 10000000000)),
+                note: encryptData(`This is a generated note for application ${i}.`, masterKey),
+                interviewStage: encryptData(`Stage ${i % 5}`, masterKey),
+            });
+        }
+        await JobApplication.insertMany(jobDocs);
+        console.log("- 500 Jobs seeded");
 
         // --- SEED BOOKMARKS ---
-        const bookmarks = [
-            { user: user._id, label: "ChatGPT", url: "https://chat.openai.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" },
-            { user: user._id, label: "YouTube", url: "https://youtube.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" },
-            { user: user._id, label: "Chakra UI", url: "https://chakra-ui.com", logoUrl: "https://raw.githubusercontent.com/chakra-ui/chakra-ui/main/media/logo-colored@2x.png?raw=true" },
-            { user: user._id, label: "Google", url: "https://google.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" },
-            { user: user._id, label: "Twitter", url: "https://twitter.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Logo_of_Twitter.svg" }, // Still using bird for recognition or X? Old mockup had X.
-            { user: user._id, label: "Reddit", url: "https://reddit.com", logoUrl: "https://www.redditinc.com/assets/images/site/reddit-logo.png" },
-            { user: user._id, label: "Netflix", url: "https://netflix.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" },
-            { user: user._id, label: "Amazon", url: "https://amazon.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
-            { user: user._id, label: "StackOverflow", url: "https://stackoverflow.com", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Stack_Overflow_icon.svg" },
-            { user: user._id, label: "Wikipedia", url: "https://wikipedia.org", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png" }
-        ];
-        await Bookmark.insertMany(bookmarks);
-        console.log("- Bookmarks seeded");
+        const bookmarkDocs = [];
+        for (let i = 0; i < 500; i++) {
+            bookmarkDocs.push({
+                user: user._id,
+                label: encryptData(`Bookmark ${i}`, masterKey),
+                url: encryptData(`https://example.com/${i}`, masterKey),
+                logoUrl: encryptData(`https://via.placeholder.com/64?text=${i}`, masterKey),
+                note: encryptData(`Generated bookmark ${i}`, masterKey),
+            });
+        }
+        await Bookmark.insertMany(bookmarkDocs);
+        console.log("- 500 Bookmarks seeded");
 
         // --- SEED NOTES ---
-        const notes = [
-            {
+        const noteDocs = [];
+        for (let i = 0; i < 500; i++) {
+            noteDocs.push({
                 user: user._id,
-                title: "Tell us something that's not on your resume.",
-                text: "I once built an entire app just to prove a senior engineer wrong in a debate about \"the better approach.\" I also have a talent for turning team meetings into standup comedy shows while still getting the point across."
-            },
-            {
-                user: user._id,
-                title: "Your skills?",
-                text: "I'm a black belt in debugging; I can spot a missing comma from 50 lines away. <br> My code reviews are as detailed as a forensic investigation—and twice as scathing. <br> I'm skilled in automating boring tasks so I can spend more time roasting engineers who still do things manually."
-            },
-            {
-                user: user._id,
-                title: "Your strengths and weaknesses?",
-                text: "Strengths: I'm great at seeing the big picture in code and roasting every misplaced semicolon in it. I excel at turning poorly written documentation into something readable—after thoroughly mocking it. I also thrive under pressure; nothing motivates me more than an impending deadline and the chance to say \"I told you so.\" <br> Weaknesses: I have zero tolerance for spaghetti code and will complain about it loudly. I can be a bit too honest during code reviews—tears have been shed. I also have a dependency on caffeine that borders on a medical condition."
-            },
-            {
-                user: user._id,
-                title: "Why should we hire you?",
-                text: "Because I bring more than just technical expertise—I bring entertainment, motivation, and a good laugh when your CI/CD pipeline inevitably breaks. I can spot bugs before they happen, roast bad ideas into better ones, and keep the team on their toes with a mix of sarcasm and brilliant solutions. Plus, I come with my own mechanical keyboard, so you know I mean business."
-            }
-        ];
-        await Note.insertMany(notes);
-        console.log("- Notes seeded");
+                title: encryptData(`Note Title ${i}`, masterKey),
+                text: encryptData(`This is the content of note ${i}. It is encrypted!`, masterKey),
+            });
+        }
+        await Note.insertMany(noteDocs);
+        console.log("- 500 Notes seeded");
 
         // --- SEED TEXT TEMPLATES ---
-        const textTemplates = [
-            {
+        const templateDocs = [];
+        for (let i = 0; i < 500; i++) {
+            templateDocs.push({
                 user: user._id,
-                title: "Cover Letter",
-                content: `[DATE]
-
-[Company_Name]
-[Company_Address]
-
-Dear [Manager_Name],
-
-I am writing to express my interest in the [Job_Title] position at [Company_Name] as advertised on [Source]. With my background in [Background] and experience in [Experience], I believe I can make a meaningful contribution to your team.
-
-I have a deep interest in [Interest], which aligns well with my professional values and career goals. I am particularly drawn to [Company_Name] because of [Reason].
-
-In my previous role at Google, I successfully enjoyed making coffee for my colleagues. This experience has allowed me to develop a strong skill set in team bonding, communication and wasting time, and I am confident that these will allow me to thrive in the [Job_Title] role at [Company_Name].
-
-I would be thrilled to discuss how my skills and experience align with the needs of your team. Please find my resume attached for your review. I am looking forward to the opportunity to further discuss how I can contribute to the success of [Company_Name].
-
-Thank you for considering my application. I hope to hear from you soon.
-
-Sincerely,
-Roaster Toaster,
-roastme.mellow@gmail.com`,
+                title: encryptData(`Template ${i}`, masterKey),
+                content: encryptData(`Hello [Name], this is template ${i}.`, masterKey),
                 placeholders: [
-                    { tag: "Company_Name", defaultValue: "Microsoft" },
-                    { tag: "Company_Address", defaultValue: "Bangalore, India" },
-                    { tag: "Manager_Name", defaultValue: "Sir/Ma'am" },
-                    { tag: "Job_Title", defaultValue: "SDE-1" },
-                    { tag: "Source", defaultValue: "LinkedIn" },
-                    { tag: "Background", defaultValue: "Computer Science" },
-                    { tag: "Experience", defaultValue: "Full Stack Development" },
-                    { tag: "Interest", defaultValue: "Cloud Computing" },
-                    { tag: "Reason", defaultValue: "Innovation" }
+                    {
+                        tag: encryptData("Name", masterKey),
+                        defaultValue: encryptData("User", masterKey)
+                    }
                 ]
-            }
-        ];
-        await TextTemplate.insertMany(textTemplates);
-        console.log("- Text Templates seeded");
+            });
+        }
+        await TextTemplate.insertMany(templateDocs);
+        console.log("- 500 Text Templates seeded");
 
         console.log("Seeding complete! 🌱");
 

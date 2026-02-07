@@ -4,9 +4,16 @@ export class AESKeyManager {
   private static aesKey: CryptoKey | undefined = undefined;
 
   static async getAESKey(): Promise<CryptoKey | undefined> {
-    if (this.aesKey) return this.aesKey; // Return cached key if available
+    if (this.aesKey) return this.aesKey;
 
-    this.aesKey = await LocalStorageHelper.getAESKey(); // Fetch from storage if not cached
+    const key = await LocalStorageHelper.getAESKey();
+    if (!key) return undefined;
+
+    this.aesKey = key;
     return this.aesKey;
+  }
+
+  static clear() {
+    this.aesKey = undefined;
   }
 }

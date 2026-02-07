@@ -4,12 +4,7 @@ import { CreateTextTemplateData, TextTemplate } from "@/models/TextTemplate";
 import { handleApiError } from "@/helper/error.helper";
 
 const textTemplateEndpoints = {
-  getAll: (query?: string) =>
-    query
-      ? `text-templates?fields=-user,-placeholders,-content&search=${encodeURIComponent(
-        query
-      )}`
-      : "text-templates?fields=-user,-placeholders,-content",
+
   get: "text-templates/{id}",
   create: "text-templates",
   update: "text-templates/{id}",
@@ -17,9 +12,15 @@ const textTemplateEndpoints = {
 };
 
 const textTemplateApi = {
-  getAll: async (query?: string): Promise<ApiResponse<TextTemplate[]>> => {
+  getAll: async (params: { page?: number; limit?: number } = {}): Promise<ApiResponse<TextTemplate[]>> => {
     try {
-      const endpoint = textTemplateEndpoints.getAll(query);
+      const queryParams = new URLSearchParams();
+      queryParams.append("fields", "-user,-placeholders,-content");
+      if (params.page) queryParams.append("page", params.page.toString());
+      if (params.limit) queryParams.append("limit", params.limit.toString());
+
+      const endpoint = `text-templates?${queryParams.toString()}`;
+
       const response = await privateClient.get<ApiResponse<TextTemplate[]>>(
         endpoint
       );
@@ -34,6 +35,10 @@ const textTemplateApi = {
         status: response.data.status,
         data: decryptedTemplates,
         results: response.data.results || 0,
+        page: response.data.page || 1,
+        limit: response.data.limit || params.limit || 10,
+        totalPages: response.data.totalPages || 0,
+        totalResults: response.data.totalResults || 0,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -61,7 +66,7 @@ const textTemplateApi = {
   },
 
   create: async (
-    data: CreateTextTemplateData
+    data: Partial<CreateTextTemplateData>
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
       const createNoteInstance = Object.assign(
@@ -79,9 +84,9 @@ const textTemplateApi = {
         status: response.data.status,
         data: response.data.data
           ? await Object.assign(
-              new TextTemplate(),
-              response.data.data
-            ).decrypt()
+            new TextTemplate(),
+            response.data.data
+          ).decrypt()
           : null,
       };
     } catch (err: unknown) {
@@ -91,7 +96,7 @@ const textTemplateApi = {
 
   update: async (
     id: string,
-    data: CreateTextTemplateData
+    data: Partial<CreateTextTemplateData>
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
       const createNoteInstance = Object.assign(
@@ -110,9 +115,9 @@ const textTemplateApi = {
         status: response.data.status,
         data: response.data.data
           ? await Object.assign(
-              new TextTemplate(),
-              response.data.data
-            ).decrypt()
+            new TextTemplate(),
+            response.data.data
+          ).decrypt()
           : null,
       };
     } catch (err: unknown) {

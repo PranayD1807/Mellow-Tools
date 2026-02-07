@@ -24,7 +24,12 @@ export abstract class EncryptableEntity {
 
   private async decryptValue(value: any, aesKey: CryptoKey): Promise<any> {
     if (typeof value === "string") {
-      return await Encryption.decryptData(value, aesKey);
+      try {
+        return await Encryption.decryptData(value, aesKey);
+      } catch (error) {
+        // If decryption fails, assume it's legacy/plain text and return as is
+        return value;
+      }
     } else if (Array.isArray(value)) {
       return await Promise.all(
         value.map((item) => this.decryptValue(item, aesKey))

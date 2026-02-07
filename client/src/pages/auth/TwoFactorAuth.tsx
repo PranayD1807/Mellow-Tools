@@ -10,7 +10,8 @@ import {
     Icon,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import userApi, { UserInfo } from "@/api/modules/user.api";
+import userApi from "@/api/modules/user.api";
+import { UserInfo } from "@/models/UserInfo";
 import { Button } from "@/components/ui/button";
 import TwoFactorSetup from "@/components/TwoFactorSetup";
 import { toast } from "react-toastify";

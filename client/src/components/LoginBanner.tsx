@@ -72,7 +72,7 @@ const LoginBanner = () => {
                         <HiLightningBolt size={20} color="#F6E05E" />
                     </motion.div>
                     <Text fontWeight="800" fontSize={{ base: "sm", md: "md" }} textAlign={{ base: "center", md: "left" }}>
-                        Sign in to save your progress and sync across all devices.
+                        Sign in to access your secure workspace and encrypted tools.
                     </Text>
                 </Flex>
 

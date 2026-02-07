@@ -1,4 +1,6 @@
 import textTemplateApi from "@/api/modules/textTemplates.api";
+import { useIterativeSearch } from "@/hooks/useIterativeSearch";
+import SearchingLoader from "@/components/SearchingLoader";
 import NoItems from "@/components/NoItems";
 import TextTemplatesGrid from "@/components/TextTemplatesGrid";
 import { Button } from "@/components/ui/button";
@@ -8,11 +10,10 @@ import {
   Flex,
   IconButton,
   Input,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -23,37 +24,44 @@ import { RootState } from "@/store/store";
 
 const TextTemplates = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
-  const [templates, setTemplates] = useState<TextTemplate[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [searchInput, setSearchInput] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const navigate = useNavigate();
 
+  const fetchTemplatesCallback = useCallback((page: number, limit: number) => {
+    return textTemplateApi.getAll({ page, limit });
+  }, []);
+
+  const filterFunction = useCallback((item: TextTemplate, query: string) => {
+    const lowerQuery = query.toLowerCase();
+    return !!(
+      (item.title && item.title.toLowerCase().includes(lowerQuery)) ||
+      (item.content && item.content.toLowerCase().includes(lowerQuery))
+    );
+  }, []);
+
+  const {
+    items: templates,
+    setItems: setTemplates,
+    loading,
+    isSearching,
+    currentPage,
+    hasMore,
+    hasPrev,
+    nextPage,
+    prevPage,
+  } = useIterativeSearch<TextTemplate>({
+    fetchFunction: fetchTemplatesCallback,
+    searchQuery: searchTerm,
+    filterFunction,
+    pageSize: 20,
+    enabled: isLoggedIn,
+  });
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    setSearchInput(e.target.value);
   };
-
-  const fetchTemplates = useCallback(async (query: string = "") => {
-    if (!isLoggedIn) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await textTemplateApi.getAll(query);
-
-      if (res.status === "error") {
-        toast.error(res.err?.message || "Something went wrong");
-      } else if (res.status === "success" && res.data) {
-        setTemplates(res.data);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }, [isLoggedIn]);
 
   const handleDelete = async (templateId: string) => {
     try {
@@ -76,7 +84,7 @@ const TextTemplates = () => {
   };
 
   const handleTemplateSearch = () => {
-    fetchTemplates(searchTerm);
+    setSearchTerm(searchInput);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -84,15 +92,6 @@ const TextTemplates = () => {
       handleTemplateSearch();
     }
   };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchTemplates();
-    } else {
-      setTemplates([]);
-      setLoading(false);
-    }
-  }, [isLoggedIn, fetchTemplates]);
 
   return (
     <>
@@ -128,7 +127,7 @@ const TextTemplates = () => {
             >
               <Input
                 placeholder="Search..."
-                value={searchTerm}
+                value={searchInput}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyPress}
                 flex="1"
@@ -152,23 +151,51 @@ const TextTemplates = () => {
           </Flex>
         )}
         {/* Contact Grid */}
-        {loading && (
+        {loading && templates.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
-              <Spinner size="xl" borderWidth="4px" />
-              <Text textStyle="2xl" fontWeight="bold">
-                Loading...
-              </Text>
+              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading templates..."} />
             </VStack>
           </Flex>
         )}
-        {!loading && templates.length != 0 && (
-          <TextTemplatesGrid
-            templates={templates}
-            handleDeleteTemplate={handleDelete}
-          />
+
+        {!loading && templates.length === 0 && !isSearching && <NoItems text="templates" />}
+
+        {(templates.length > 0 || isSearching) && (
+          <>
+            <TextTemplatesGrid
+              templates={templates}
+              handleDeleteTemplate={handleDelete}
+            />
+            {templates.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+
+            {/* Pagination Controls */}
+            {isLoggedIn && templates.length > 0 && !isSearching && (
+              <Flex justify="center" align="center" gap={4} py={6}>
+                <Button
+                  onClick={prevPage}
+                  disabled={!hasPrev}
+                  variant="outline"
+                  size="sm"
+                >
+                  Previous
+                </Button>
+                <Text fontSize="sm" fontWeight="medium">
+                  Page {currentPage + 1}
+                </Text>
+                <Button
+                  onClick={nextPage}
+                  disabled={!hasMore}
+                  variant="outline"
+                  size="sm"
+                  loading={loading}
+                >
+                  Next
+                </Button>
+              </Flex>
+            )}
+          </>
         )}
-        {!loading && templates.length === 0 && <NoItems text="templates" />}
       </Flex>
     </>
   );

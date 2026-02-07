@@ -13,6 +13,7 @@ const userEndpoints = {
   verify2FA: "auth/2fa/verify",
   validate2FA: "auth/2fa/validate",
   disable2FA: "auth/2fa/disable",
+  migrateEncryption: "auth/migrate-encryption",
 };
 
 interface SigninData {
@@ -33,6 +34,8 @@ interface PasswordUpdateData {
   password: string;
   newPassword: string;
   confirmNewPassword: string;
+  encryptedAESKey?: string;
+  passwordKeySalt?: string;
 }
 
 interface SigninResponse {
@@ -84,6 +87,16 @@ interface Validate2FAResponse {
 }
 
 interface Disable2FAResponse {
+  status: string;
+  message: string;
+}
+
+interface MigrateEncryptionData {
+  encryptedAESKey: string;
+  passwordKeySalt: string;
+}
+
+interface MigrateEncryptionResponse {
   status: string;
   message: string;
 }
@@ -157,6 +170,8 @@ const userApi = {
     password,
     newPassword,
     confirmNewPassword,
+    encryptedAESKey,
+    passwordKeySalt,
   }: PasswordUpdateData): Promise<ApiResponse<PasswordUpdateResponse>> => {
     try {
       const response = await privateClient.post<PasswordUpdateResponse>(
@@ -164,7 +179,9 @@ const userApi = {
         {
           password,
           newPassword,
-          confirmPassword: confirmNewPassword,
+          confirmNewPassword,
+          encryptedAESKey,
+          passwordKeySalt,
         }
       );
 
@@ -174,6 +191,28 @@ const userApi = {
       };
     } catch (err: unknown) {
       return handleApiError<PasswordUpdateResponse>(err);
+    }
+  },
+
+  migrateEncryption: async ({
+    encryptedAESKey,
+    passwordKeySalt,
+  }: MigrateEncryptionData): Promise<ApiResponse<MigrateEncryptionResponse>> => {
+    try {
+      const response = await privateClient.post<MigrateEncryptionResponse>(
+        userEndpoints.migrateEncryption,
+        {
+          encryptedAESKey,
+          passwordKeySalt,
+        }
+      );
+
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<MigrateEncryptionResponse>(err);
     }
   },
 

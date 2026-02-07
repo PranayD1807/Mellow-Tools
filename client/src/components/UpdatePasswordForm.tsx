@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     VStack,
 } from "@chakra-ui/react";
@@ -11,6 +12,8 @@ import { Field } from "@/components/ui/field";
 import { Formik, Field as FormikField, FormikHelpers } from "formik";
 import { toast } from "react-toastify";
 import userApi from "@/api/modules/user.api";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
+import Encryption from "@/helper/encryption.helper";
 
 // Password Strength function
 const calculatePasswordStrength = (password: string): number => {
@@ -71,6 +74,7 @@ const validate = (values: {
 };
 
 const UpdatePasswordForm = () => {
+    const navigate = useNavigate();
     const [passwordStrength, setPasswordStrength] = useState(0);
 
     const onSubmit = async (
@@ -87,7 +91,30 @@ const UpdatePasswordForm = () => {
     ) => {
         actions.setSubmitting(true);
         try {
-            const res = await userApi.passwordUpdate(values);
+            // Get current AES Key
+            let encryptedAESKey: string | undefined;
+            let passwordKeySalt: string | undefined;
+
+            const aesKey = await LocalStorageHelper.getAESKey();
+
+            if (aesKey) {
+                // Generate new salt and re-encrypt AES key with new password
+                passwordKeySalt = Encryption.generatePasswordKeySalt();
+                const newPasswordDerivedKey = await Encryption.getPasswordDerivedKey(
+                    values.newPassword,
+                    passwordKeySalt
+                );
+                encryptedAESKey = await Encryption.encryptAESKey(
+                    aesKey,
+                    newPasswordDerivedKey
+                );
+            }
+
+            const res = await userApi.passwordUpdate({
+                ...values,
+                encryptedAESKey,
+                passwordKeySalt,
+            });
 
             if (res.status === "error") {
                 toast.error(res.err?.message || "Something went wrong");
@@ -95,6 +122,26 @@ const UpdatePasswordForm = () => {
                 toast.success(res.data.message);
                 actions.resetForm();
                 setPasswordStrength(0);
+                navigate("/dashboard");
+
+                // If successful, we should probably update the stored credentials too?
+                // Actually, LocalStorageHelper stores "Encrypted AES Key with Refresh Token".
+                // That depends on the Refresh Token, NOT the password.
+                // The Password Key is only used for initial login to unlock the AES Key.
+                // Or if we want to update the "Cached" password?
+                // LocalStorageHelper.saveUserCreds saves the "password" in memory or something?
+                // No, it re-generates everything.
+                // But we don't need to update LocalStorage here because the Refresh Token didn't change.
+                // AND the AES Key didn't change.
+                // ONLY the "User's Password" changed.
+                // The Server stores "Encrypted AES Key (with Password)".
+                // LocalStorage stores "Encrypted AES Key (with Refresh Token)".
+                // So LocalStorage is UNAFFECTED.
+                // Verify this logic:
+                // Login: Password -> Decrypt Server Key -> AES Key -> Encrypt with Refresh Token -> Store.
+                // Auto-Login: Refresh Token -> Decrypt Stored Key -> AES Key.
+                // So changing password DOES NOT invalidate LocalStorage encryption.
+                // Correct.
             }
         } catch (error: unknown) {
             console.log(error);

@@ -4,10 +4,7 @@ import { handleApiError } from "@/helper/error.helper";
 import { CreateTextNoteData, TextNote } from "@/models/TextNote";
 
 const noteEndpoints = {
-  getAll: (query?: string) =>
-    query
-      ? `notes?fields=-user&search=${encodeURIComponent(query)}`
-      : "notes?fields=-user",
+
   create: "notes",
   get: "notes/{id}",
   update: "notes/{id}",
@@ -15,9 +12,15 @@ const noteEndpoints = {
 };
 
 const noteApi = {
-  getAll: async (query?: string): Promise<ApiResponse<TextNote[]>> => {
+  getAll: async (params: { page?: number; limit?: number } = {}): Promise<ApiResponse<TextNote[]>> => {
     try {
-      const endpoint = noteEndpoints.getAll(query);
+      const queryParams = new URLSearchParams();
+      queryParams.append("fields", "-user");
+      if (params.page) queryParams.append("page", params.page.toString());
+      if (params.limit) queryParams.append("limit", params.limit.toString());
+
+      const endpoint = `notes?${queryParams.toString()}`;
+
       const response = await privateClient.get<ApiResponse<TextNote[]>>(
         endpoint
       );
@@ -32,6 +35,10 @@ const noteApi = {
         status: response.data.status,
         data: decryptedNotes,
         results: response.data.results || 0,
+        page: response.data.page || 1,
+        limit: response.data.limit || params.limit || 10,
+        totalPages: response.data.totalPages || 0,
+        totalResults: response.data.totalResults || 0,
       };
     } catch (err: unknown) {
       return handleApiError(err);
@@ -57,7 +64,7 @@ const noteApi = {
   },
 
   create: async (
-    data: CreateTextNoteData
+    data: Partial<CreateTextNoteData>
   ): Promise<ApiResponse<TextNote | null>> => {
     try {
       const createNoteInstance = Object.assign(new CreateTextNoteData(), data);
@@ -81,7 +88,7 @@ const noteApi = {
 
   update: async (
     id: string,
-    data: CreateTextNoteData
+    data: Partial<CreateTextNoteData>
   ): Promise<ApiResponse<TextNote | null>> => {
     try {
       const updateNoteInstance = Object.assign(new CreateTextNoteData(), data);
