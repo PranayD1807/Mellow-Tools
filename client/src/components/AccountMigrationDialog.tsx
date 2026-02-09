@@ -21,6 +21,7 @@ import { login } from "@/store/userSlice";
 import userApi from "@/api/modules/user.api";
 import Encryption from "@/helper/encryption.helper";
 import { LocalStorageHelper } from "@/helper/localStorage.helper";
+import { UserInfo } from "@/models/UserInfo";
 import { toast } from "react-toastify";
 
 const AccountMigrationDialog: React.FC = () => {
@@ -94,7 +95,7 @@ const AccountMigrationDialog: React.FC = () => {
                         encryptionStatus: "MIGRATED",
                         encryptedAESKey,
                         passwordKeySalt,
-                    } as any,
+                    } as UserInfo,
                     password: password,
                     jwtToken,
                     refreshToken,

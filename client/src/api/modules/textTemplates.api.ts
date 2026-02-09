@@ -29,12 +29,8 @@ const textTemplateApi = {
 
       const decryptedTemplates = await Promise.all(
         response.data.data.map(async (template) => {
-          try {
-            const decrypted = await Object.assign(new TextTemplate(), template).decrypt();
-            return decrypted;
-          } catch (error) {
-            throw error;
-          }
+          const decrypted = await Object.assign(new TextTemplate(), template).decrypt();
+          return decrypted;
         })
       );
 

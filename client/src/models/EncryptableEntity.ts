@@ -31,7 +31,7 @@ export abstract class EncryptableEntity {
       try {
         // Use silent: true to avoid console warnings for unencrypted legacy data
         return await Encryption.decryptData(value, aesKey, true);
-      } catch (error) {
+      } catch (_error) {
         // If decryption fails, assume it's legacy/plain text and return as is
         return value;
       }

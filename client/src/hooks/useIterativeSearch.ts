@@ -31,9 +31,10 @@ export function useIterativeSearch<T extends { id: string }>({
 
     useEffect(() => {
         mountedRef.current = true;
+        const controller = abortControllerRef.current;
         return () => {
             mountedRef.current = false;
-            abortControllerRef.current?.abort();
+            controller?.abort();
         };
     }, []);
 
