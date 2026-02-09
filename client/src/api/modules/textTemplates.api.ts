@@ -9,15 +9,17 @@ const textTemplateEndpoints = {
   create: "text-templates",
   update: "text-templates/{id}",
   delete: "text-templates/{id}",
+  bulkUpdate: "text-templates/bulk-update",
 };
 
 const textTemplateApi = {
-  getAll: async (params: { page?: number; limit?: number } = {}): Promise<ApiResponse<TextTemplate[]>> => {
+  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<TextTemplate[]>> => {
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append("fields", "-user,-placeholders,-content");
+      queryParams.append("fields", "-user,-placeholders");
       if (params.page) queryParams.append("page", params.page.toString());
       if (params.limit) queryParams.append("limit", params.limit.toString());
+      if (params.sort) queryParams.append("sort", params.sort);
 
       const endpoint = `text-templates?${queryParams.toString()}`;
 
@@ -26,14 +28,52 @@ const textTemplateApi = {
       );
 
       const decryptedTemplates = await Promise.all(
-        response.data.data.map(async (template) =>
-          Object.assign(new TextTemplate(), template).decrypt()
-        )
+        response.data.data.map(async (template) => {
+          try {
+            const decrypted = await Object.assign(new TextTemplate(), template).decrypt();
+            return decrypted;
+          } catch (error) {
+            throw error;
+          }
+        })
       );
 
       return {
         status: response.data.status,
         data: decryptedTemplates,
+        results: response.data.results || 0,
+        page: response.data.page || 1,
+        limit: response.data.limit || params.limit || 10,
+        totalPages: response.data.totalPages || 0,
+        totalResults: response.data.totalResults || 0,
+      };
+    } catch (err: unknown) {
+      return handleApiError(err);
+    }
+  },
+
+  // Raw version for migration - returns data without auto-decryption
+  getAllRaw: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<TextTemplate[]>> => {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("fields", "-user");
+      if (params.page) queryParams.append("page", params.page.toString());
+      if (params.limit) queryParams.append("limit", params.limit.toString());
+      if (params.sort) queryParams.append("sort", params.sort);
+
+      const endpoint = `text-templates?${queryParams.toString()}`;
+
+      const response = await privateClient.get<ApiResponse<TextTemplate[]>>(
+        endpoint
+      );
+
+      const rawTemplates = response.data.data.map((template) =>
+        Object.assign(new TextTemplate(), template)
+      );
+
+      return {
+        status: response.data.status,
+        data: rawTemplates,
         results: response.data.results || 0,
         page: response.data.page || 1,
         limit: response.data.limit || params.limit || 10,
@@ -133,6 +173,21 @@ const textTemplateApi = {
       return {
         status: response.data.status,
         data: null,
+      };
+    } catch (err: unknown) {
+      return handleApiError(err);
+    }
+  },
+
+  bulkUpdate: async (updates: Array<{ id: string; data: Partial<CreateTextTemplateData> }>): Promise<ApiResponse<{ matchedCount: number; modifiedCount: number }>> => {
+    try {
+      const response = await privateClient.patch<ApiResponse<{ matchedCount: number; modifiedCount: number }>>(
+        textTemplateEndpoints.bulkUpdate,
+        { updates }
+      );
+      return {
+        status: response.data.status,
+        data: response.data.data,
       };
     } catch (err: unknown) {
       return handleApiError(err);

@@ -10,6 +10,7 @@ const jobApplicationEndpoints = {
     update: "job-applications/{id}",
     delete: "job-applications/{id}",
     getStats: "job-applications/stats",
+    bulkUpdate: "job-applications/bulk-update",
 };
 
 const jobApplicationApi = {
@@ -52,6 +53,37 @@ const jobApplicationApi = {
             return {
                 status: response.data.status,
                 data: decryptedApps,
+                results: response.data.results || 0,
+                totalResults: response.data.totalResults || 0,
+                totalPages: response.data.totalPages || 0,
+                page: response.data.page || 1,
+            };
+        } catch (err: unknown) {
+            return handleApiError(err);
+        }
+    },
+
+    // Raw version for migration - returns data without auto-decryption
+    getAllRaw: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<JobApplication[]>> => {
+        try {
+            const queryParams = new URLSearchParams();
+            queryParams.append("fields", "-user");
+
+            if (params.status && params.status !== "all") queryParams.append("status", params.status);
+            if (params.sort) queryParams.append("sort", params.sort);
+            if (params.page) queryParams.append("page", params.page.toString());
+            if (params.limit) queryParams.append("limit", params.limit.toString());
+
+            const endpoint = `job-applications?${queryParams.toString()}`;
+            const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint);
+
+            const rawApps = response.data.data.map((app) =>
+                Object.assign(new JobApplication(), app)
+            );
+
+            return {
+                status: response.data.status,
+                data: rawApps,
                 results: response.data.results || 0,
                 totalResults: response.data.totalResults || 0,
                 totalPages: response.data.totalPages || 0,
@@ -135,6 +167,21 @@ const jobApplicationApi = {
             return {
                 status: response.data.status,
                 data: null,
+            };
+        } catch (err: unknown) {
+            return handleApiError(err);
+        }
+    },
+
+    bulkUpdate: async (updates: Array<{ id: string; data: Partial<CreateJobApplicationData> }>): Promise<ApiResponse<{ matchedCount: number; modifiedCount: number }>> => {
+        try {
+            const response = await privateClient.patch<ApiResponse<{ matchedCount: number; modifiedCount: number }>>(
+                jobApplicationEndpoints.bulkUpdate,
+                { updates }
+            );
+            return {
+                status: response.data.status,
+                data: response.data.data,
             };
         } catch (err: unknown) {
             return handleApiError(err);

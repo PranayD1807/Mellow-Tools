@@ -9,7 +9,8 @@ import {
     verify2FA,
     validate2FA,
     disable2FA,
-    migrateEncryption
+    migrateEncryption,
+    updateEncryptionStatus
 } from "../controllers/user.controller.js";
 import { signinValidator, signupValidator, updatePasswordValidator } from "../validators/user.validator.js";
 import { verifyJWT } from "../middlewares/token.middleware.js";
@@ -22,6 +23,7 @@ router.post("/update-password", verifyJWT, updatePasswordValidator, updatePasswo
 router.post("/get-info", verifyJWT, getInfo);
 router.post("/refresh-token", refreshToken);
 router.post("/migrate-encryption", verifyJWT, migrateEncryption);
+router.post("/update-encryption-status", verifyJWT, updateEncryptionStatus);
 
 // 2FA Routes
 router.post("/2fa/generate", verifyJWT, generate2FA);

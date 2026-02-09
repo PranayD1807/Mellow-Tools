@@ -155,24 +155,54 @@ class Encryption {
 
   /**
    * Decrypts string data
+   * Returns the original string if decryption fails (handles legacy plaintext data)
    */
   static async decryptData(
     encryptedString: string,
-    key: CryptoKey
+    key: CryptoKey,
+    silent: boolean = false,
+    throwOnError: boolean = false
   ): Promise<string> {
-    const dataBuffer = this.base64ToArrayBuffer(encryptedString);
-    const iv = new Uint8Array(dataBuffer.slice(0, this.IV_LENGTH_GCM));
-    const encryptedBuffer = dataBuffer.slice(this.IV_LENGTH_GCM);
+    try {
+      const dataBuffer = this.base64ToArrayBuffer(encryptedString);
+      const iv = new Uint8Array(dataBuffer.slice(0, this.IV_LENGTH_GCM));
+      const encryptedBuffer = dataBuffer.slice(this.IV_LENGTH_GCM);
 
-    const decryptedData = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: iv,
-      },
-      key,
-      encryptedBuffer
-    );
-    return new TextDecoder().decode(decryptedData);
+      const decryptedData = await crypto.subtle.decrypt(
+        {
+          name: "AES-GCM",
+          iv: iv,
+        },
+        key,
+        encryptedBuffer
+      );
+      return new TextDecoder().decode(decryptedData);
+    } catch (error) {
+      if (throwOnError) {
+        throw error;
+      }
+      // If decryption fails (invalid base64, wrong format, or plaintext data),
+      // return the original string as-is (legacy/unencrypted data)
+      if (!silent) {
+        console.warn("Decryption failed, returning original value:", error);
+      }
+      return encryptedString;
+    }
+  }
+
+  /**
+   * Checks if string data is already encrypted with the given key
+   */
+  static async isEncrypted(
+    value: string,
+    key: CryptoKey
+  ): Promise<boolean> {
+    try {
+      await this.decryptData(value, key, true, true);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   static generateRefreshToken(): string {

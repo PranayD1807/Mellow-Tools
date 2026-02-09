@@ -5,10 +5,13 @@ import {
     getJobApplication,
     updateJobApplication,
     deleteJobApplication,
-    getJobApplicationStats
+    getJobApplicationStats,
+    bulkUpdateJobApplications
 } from "../controllers/jobApplication.controller.js";
 
 const router = express.Router();
+
+router.patch("/bulk-update", bulkUpdateJobApplications);
 
 router.get("/stats", getJobApplicationStats);
 

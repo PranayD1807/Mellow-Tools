@@ -93,3 +93,30 @@ export function getAll(Model, preFilter = {}, searchableFields = []) {
         });
     });
 }
+
+export function bulkUpdate(Model, preFilter = {}) {
+    return catchAsync(async (req, res, next) => {
+        const { updates } = req.body; // Array of { id: string, data: object }
+
+        if (!updates || !Array.isArray(updates)) {
+            return next(new AppError("Updates must be an array of { id, data } objects", 400));
+        }
+
+        const bulkOps = updates.map((update) => ({
+            updateOne: {
+                filter: { _id: update.id, ...preFilter },
+                update: { $set: update.data },
+            },
+        }));
+
+        const result = await Model.bulkWrite(bulkOps);
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                matchedCount: result.matchedCount,
+                modifiedCount: result.modifiedCount,
+            },
+        });
+    });
+}

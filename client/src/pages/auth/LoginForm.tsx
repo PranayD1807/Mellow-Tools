@@ -116,6 +116,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             displayName: userData.displayName,
             email: userData.email,
             userId: userData.id,
+            encryptionStatus: userData.encryptionStatus,
           })
         );
         localStorage.setItem("actkn", res.data.token);
@@ -178,6 +179,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
 
             console.log("Attempting migration...");
             const migrationRes = await userApi.migrateEncryption({
+              password: values.password,
               encryptedAESKey,
               passwordKeySalt,
             });
@@ -190,6 +192,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
 
             userData.encryptedAESKey = encryptedAESKey;
             userData.passwordKeySalt = passwordKeySalt;
+            userData.encryptionStatus = "MIGRATED"; // Update status so Redux state is correct
             toast.success("Account migrated to E2E Encryption!");
           } catch (error) {
             console.error("Migration failed", error);
@@ -202,6 +205,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             displayName: userData.displayName,
             email: userData.email,
             userId: userData.id,
+            encryptionStatus: userData.encryptionStatus,
           })
         );
 

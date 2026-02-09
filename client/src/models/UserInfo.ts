@@ -5,4 +5,5 @@ export interface UserInfo {
   passwordKeySalt: string;
   encryptedAESKey: string;
   isTwoFactorEnabled?: boolean;
+  encryptionStatus?: string;
 }

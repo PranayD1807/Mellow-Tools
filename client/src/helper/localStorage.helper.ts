@@ -66,13 +66,14 @@ export class LocalStorageHelper {
     return aesKey;
   };
 
-  static setUserInfo = (displayName: string, email: string, userId: string) => {
+  static setUserInfo = (displayName: string, email: string, userId: string, encryptionStatus?: string) => {
     localStorage.setItem(
       LocalStorageConstants.USER,
       JSON.stringify({
         displayName: displayName,
         email: email,
         userId: userId,
+        encryptionStatus: encryptionStatus || null,
       })
     );
   };

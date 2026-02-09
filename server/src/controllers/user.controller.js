@@ -33,6 +33,7 @@ export const signup = catchAsync(async (req, res) => {
     auth.setPassword(password);
     auth.encryptedAESKey = encryptedAESKey;
     auth.passwordKeySalt = passwordKeySalt;
+    auth.encryptionStatus = "ENCRYPTED";
     await auth.save();
 
     const { token, refreshToken } = generateTokens(user.id);
@@ -77,6 +78,7 @@ export const signin = catchAsync(async (req, res) => {
     const userData = user.toObject();
     userData.passwordKeySalt = auth.passwordKeySalt;
     userData.encryptedAESKey = auth.encryptedAESKey;
+    userData.encryptionStatus = auth.encryptionStatus; // Add encryption status
 
     res.status(200).json({
         status: "success",
@@ -112,10 +114,14 @@ export const updatePassword = catchAsync(async (req, res) => {
 });
 
 export const migrateEncryption = catchAsync(async (req, res) => {
-    const { encryptedAESKey, passwordKeySalt } = req.body;
+    const { password, encryptedAESKey, passwordKeySalt } = req.body;
 
-    const auth = await authModel.findOne({ user: req.user.id });
+    const auth = await authModel.findOne({ user: req.user.id }).select("+password +salt");
     if (!auth) throw new AppError("User not found", 404);
+
+    if (!auth.validPassword(password)) {
+        throw new AppError("Wrong password. Verification failed.", 400);
+    }
 
     auth.encryptedAESKey = encryptedAESKey;
     auth.passwordKeySalt = passwordKeySalt;
@@ -217,6 +223,7 @@ export const validate2FA = catchAsync(async (req, res) => {
     const userData = user.toObject();
     userData.passwordKeySalt = auth.passwordKeySalt;
     userData.encryptedAESKey = auth.encryptedAESKey;
+    userData.encryptionStatus = auth.encryptionStatus; // Add encryption status
 
     res.status(200).json({
         status: "success",
@@ -226,6 +233,7 @@ export const validate2FA = catchAsync(async (req, res) => {
         refreshToken: tokens.refreshToken
     });
 });
+
 
 export const disable2FA = catchAsync(async (req, res) => {
     const auth = await authModel.findOne({ user: req.user.id });
@@ -238,5 +246,20 @@ export const disable2FA = catchAsync(async (req, res) => {
     res.status(200).json({
         status: "success",
         message: "Two-factor authentication disabled."
+    });
+});
+
+export const updateEncryptionStatus = catchAsync(async (req, res) => {
+    const { encryptionStatus } = req.body;
+
+    const auth = await authModel.findOne({ user: req.user.id });
+    if (!auth) throw new AppError("User not found", 404);
+
+    auth.encryptionStatus = encryptionStatus;
+    await auth.save();
+
+    res.status(200).json({
+        status: "success",
+        message: "Encryption status updated successfully."
     });
 });

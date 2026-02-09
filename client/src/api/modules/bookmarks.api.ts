@@ -9,15 +9,17 @@ const bookmarkEndpoints = {
   get: "bookmarks/{id}",
   update: "bookmarks/{id}",
   delete: "bookmarks/{id}",
+  bulkUpdate: "bookmarks/bulk-update",
 };
 
 const bookmarkApi = {
-  getAll: async (params: { page?: number; limit?: number } = {}): Promise<ApiResponse<Bookmark[]>> => {
+  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<Bookmark[]>> => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("fields", "-user");
       if (params.page) queryParams.append("page", params.page.toString());
       if (params.limit) queryParams.append("limit", params.limit.toString());
+      if (params.sort) queryParams.append("sort", params.sort);
 
       const endpoint = `bookmarks?${queryParams.toString()}`;
 
@@ -34,6 +36,39 @@ const bookmarkApi = {
       return {
         status: response.data.status,
         data: decryptedBookmarks,
+        results: response.data.results || 0,
+        page: response.data.page || 1,
+        limit: response.data.limit || params.limit || 10,
+        totalPages: response.data.totalPages || 0,
+        totalResults: response.data.totalResults || 0,
+      };
+    } catch (err: unknown) {
+      return handleApiError(err);
+    }
+  },
+
+  // Raw version for migration - returns data without auto-decryption
+  getAllRaw: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<Bookmark[]>> => {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append("fields", "-user");
+      if (params.page) queryParams.append("page", params.page.toString());
+      if (params.limit) queryParams.append("limit", params.limit.toString());
+      if (params.sort) queryParams.append("sort", params.sort);
+
+      const endpoint = `bookmarks?${queryParams.toString()}`;
+
+      const response = await privateClient.get<ApiResponse<Bookmark[]>>(
+        endpoint
+      );
+
+      const rawBookmarks = response.data.data.map((bookmark) =>
+        Object.assign(new Bookmark(), bookmark)
+      );
+
+      return {
+        status: response.data.status,
+        data: rawBookmarks,
         results: response.data.results || 0,
         page: response.data.page || 1,
         limit: response.data.limit || params.limit || 10,
@@ -119,6 +154,21 @@ const bookmarkApi = {
       return {
         status: response.data.status,
         data: null,
+      };
+    } catch (err: unknown) {
+      return handleApiError(err);
+    }
+  },
+
+  bulkUpdate: async (updates: Array<{ id: string; data: Partial<CreateBookmarkData> }>): Promise<ApiResponse<{ matchedCount: number; modifiedCount: number }>> => {
+    try {
+      const response = await privateClient.patch<ApiResponse<{ matchedCount: number; modifiedCount: number }>>(
+        bookmarkEndpoints.bulkUpdate,
+        { updates }
+      );
+      return {
+        status: response.data.status,
+        data: response.data.data,
       };
     } catch (err: unknown) {
       return handleApiError(err);

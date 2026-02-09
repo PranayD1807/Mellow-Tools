@@ -28,14 +28,16 @@ const authSchema = new mongoose.Schema({
         default: false
     },
     // Salt value used for deriving passwordDerivedKey.
+    // Optional - only exists for users with encryption enabled
     passwordKeySalt: {
         type: String,
-        required: true,
+        required: false,
     },
     // Encrypted AES Key for E2E Encryption
+    // Optional - only exists for users with encryption enabled
     encryptedAESKey: {
         type: String,
-        required: true,
+        required: false,
     },
     encryptionStatus: {
         type: String,

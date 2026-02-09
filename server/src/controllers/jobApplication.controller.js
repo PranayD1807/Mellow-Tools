@@ -1,5 +1,5 @@
 import jobApplicationModel from "../models/jobApplication.model.js";
-import { createOne, getAll, getOne, updateOne, deleteOne } from "./handlerFactory.js";
+import { createOne, getAll, getOne, updateOne, deleteOne, bulkUpdate } from "./handlerFactory.js";
 import catchAsync from "../utils/catchAsync.js";
 import mongoose from "mongoose";
 
@@ -53,11 +53,16 @@ export const getJobApplication = (req, res, next) => {
 };
 
 export const updateJobApplication = (req, res, next) => {
-    const preFilter = { user: req.user.id };
-    return updateOne(jobApplicationModel, preFilter)(req, res, next);
+    const userFilter = { user: req.user.id };
+    return updateOne(jobApplicationModel, userFilter)(req, res, next);
 };
 
 export const deleteJobApplication = (req, res, next) => {
     const preFilter = { user: req.user.id };
     return deleteOne(jobApplicationModel, preFilter)(req, res, next);
+};
+
+export const bulkUpdateJobApplications = (req, res, next) => {
+    const preFilter = { user: req.user.id };
+    return bulkUpdate(jobApplicationModel, preFilter)(req, res, next);
 };

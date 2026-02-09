@@ -7,6 +7,10 @@ export abstract class EncryptableEntity {
 
   private async encryptValue(value: any, aesKey: CryptoKey): Promise<any> {
     if (typeof value === "string") {
+      // Safety guard: skip if already encrypted
+      if (await Encryption.isEncrypted(value, aesKey)) {
+        return value;
+      }
       return await Encryption.encryptStringData(value, aesKey);
     } else if (Array.isArray(value)) {
       return await Promise.all(
@@ -25,7 +29,8 @@ export abstract class EncryptableEntity {
   private async decryptValue(value: any, aesKey: CryptoKey): Promise<any> {
     if (typeof value === "string") {
       try {
-        return await Encryption.decryptData(value, aesKey);
+        // Use silent: true to avoid console warnings for unencrypted legacy data
+        return await Encryption.decryptData(value, aesKey, true);
       } catch (error) {
         // If decryption fails, assume it's legacy/plain text and return as is
         return value;

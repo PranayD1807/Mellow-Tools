@@ -1,4 +1,4 @@
-import { createOne, updateOne, getAll, getOne, deleteOne } from "./handlerFactory.js";
+import { createOne, updateOne, getAll, getOne, deleteOne, bulkUpdate } from "./handlerFactory.js";
 import bookmarkModel from "../models/bookmark.model.js";
 
 export const createBookmark = (req, res, next) => {
@@ -25,4 +25,9 @@ export const getBookmark = (req, res, next) => {
 export const deleteBookmark = (req, res, next) => {
     const preFilter = { user: req.user.id };
     return deleteOne(bookmarkModel, preFilter)(req, res, next);
+};
+
+export const bulkUpdateBookmarks = (req, res, next) => {
+    const preFilter = { user: req.user.id };
+    return bulkUpdate(bookmarkModel, preFilter)(req, res, next);
 };

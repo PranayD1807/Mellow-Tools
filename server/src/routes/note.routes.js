@@ -1,7 +1,16 @@
-import { Router } from "express";
-import { createNote, deleteNote, getAllNotes, getNote, updateNote } from "../controllers/note.controller.js";
+import express, { Router } from "express";
+import {
+    createNote,
+    getAllNotes,
+    getNote,
+    updateNote,
+    deleteNote,
+    bulkUpdateNotes
+} from "../controllers/note.controller.js";
 
-const router = Router();
+const router = express.Router();
+
+router.patch("/bulk-update", bulkUpdateNotes);
 
 router
     .route("/")
