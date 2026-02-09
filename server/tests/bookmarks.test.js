@@ -8,7 +8,9 @@ describe('Bookmark Endpoints', () => {
         email: 'bookmarktest@example.com',
         password: 'Password123!',
         displayName: 'Bookmark Test User',
-        confirmPassword: 'Password123!'
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
     };
 
     let token;

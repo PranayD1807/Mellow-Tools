@@ -17,7 +17,9 @@ describe('Utils and Factory Edge Cases', () => {
     beforeEach(async () => {
         const res = await request(app).post('/api/v1/auth/signup').send({
             ...testUser,
-            email: `utils_${Date.now()}@example.com`
+            email: `utils_${Date.now()}@example.com`,
+            passwordKeySalt: 'dummy-salt',
+            encryptedAESKey: 'dummy-encrypted-key'
         });
         token = res.body.token;
     });

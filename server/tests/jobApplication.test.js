@@ -9,7 +9,9 @@ describe('Job Application Endpoints', () => {
         email: 'jobtest@example.com',
         password: 'Password123!',
         displayName: 'Job Test User',
-        confirmPassword: 'Password123!'
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
     };
 
     let token;
@@ -102,7 +104,9 @@ describe('Job Application Endpoints', () => {
                 email: 'other2@example.com',
                 password: 'Password123!',
                 displayName: 'Other User 2',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             };
             const otherRes = await request(app).post('/api/v1/auth/signup').send(otherUser);
             const otherToken = otherRes.body.token;
@@ -149,7 +153,9 @@ describe('Job Application Endpoints', () => {
                 email: 'other@example.com',
                 password: 'Password123!',
                 displayName: 'Other User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             };
             const otherRes = await request(app).post('/api/v1/auth/signup').send(otherUser);
             const otherToken = otherRes.body.token;

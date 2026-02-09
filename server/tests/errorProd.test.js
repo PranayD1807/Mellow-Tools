@@ -27,7 +27,9 @@ describe('Error Handling in PROD', () => {
             email: `prod_${Math.random()}@test.com`,
             password: 'Password123!',
             displayName: 'Prod User',
-            confirmPassword: 'Password123!'
+            confirmPassword: 'Password123!',
+            passwordKeySalt: 'dummy-salt',
+            encryptedAESKey: 'dummy-encrypted-key'
         });
         token = res.body.token;
     });
