@@ -112,7 +112,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         const userData = res.data.data!;
 
         if (
-          !userData.encryptedAESKey &&
+          !userData.encryptedAESKey ||
           !userData.passwordKeySalt
         ) {
           try {
@@ -169,14 +169,19 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         localStorage.setItem("actkn", res.data.token);
         localStorage.setItem("refreshToken", res.data.refreshToken);
 
-        await LocalStorageHelper.saveUserCreds({
-          userInfo: userData,
-          password: password,
-          jwtToken: res.data.token,
-          refreshToken: res.data.refreshToken,
-        });
-
-        toast.success("Login successful!");
+        try {
+          await LocalStorageHelper.saveUserCreds({
+            userInfo: userData,
+            password: password,
+            jwtToken: res.data.token,
+            refreshToken: res.data.refreshToken,
+          });
+          toast.success("Login successful!");
+        } catch (error) {
+          LocalStorageHelper.logoutUser();
+          toast.error("Failed to save credentials");
+          return;
+        }
       }
     } catch (_) {
       setLoading(false);
@@ -202,7 +207,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
       } else if (res.data) {
         const userData = res.data.data!;
         if (
-          !userData.encryptedAESKey &&
+          !userData.encryptedAESKey ||
           !userData.passwordKeySalt
         ) {
 
@@ -261,14 +266,19 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
           })
         );
 
-        await LocalStorageHelper.saveUserCreds({
-          userInfo: userData,
-          password: values.password,
-          jwtToken: res.data.token,
-          refreshToken: res.data.refreshToken,
-        });
-
-        toast.success(res.data.message);
+        try {
+          await LocalStorageHelper.saveUserCreds({
+            userInfo: userData,
+            password: values.password,
+            jwtToken: res.data.token,
+            refreshToken: res.data.refreshToken,
+          });
+          toast.success(res.data.message);
+        } catch (error) {
+          LocalStorageHelper.logoutUser();
+          toast.error("Failed to save credentials");
+          return;
+        }
       }
     } catch (error: unknown) {
       console.log(error);

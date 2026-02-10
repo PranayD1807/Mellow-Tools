@@ -53,7 +53,7 @@ export function useIterativeSearch<T extends { id: string }>({
         setLoading(false);
         setIsSearching(false);
         setError(null);
-    }, [searchQuery, fetchFunction]);
+    }, [searchQuery, fetchFunction, enabled]);
 
     const fetchMore = useCallback(async () => {
         if (!enabled || serverExhausted || loading || isSearching) return;
@@ -85,7 +85,7 @@ export function useIterativeSearch<T extends { id: string }>({
                 const effectiveLimit = searchQuery.trim() ? pageSize * 4 : requestLimit;
                 const response = await fetchFunction(serverPageRef.current, effectiveLimit, signal);
 
-                if (fetchIdRef.current !== currentFetchId || signal.aborted) break;
+                if (!mountedRef.current || fetchIdRef.current !== currentFetchId || signal.aborted) break;
 
                 if (response.status === "error") {
                     setError(response.err?.message || "Error fetching data");
@@ -101,11 +101,16 @@ export function useIterativeSearch<T extends { id: string }>({
                 }
 
 
+                setAllMatches(prev => {
+                    const existingIds = new Set(prev.map(i => i.id));
+                    const uniqueNewItems = validItems.filter(i => !existingIds.has(i.id));
+                    return [...prev, ...uniqueNewItems];
+                });
+
+                // Update local snapshot for loop termination check
                 const existingIds = new Set(currentMatches.map(i => i.id));
                 const uniqueNewItems = validItems.filter(i => !existingIds.has(i.id));
-
                 currentMatches = [...currentMatches, ...uniqueNewItems];
-                setAllMatches(currentMatches);
 
                 if (fetchedItems.length < effectiveLimit) {
                     hasMoreOnServer = false;
