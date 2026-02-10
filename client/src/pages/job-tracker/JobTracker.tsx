@@ -54,6 +54,7 @@ const JobTracker = () => {
     loading,
     isSearching,
     currentPage,
+    setCurrentPage,
     hasMore,
     hasPrev,
     nextPage,
@@ -173,7 +174,7 @@ const JobTracker = () => {
             handleKeyPress={handleKeyPress}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
-            setPage={() => { }}
+            setPage={(p: number) => setCurrentPage(p - 1)}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
             statusOptions={statusFilterOptions}
@@ -186,7 +187,7 @@ const JobTracker = () => {
         {loading && applications.length === 0 && (
           <Flex justify="center" align="center" height="30vh">
             <VStack gap={4}>
-              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading matches..."} />
+              <SearchingLoader isSearching={isSearching} text="Loading matches..." />
             </VStack>
           </Flex>
         )}
@@ -205,7 +206,7 @@ const JobTracker = () => {
           <NoItems text="job applications" />
         )}
 
-        {applications.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+        {applications.length > 0 && <SearchingLoader isSearching={isSearching} />}
 
 
         {isLoggedIn && applications.length > 0 && !isSearching && (

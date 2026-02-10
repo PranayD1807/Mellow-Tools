@@ -57,10 +57,18 @@ export class LocalStorageHelper {
     let aesKey;
 
     if (token && encryptedAesKey) {
-      aesKey = await Encryption.decryptAESKeyWithRefreshToken(
-        encryptedAesKey,
-        token
-      );
+      try {
+        aesKey = await Encryption.decryptAESKeyWithRefreshToken(
+          encryptedAesKey,
+          token
+        );
+      } catch {
+        localStorage.removeItem(LocalStorageConstants.AES_REFRESH_TOKEN);
+        localStorage.removeItem(
+          LocalStorageConstants.ENCRYPTED_AES_KEY_WITH_REFRESH_TOKEN
+        );
+        return undefined;
+      }
     }
 
     return aesKey;

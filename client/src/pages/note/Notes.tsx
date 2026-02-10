@@ -102,7 +102,7 @@ const Notes = () => {
         toast.error(res.err.message);
       } else {
         setNotes((prevItems) => prevItems.filter((item) => item.id !== docId));
-        toast.success("Template deleted successfully!");
+        toast.success("Text Note deleted successfully!");
       }
     } catch (error) {
       console.error("Failed to delete contact", error);
@@ -185,7 +185,7 @@ const Notes = () => {
         {loading && notes.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
-              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading notes..."} />
+              <SearchingLoader isSearching={isSearching} text="Loading notes..." />
             </VStack>
           </Flex>
         )}
@@ -199,7 +199,7 @@ const Notes = () => {
               notes={notes}
               handleDeleteNote={handleDelete}
             />
-            {notes.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+            <SearchingLoader isSearching={isSearching} />
 
             {/* Pagination Controls */}
             {isLoggedIn && notes.length > 0 && !isSearching && (

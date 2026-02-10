@@ -1,8 +1,5 @@
-
 import request from 'supertest';
 import app from '../app.js';
-import { jest } from '@jest/globals';
-import mongoose from 'mongoose';
 import authModel from '../src/models/auth.model.js';
 
 describe('Coverage and Edge Case Tests', () => {

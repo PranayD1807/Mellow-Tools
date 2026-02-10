@@ -154,7 +154,7 @@ const TextTemplates = () => {
         {loading && templates.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
-              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading templates..."} />
+              <SearchingLoader isSearching={isSearching} text="Loading templates..." />
             </VStack>
           </Flex>
         )}
@@ -167,7 +167,7 @@ const TextTemplates = () => {
               templates={templates}
               handleDeleteTemplate={handleDelete}
             />
-            {templates.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+            <SearchingLoader isSearching={isSearching} />
 
             {/* Pagination Controls */}
             {isLoggedIn && templates.length > 0 && !isSearching && (

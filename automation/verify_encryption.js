@@ -27,24 +27,24 @@ const verify = async () => {
 
         console.log(`\nUser ID: ${user._id}`);
 
+        // Heuristic check for base64 GCM pattern (IV=12 bytes, tag=16 bytes, total >= 28 bytes)
+        const looksEncrypted = (str) => {
+            if (typeof str !== 'string') return false;
+            if (str.length < 20) return false;
+            try {
+                const buf = Buffer.from(str, 'base64');
+                // GCM IV (12) + some data + Tag (16)
+                return buf.length >= 28;
+            } catch {
+                return false;
+            }
+        };
+
         const note = await Note.findOne({ user: user._id });
         if (note) {
             console.log("\nSample Note:");
             console.log("Title (raw):", note.title);
             console.log("Text (raw):", note.text);
-
-            // Heuristic check for base64 GCM pattern (IV=12 bytes, tag=16 bytes, total >= 28 bytes)
-            const looksEncrypted = (str) => {
-                if (typeof str !== 'string') return false;
-                if (str.length < 20) return false;
-                try {
-                    const buf = Buffer.from(str, 'base64');
-                    // GCM IV (12) + some data + Tag (16)
-                    return buf.length >= 28;
-                } catch {
-                    return false;
-                }
-            };
 
             console.log("Looks encrypted?", looksEncrypted(note.title));
         }

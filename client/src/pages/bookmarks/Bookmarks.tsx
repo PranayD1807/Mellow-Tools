@@ -66,7 +66,7 @@ const Bookmarks = () => {
   const fetchLogoUrl = async (url: string): Promise<string | null> => {
     try {
       const domain = new URL(url).hostname;
-      return `https:/img.logo.dev/${domain}?token=${logoKey}`;
+      return `https://img.logo.dev/${domain}?token=${logoKey}`;
     } catch (error) {
       console.error("Error fetching logo URL:", error);
       return null;
@@ -82,7 +82,7 @@ const Bookmarks = () => {
         setBookmarks((prevItems) =>
           prevItems.filter((item) => item.id !== docId)
         );
-        toast.success("Template deleted successfully!");
+        toast.success("Bookmark deleted successfully!");
       }
     } catch (error) {
       console.error("Failed to delete contact", error);
@@ -211,7 +211,7 @@ const Bookmarks = () => {
         {loading && bookmarks.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
-              <SearchingLoader isSearching={true} text={isSearching ? "Searching..." : "Loading bookmarks..."} />
+              <SearchingLoader isSearching={isSearching} text="Loading bookmarks..." />
             </VStack>
           </Flex>
         )}
@@ -225,7 +225,7 @@ const Bookmarks = () => {
               bookmarks={bookmarks}
               handleDeleteBookmark={handleDelete}
             />
-            {bookmarks.length > 0 && <SearchingLoader isSearching={isSearching} text="Searching..." />}
+            <SearchingLoader isSearching={isSearching} />
 
             {/* Pagination Controls */}
             {isLoggedIn && bookmarks.length > 0 && !isSearching && (

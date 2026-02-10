@@ -146,6 +146,7 @@ export function useIterativeSearch<T extends { id: string }>({
         isSearching,
         error,
         currentPage,
+        setCurrentPage,
         pageSize,
         hasMore,
         hasPrev,

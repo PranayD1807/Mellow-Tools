@@ -56,6 +56,12 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
   ) => {
     actions.setSubmitting(true);
     try {
+      if (values.password !== values.confirmPassword) {
+        toast.error("Passwords do not match");
+        actions.setSubmitting(false);
+        return;
+      }
+
       const freshlyGeneratedAESKey = await Encryption.generateAESKey();
       const passwordKeySalt = Encryption.generatePasswordKeySalt();
       const passwordDerivedKey = await Encryption.getPasswordDerivedKey(

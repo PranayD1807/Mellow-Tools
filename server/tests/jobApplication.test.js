@@ -15,13 +15,11 @@ describe('Job Application Endpoints', () => {
     };
 
     let token;
-    let userId;
     let jobId;
 
     beforeEach(async () => {
         const res = await request(app).post('/api/v1/auth/signup').send(testUser);
         token = res.body.token;
-        userId = res.body.data.id;
     });
 
     describe('POST /api/v1/job-applications', () => {

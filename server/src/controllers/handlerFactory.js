@@ -38,7 +38,7 @@ export function updateOne(Model, preFilter = {}) {
 }
 
 export function createOne(Model) {
-    return catchAsync(async (req, res, next) => {
+    return catchAsync(async (req, res, _next) => {
         const doc = await Model.create(req.body);
 
         res.status(201).json({
@@ -66,7 +66,7 @@ export function getOne(Model, popOptions, preFilter = {}) {
 }
 
 export function getAll(Model, preFilter = {}, searchableFields = []) {
-    return catchAsync(async (req, res, next) => {
+    return catchAsync(async (req, res, _next) => {
         const features = new APIFeatures(Model.find(preFilter), req.query)
             .search(searchableFields)
             .filter()

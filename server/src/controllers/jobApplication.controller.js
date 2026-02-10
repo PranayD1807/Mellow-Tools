@@ -3,7 +3,7 @@ import { createOne, getAll, getOne, updateOne, deleteOne, bulkUpdate } from "./h
 import catchAsync from "../utils/catchAsync.js";
 import mongoose from "mongoose";
 
-export const getJobApplicationStats = catchAsync(async (req, res, next) => {
+export const getJobApplicationStats = catchAsync(async (req, res, _next) => {
     const stats = await jobApplicationModel.aggregate([
         {
             $match: { user: new mongoose.Types.ObjectId(req.user.id) }

@@ -1,9 +1,5 @@
-
 import request from 'supertest';
 import app from '../app.js';
-import noteModel from '../src/models/note.model.js';
-import jobApplicationModel from '../src/models/jobApplication.model.js';
-import { jest } from '@jest/globals';
 
 describe('Utils and Factory Edge Cases', () => {
     const testUser = {

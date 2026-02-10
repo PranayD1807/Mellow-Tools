@@ -1,9 +1,5 @@
-
 import request from 'supertest';
 import app from '../app.js';
-import mongoose from 'mongoose';
-import otplib from 'otplib';
-const { authenticator } = otplib;
 
 
 describe('Auth Endpoints', () => {

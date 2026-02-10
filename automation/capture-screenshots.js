@@ -114,9 +114,11 @@ const wrapInBrowserFrame = async (page, imgBuffer) => {
   await page.type('input[name="email"]', CREDENTIALS.email);
   await page.type('input[name="password"]', CREDENTIALS.password);
 
-  await page.keyboard.press('Enter');
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+    page.keyboard.press('Enter'),
+  ]);
 
-  await page.waitForNavigation({ waitUntil: 'networkidle0' });
   console.log('Login successful');
 
   for (const route of ROUTES) {

@@ -158,25 +158,13 @@ export class DataMigrationHelper {
             const batch = itemsToEncrypt.slice(i, i + BATCH_SIZE);
             try {
                 const updates = await Promise.all(
-                    batch.map(async (item, index) => {
+                    batch.map(async (item, _) => {
                         try {
                             const encryptedItem = await item.encrypt();
                             const data: any = {};
                             encryptFields.forEach(field => {
                                 data[field] = (encryptedItem as any)[field];
                             });
-
-                            // Debug log for the first item in the first batch
-                            if (i === 0 && index === 0) {
-                                console.log(`[Migration] Sample encrypted data for ${collectionName}:`, data);
-                                // Test decryption immediately
-                                const firstField = encryptFields[0];
-                                const testValue = data[firstField];
-                                if (typeof testValue === 'string') {
-                                    const decrypted = await Encryption.decryptData(testValue, aesKey, false, true);
-                                    console.log(`[Migration] Test decryption for ${collectionName}:`, decrypted);
-                                }
-                            }
 
                             return { id: item.id, data };
                         } catch (encryptError) {
