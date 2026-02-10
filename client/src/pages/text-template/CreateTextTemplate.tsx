@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 import { Editor as TinyMCEEditor } from "tinymce";
 
@@ -22,8 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { CreateTextTemplateData } from "@/models/TextTemplate";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+
 
 // Editor Configuration
 const editorConfig = {
@@ -68,13 +67,9 @@ const CreateTextTemplate = () => {
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
-  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/dashboard");
-    }
-  }, [isLoggedIn, navigate]);
+
+
 
   const onAddPlaceholder = (values: { tag: string; defaultText?: string }) => {
     setPlaceholders((prevPlaceholders) => [

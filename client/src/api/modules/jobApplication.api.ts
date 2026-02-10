@@ -25,7 +25,7 @@ const jobApplicationApi = {
             return handleApiError(err);
         }
     },
-    getAll: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<JobApplication[]>> => {
+    getAll: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}, signal?: AbortSignal): Promise<ApiResponse<JobApplication[]>> => {
         try {
             // Note: Server-side search/sort on encrypted fields (company, role, etc.) is not possible.
             // We pass status and dates through, but search is handled client-side via Iterative Search.
@@ -42,7 +42,7 @@ const jobApplicationApi = {
             if (params.limit) queryParams.append("limit", params.limit.toString());
 
             const endpoint = `job-applications?${queryParams.toString()}`;
-            const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint);
+            const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint, { signal });
 
             const items = response.data?.data ?? [];
             const decryptedApps = await Promise.all(

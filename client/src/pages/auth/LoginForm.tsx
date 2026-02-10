@@ -111,6 +111,53 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
       } else if (res.data) {
         const userData = res.data.data!;
 
+        if (
+          !userData.encryptedAESKey &&
+          !userData.passwordKeySalt
+        ) {
+          try {
+            if (res.data.token) {
+              localStorage.setItem("actkn", res.data.token);
+              localStorage.setItem("refreshToken", res.data.refreshToken || "");
+            }
+
+            const freshlyGeneratedAESKey = await Encryption.generateAESKey();
+            const passwordKeySalt = Encryption.generatePasswordKeySalt();
+            const passwordDerivedKey = await Encryption.getPasswordDerivedKey(
+              password,
+              passwordKeySalt
+            );
+            const encryptedAESKey = await Encryption.encryptAESKey(
+              freshlyGeneratedAESKey,
+              passwordDerivedKey
+            );
+
+            console.log("Attempting migration in 2FA...");
+            const migrationRes = await userApi.migrateEncryption({
+              password: password,
+              encryptedAESKey,
+              passwordKeySalt,
+            });
+            console.log("Migration Response (2FA):", migrationRes);
+
+            if (migrationRes.status === "error") {
+              throw new Error(migrationRes.err?.message || "Migration API failed");
+            }
+
+            userData.encryptedAESKey = encryptedAESKey;
+            userData.passwordKeySalt = passwordKeySalt;
+            userData.encryptionStatus = "MIGRATED";
+            toast.success("Account migrated to E2E Encryption!");
+          } catch (error) {
+            console.error("Migration failed during 2FA", error);
+            toast.error("Encryption migration failed. Please contact support.");
+
+            localStorage.removeItem("actkn");
+            localStorage.removeItem("refreshToken");
+            return;
+          }
+        }
+
         dispatch(
           login({
             displayName: userData.displayName,

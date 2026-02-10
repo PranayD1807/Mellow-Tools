@@ -49,6 +49,10 @@ export function useIterativeSearch<T extends { id: string }>({
         setCurrentPage(0);
         setServerExhausted(false);
         serverPageRef.current = 1;
+
+        setLoading(false);
+        setIsSearching(false);
+        setError(null);
     }, [searchQuery, fetchFunction]);
 
     const fetchMore = useCallback(async () => {

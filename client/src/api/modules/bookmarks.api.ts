@@ -13,7 +13,7 @@ const bookmarkEndpoints = {
 };
 
 const bookmarkApi = {
-  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<Bookmark[]>> => {
+  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}, signal?: AbortSignal): Promise<ApiResponse<Bookmark[]>> => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("fields", "-user");
@@ -24,7 +24,8 @@ const bookmarkApi = {
       const endpoint = `bookmarks?${queryParams.toString()}`;
 
       const response = await privateClient.get<ApiResponse<Bookmark[]>>(
-        endpoint
+        endpoint,
+        { signal }
       );
 
       const decryptedBookmarks = await Promise.all(
@@ -62,7 +63,7 @@ const bookmarkApi = {
         endpoint
       );
 
-      const rawBookmarks = response.data.data.map((bookmark) =>
+      const rawBookmarks = (response.data.data || []).map((bookmark) =>
         Object.assign(new Bookmark(), bookmark)
       );
 

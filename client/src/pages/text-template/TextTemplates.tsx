@@ -29,8 +29,8 @@ const TextTemplates = () => {
 
   const navigate = useNavigate();
 
-  const fetchTemplatesCallback = useCallback((page: number, limit: number) => {
-    return textTemplateApi.getAll({ page, limit });
+  const fetchTemplatesCallback = useCallback((page: number, limit: number, signal?: AbortSignal) => {
+    return textTemplateApi.getAll({ page, limit }, signal);
   }, []);
 
   const filterFunction = useCallback((item: TextTemplate, query: string) => {
@@ -83,7 +83,7 @@ const TextTemplates = () => {
         toast.success("Template deleted successfully!");
       }
     } catch (error) {
-      console.error("Failed to delete contact", error);
+      console.error("Failed to delete text template", error);
     }
   };
 
@@ -150,7 +150,7 @@ const TextTemplates = () => {
                 <IoSearch />
               </IconButton>
             </Flex>
-            {/* Add Contact Button */}
+            {/* Add Text Template Button */}
             <Box width={{ base: "100%", md: "30%" }} ml={{ base: 0, md: 4 }}>
               <Button colorScheme="teal" width="100%" onClick={handleAddTemplate}>
                 <HiViewGridAdd /> Add Text Template
@@ -158,7 +158,7 @@ const TextTemplates = () => {
             </Box>
           </Flex>
         )}
-        {/* Contact Grid */}
+        {/* Text Template Grid */}
         {loading && templates.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>

@@ -26,6 +26,10 @@ const generateTokens = (userId) => {
 export const signup = catchAsync(async (req, res) => {
     const { email, password, displayName, encryptedAESKey, passwordKeySalt } = req.body;
 
+    if (!encryptedAESKey || !passwordKeySalt) {
+        throw new AppError("Encryption keys are required.", 400);
+    }
+
     const user = new userModel({ displayName, email });
     await user.save();
 
@@ -99,10 +103,20 @@ export const updatePassword = catchAsync(async (req, res) => {
 
     auth.setPassword(newPassword);
 
-    // Update encryption keys if provided (Essential for E2E encryption rotation)
-    if (encryptedAESKey && passwordKeySalt) {
+    // For ENCRYPTED or MIGRATED accounts, enforce strict key rotation requirement
+    if (auth.encryptionStatus === "ENCRYPTED" || auth.encryptionStatus === "MIGRATED") {
+        if (!encryptedAESKey || !passwordKeySalt) {
+            throw new AppError("Encrypted accounts require key rotation", 400);
+        }
+        // Update both keys
         auth.encryptedAESKey = encryptedAESKey;
         auth.passwordKeySalt = passwordKeySalt;
+    } else {
+        // Legacy behavior: update keys only if provided
+        if (encryptedAESKey && passwordKeySalt) {
+            auth.encryptedAESKey = encryptedAESKey;
+            auth.passwordKeySalt = passwordKeySalt;
+        }
     }
 
     await auth.save();
@@ -121,6 +135,10 @@ export const migrateEncryption = catchAsync(async (req, res) => {
 
     if (!auth.validPassword(password)) {
         throw new AppError("Wrong password. Verification failed.", 400);
+    }
+
+    if (!encryptedAESKey || !passwordKeySalt) {
+        throw new AppError("Encryption keys are required for migration.", 400);
     }
 
     auth.encryptedAESKey = encryptedAESKey;

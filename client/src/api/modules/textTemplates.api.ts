@@ -13,7 +13,7 @@ const textTemplateEndpoints = {
 };
 
 const textTemplateApi = {
-  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<TextTemplate[]>> => {
+  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}, signal?: AbortSignal): Promise<ApiResponse<TextTemplate[]>> => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("fields", "-user,-placeholders");
@@ -24,7 +24,8 @@ const textTemplateApi = {
       const endpoint = `text-templates?${queryParams.toString()}`;
 
       const response = await privateClient.get<ApiResponse<TextTemplate[]>>(
-        endpoint
+        endpoint,
+        { signal }
       );
 
       const items = response.data?.data ?? [];

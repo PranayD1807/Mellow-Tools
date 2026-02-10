@@ -27,8 +27,8 @@ const Notes = () => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const fetchNotesCallback = useCallback((page: number, limit: number) => {
-    return noteApi.getAll({ page, limit });
+  const fetchNotesCallback = useCallback((page: number, limit: number, signal?: AbortSignal) => {
+    return noteApi.getAll({ page, limit }, signal);
   }, []);
 
   const filterFunction = useCallback((note: TextNote, query: string) => {
@@ -113,7 +113,7 @@ const Notes = () => {
         toast.success("Text Note deleted successfully!");
       }
     } catch (error) {
-      console.error("Failed to delete contact", error);
+      console.error("Failed to delete note", error);
     }
   };
 
@@ -189,7 +189,7 @@ const Notes = () => {
             </Box>
           </Flex>
         )}
-        {/* Contact Grid */}
+        {/* Notes Grid */}
         {loading && notes.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>

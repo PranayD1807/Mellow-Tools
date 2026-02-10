@@ -13,7 +13,7 @@ const noteEndpoints = {
 };
 
 const noteApi = {
-  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}): Promise<ApiResponse<TextNote[]>> => {
+  getAll: async (params: { page?: number; limit?: number; sort?: string } = {}, signal?: AbortSignal): Promise<ApiResponse<TextNote[]>> => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append("fields", "-user");
@@ -24,11 +24,12 @@ const noteApi = {
       const endpoint = `notes?${queryParams.toString()}`;
 
       const response = await privateClient.get<ApiResponse<TextNote[]>>(
-        endpoint
+        endpoint,
+        { signal }
       );
 
       const decryptedNotes = await Promise.all(
-        response.data.data.map(async (note) =>
+        (response.data.data || []).map(async (note) =>
           Object.assign(new TextNote(), note).decrypt()
         )
       );
@@ -63,7 +64,7 @@ const noteApi = {
       );
 
       // Return raw data without decryption, but still create instances
-      const rawNotes = response.data.data.map((note) =>
+      const rawNotes = (response.data.data || []).map((note) =>
         Object.assign(new TextNote(), note)
       );
 

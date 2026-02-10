@@ -30,13 +30,13 @@ const JobTracker = () => {
 
 
 
-  const stableFetchFunction = useCallback((page: number, limit: number) => {
+  const stableFetchFunction = useCallback((page: number, limit: number, signal?: AbortSignal) => {
     return jobApplicationApi.getAll({
       page,
       limit,
       status: statusFilter,
       sort: sortOrder
-    });
+    }, signal);
   }, [statusFilter, sortOrder]);
   const filterFunction = useCallback((app: JobApplication, query: string) => {
     const lowerQuery = query.toLowerCase();

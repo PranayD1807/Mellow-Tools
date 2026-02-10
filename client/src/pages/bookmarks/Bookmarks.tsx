@@ -28,8 +28,8 @@ const Bookmarks = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const logoKey = import.meta.env.VITE_LOGO_DEV_KEY;
 
-  const fetchBookmarksCallback = useCallback((page: number, limit: number) => {
-    return bookmarkApi.getAll({ page, limit });
+  const fetchBookmarksCallback = useCallback((page: number, limit: number, signal?: AbortSignal) => {
+    return bookmarkApi.getAll({ page, limit }, signal);
   }, []);
 
   const filterFunction = useCallback((item: Bookmark, query: string) => {
@@ -93,17 +93,17 @@ const Bookmarks = () => {
         toast.success("Bookmark deleted successfully!");
       }
     } catch (error) {
-      console.error("Failed to delete contact", error);
+      console.error("Failed to delete bookmark", error);
     }
   };
 
-  const handleNoteSearch = () => {
+  const handleBookmarkSearch = () => {
     setSearchTerm(searchInput);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleNoteSearch();
+      handleBookmarkSearch();
     }
   };
 
@@ -142,13 +142,13 @@ const Bookmarks = () => {
       if (res.status === "error") {
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
-        toast.success("Note updated successfully!");
+        toast.success("Bookmark updated successfully!");
         setBookmarks((prevItems) =>
-          prevItems.map((note) => (note.id === docId ? res.data || note : note))
+          prevItems.map((bookmark) => (bookmark.id === docId ? res.data || bookmark : bookmark))
         );
       }
     } catch (error) {
-      console.error("Error updating note:", error);
+      console.error("Error updating bookmark:", error);
       toast.error("Something went wrong");
     }
   };
@@ -195,7 +195,7 @@ const Bookmarks = () => {
               />
               <IconButton
                 aria-label="Search"
-                onClick={handleNoteSearch}
+                onClick={handleBookmarkSearch}
                 variant="subtle"
                 width="auto"
               >
@@ -215,7 +215,7 @@ const Bookmarks = () => {
             </Box>
           </Flex>
         )}
-        {/* Contact Grid */}
+        {/* Bookmark Grid */}
         {loading && bookmarks.length === 0 && (
           <Flex justify="center" align="center" height="60vh">
             <VStack gap={6}>
