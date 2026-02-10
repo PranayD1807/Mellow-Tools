@@ -14,7 +14,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import SEO from "@/components/SEO";
 import { HiViewGridAdd } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -56,6 +56,14 @@ const Notes = () => {
     pageSize: 20,
     enabled: isLoggedIn,
   });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setNotes([]);
+      setSearchInput("");
+      setSearchTerm("");
+    }
+  }, [isLoggedIn, setNotes]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);

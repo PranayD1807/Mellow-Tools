@@ -91,24 +91,26 @@ const UpdatePasswordForm = () => {
     ) => {
         actions.setSubmitting(true);
         try {
-            // Get current AES Key
-            let encryptedAESKey: string | undefined;
-            let passwordKeySalt: string | undefined;
+
 
             const aesKey = await LocalStorageHelper.getAESKey();
 
-            if (aesKey) {
-                // Generate new salt and re-encrypt AES key with new password
-                passwordKeySalt = Encryption.generatePasswordKeySalt();
-                const newPasswordDerivedKey = await Encryption.getPasswordDerivedKey(
-                    values.newPassword,
-                    passwordKeySalt
-                );
-                encryptedAESKey = await Encryption.encryptAESKey(
-                    aesKey,
-                    newPasswordDerivedKey
-                );
+            if (!aesKey) {
+                toast.error("Encryption key not found. Please log in again.");
+                actions.setSubmitting(false);
+                return;
             }
+
+            // Generate new salt and re-encrypt AES key with new password
+            const passwordKeySalt = Encryption.generatePasswordKeySalt();
+            const newPasswordDerivedKey = await Encryption.getPasswordDerivedKey(
+                values.newPassword,
+                passwordKeySalt
+            );
+            const encryptedAESKey = await Encryption.encryptAESKey(
+                aesKey,
+                newPasswordDerivedKey
+            );
 
             const res = await userApi.passwordUpdate({
                 ...values,

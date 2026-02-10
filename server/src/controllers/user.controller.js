@@ -252,6 +252,12 @@ export const disable2FA = catchAsync(async (req, res) => {
 export const updateEncryptionStatus = catchAsync(async (req, res) => {
     const { encryptionStatus } = req.body;
 
+    // Explicit validation for encryptionStatus
+    const allowedStatuses = ["UNENCRYPTED", "MIGRATED", "ENCRYPTED"];
+    if (typeof encryptionStatus !== "string" || !allowedStatuses.includes(encryptionStatus)) {
+        throw new AppError(`Invalid encryption status. Must be one of: ${allowedStatuses.join(", ")}`, 400);
+    }
+
     const auth = await authModel.findOne({ user: req.user.id });
     if (!auth) throw new AppError("User not found", 404);
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ApiResponse } from "@/models/ApiResponse";
 
 interface UseIterativeSearchProps<T extends { id: string }> {
-    fetchFunction: (page: number, limit: number) => Promise<ApiResponse<T[]>>;
+    fetchFunction: (page: number, limit: number, signal?: AbortSignal) => Promise<ApiResponse<T[]>>;
     searchQuery: string;
     filterFunction: (item: T, query: string) => boolean;
     pageSize?: number;
@@ -28,6 +28,7 @@ export function useIterativeSearch<T extends { id: string }>({
     const serverPageRef = useRef(1);
     const mountedRef = useRef(true);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const fetchIdRef = useRef(0);
 
     useEffect(() => {
         mountedRef.current = true;
@@ -40,11 +41,14 @@ export function useIterativeSearch<T extends { id: string }>({
 
 
     useEffect(() => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = new AbortController();
+        fetchIdRef.current += 1;
+
         setAllMatches([]);
         setCurrentPage(0);
         setServerExhausted(false);
         serverPageRef.current = 1;
-        abortControllerRef.current?.abort();
     }, [searchQuery, fetchFunction]);
 
     const fetchMore = useCallback(async () => {
@@ -53,6 +57,13 @@ export function useIterativeSearch<T extends { id: string }>({
         setLoading(true);
         if (searchQuery.trim()) setIsSearching(true);
         setError(null);
+
+        const currentFetchId = fetchIdRef.current;
+
+        if (!abortControllerRef.current) {
+            abortControllerRef.current = new AbortController();
+        }
+        const signal = abortControllerRef.current.signal;
 
         try {
             let hasMoreOnServer = true;
@@ -63,10 +74,14 @@ export function useIterativeSearch<T extends { id: string }>({
             while (
                 currentMatches.length < targetCount &&
                 hasMoreOnServer &&
-                mountedRef.current
+                mountedRef.current &&
+                !signal.aborted &&
+                fetchIdRef.current === currentFetchId
             ) {
                 const effectiveLimit = searchQuery.trim() ? pageSize * 4 : requestLimit;
-                const response = await fetchFunction(serverPageRef.current, effectiveLimit);
+                const response = await fetchFunction(serverPageRef.current, effectiveLimit, signal);
+
+                if (fetchIdRef.current !== currentFetchId || signal.aborted) break;
 
                 if (response.status === "error") {
                     setError(response.err?.message || "Error fetching data");
@@ -88,21 +103,20 @@ export function useIterativeSearch<T extends { id: string }>({
                 currentMatches = [...currentMatches, ...uniqueNewItems];
                 setAllMatches(currentMatches);
 
-                if (fetchedItems.length < requestLimit) {
+                if (fetchedItems.length < effectiveLimit) {
                     hasMoreOnServer = false;
                     setServerExhausted(true);
                 } else {
                     serverPageRef.current += 1;
                 }
 
-
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
         } catch (err) {
-            if (mountedRef.current) setError("An unexpected error occurred");
+            if (mountedRef.current && fetchIdRef.current === currentFetchId) setError("An unexpected error occurred");
             console.error(err);
         } finally {
-            if (mountedRef.current) {
+            if (mountedRef.current && fetchIdRef.current === currentFetchId) {
                 setLoading(false);
                 setIsSearching(false);
             }

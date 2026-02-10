@@ -28,8 +28,8 @@ const bookmarkApi = {
       );
 
       const decryptedBookmarks = await Promise.all(
-        response.data.data.map(async (note) =>
-          Object.assign(new Bookmark(), note).decrypt()
+        (response.data.data || []).map(async (bookmark) =>
+          Object.assign(new Bookmark(), bookmark).decrypt()
         )
       );
 
@@ -126,7 +126,10 @@ const bookmarkApi = {
     data: Partial<CreateBookmarkData>
   ): Promise<ApiResponse<Bookmark | null>> => {
     try {
-      const updateItemInstance = Object.assign(new CreateBookmarkData(), data);
+      const sanitizedData = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== undefined)
+      );
+      const updateItemInstance = Object.assign(new CreateBookmarkData(), sanitizedData);
       const encryptedData = await updateItemInstance.encrypt();
 
       const endpoint = bookmarkEndpoints.update.replace("{id}", id);
@@ -164,7 +167,10 @@ const bookmarkApi = {
     try {
       const encryptedUpdates = await Promise.all(
         updates.map(async (update) => {
-          const instance = Object.assign(new CreateBookmarkData(), update.data);
+          const sanitizedData = Object.fromEntries(
+            Object.entries(update.data).filter(([_, value]) => value !== undefined)
+          );
+          const instance = Object.assign(new CreateBookmarkData(), sanitizedData);
           const encryptedData = await instance.encrypt();
           return { id: update.id, data: encryptedData };
         })

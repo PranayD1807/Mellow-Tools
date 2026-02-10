@@ -21,6 +21,9 @@ import { TextTemplate } from "@/models/TextTemplate";
 import { useParams } from "react-router-dom";
 import he from "he";
 import { Helmet } from "react-helmet-async";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { useNavigate } from "react-router-dom";
 
 // Editor Configuration
 const editorConfig = {
@@ -66,6 +69,14 @@ const UseTextTemplate = () => {
   const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams();
+  const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/dashboard");
+    }
+  }, [isLoggedIn, navigate]);
 
   const printContent = () => {
     editorRef.current?.contentWindow.print();

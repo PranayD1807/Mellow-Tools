@@ -70,6 +70,18 @@ describe('Coverage and Edge Case Tests', () => {
             const auth = await authModel.findOne({ user: userId });
             expect(auth.encryptionStatus).toBe('ENCRYPTED');
         });
+
+        it('should fail to update with invalid encryption status', async () => {
+            const res = await request(app)
+                .post('/api/v1/auth/update-encryption-status')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    encryptionStatus: 'INVALID_STATUS'
+                });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.message).toContain('Invalid encryption status');
+        });
     });
 
     describe('Handler Factory - bulkUpdate', () => {
@@ -103,6 +115,54 @@ describe('Coverage and Edge Case Tests', () => {
 
             expect(res.statusCode).toBe(400);
             expect(res.body.message).toContain('array');
+        });
+
+        it('should fail bulk update if updates array is empty', async () => {
+            const res = await request(app)
+                .patch('/api/v1/notes/bulk-update')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    updates: []
+                });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.message).toContain('non-empty array');
+        });
+
+        it('should fail bulk update if an item has no id', async () => {
+            const res = await request(app)
+                .patch('/api/v1/notes/bulk-update')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    updates: [{ data: { title: 'No ID' } }]
+                });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.message).toContain('id');
+        });
+
+        it('should fail bulk update if an item data is not an object', async () => {
+            const res = await request(app)
+                .patch('/api/v1/notes/bulk-update')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    updates: [{ id: 'some-id', data: 'not-an-object' }]
+                });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.message).toContain('plain object');
+        });
+
+        it('should fail bulk update if an item data is an array', async () => {
+            const res = await request(app)
+                .patch('/api/v1/notes/bulk-update')
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    updates: [{ id: 'some-id', data: [1, 2, 3] }]
+                });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.message).toContain('plain object');
         });
     });
 });

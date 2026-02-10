@@ -127,7 +127,10 @@ const noteApi = {
     data: Partial<CreateTextNoteData>
   ): Promise<ApiResponse<TextNote | null>> => {
     try {
-      const updateNoteInstance = Object.assign(new CreateTextNoteData(), data);
+      const sanitizedData = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== undefined)
+      );
+      const updateNoteInstance = Object.assign(new CreateTextNoteData(), sanitizedData);
       const encryptedData = await updateNoteInstance.encrypt();
 
       const endpoint = noteEndpoints.update.replace("{id}", id);
@@ -165,7 +168,10 @@ const noteApi = {
     try {
       const encryptedUpdates = await Promise.all(
         updates.map(async (update) => {
-          const instance = Object.assign(new CreateTextNoteData(), update.data);
+          const sanitizedData = Object.fromEntries(
+            Object.entries(update.data).filter(([_, value]) => value !== undefined)
+          );
+          const instance = Object.assign(new CreateTextNoteData(), sanitizedData);
           const encryptedData = await instance.encrypt();
           return { id: update.id, data: encryptedData };
         })

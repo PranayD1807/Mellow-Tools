@@ -98,8 +98,18 @@ export function bulkUpdate(Model, preFilter = {}) {
     return catchAsync(async (req, res, next) => {
         const { updates } = req.body; // Array of { id: string, data: object }
 
-        if (!updates || !Array.isArray(updates)) {
-            return next(new AppError("Updates must be an array of { id, data } objects", 400));
+        if (!updates || !Array.isArray(updates) || updates.length === 0) {
+            return next(new AppError("Updates must be a non-empty array of { id, data } objects", 400));
+        }
+
+        // Validate each item shape
+        for (const update of updates) {
+            if (!update.id || typeof update.id !== "string") {
+                return next(new AppError("Each update must have a non-empty string id", 400));
+            }
+            if (!update.data || typeof update.data !== "object" || Array.isArray(update.data)) {
+                return next(new AppError("Each update must have a plain object data", 400));
+            }
         }
 
         const bulkOps = updates.map((update) => ({

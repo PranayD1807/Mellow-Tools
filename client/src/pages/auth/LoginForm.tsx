@@ -197,6 +197,11 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
           } catch (error) {
             console.error("Migration failed", error);
             toast.error("Encryption migration failed. Please contact support.");
+
+            // Migration failed, ensure we don't proceed with invalid state
+            localStorage.removeItem("actkn");
+            localStorage.removeItem("refreshToken");
+            return;
           }
         }
 

@@ -54,11 +54,12 @@ export class LocalStorageHelper {
         throw new Error(`Failed to encrypt AES key with refresh token: ${error}`);
       }
 
-      localStorage.setItem(LocalStorageConstants.JWT_TOKEN, jwtToken || "");
-      localStorage.setItem(
-        LocalStorageConstants.REFRESH_TOKEN,
-        refreshToken || ""
-      );
+      if (jwtToken) {
+        localStorage.setItem(LocalStorageConstants.JWT_TOKEN, jwtToken);
+      }
+      if (refreshToken) {
+        localStorage.setItem(LocalStorageConstants.REFRESH_TOKEN, refreshToken);
+      }
 
       localStorage.setItem(
         LocalStorageConstants.AES_REFRESH_TOKEN,

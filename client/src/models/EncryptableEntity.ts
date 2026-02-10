@@ -53,11 +53,13 @@ export abstract class EncryptableEntity {
     const encryptedData = { ...this } as this;
     const aesKey = await AESKeyManager.getAESKey();
 
-    if (aesKey) {
-      for (const field of this.encryptFields()) {
-        if (this[field] !== undefined) {
-          encryptedData[field] = await this.encryptValue(this[field], aesKey);
-        }
+    if (!aesKey) {
+      throw new Error('Missing AES key for encryption');
+    }
+
+    for (const field of this.encryptFields()) {
+      if (this[field] !== undefined) {
+        encryptedData[field] = await this.encryptValue(this[field], aesKey);
       }
     }
 

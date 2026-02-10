@@ -146,8 +146,13 @@ const JobTracker = () => {
       fetchStats();
     } else {
       setStats({ total: 0, Applied: 0, Interviewing: 0, Offer: 0, Rejected: 0 });
+      setApplications([]);
+      setSearchInput("");
+      setSearchTerm("");
+      setStatusFilter("all");
+      setSortOrder("-appliedOn");
     }
-  }, [isLoggedIn, fetchStats]);
+  }, [isLoggedIn, fetchStats, setApplications]);
 
   return (
     <>

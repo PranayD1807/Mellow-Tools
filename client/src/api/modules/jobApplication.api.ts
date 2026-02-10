@@ -44,8 +44,9 @@ const jobApplicationApi = {
             const endpoint = `job-applications?${queryParams.toString()}`;
             const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint);
 
+            const items = response.data?.data ?? [];
             const decryptedApps = await Promise.all(
-                response.data.data.map(async (app) =>
+                items.map(async (app) =>
                     Object.assign(new JobApplication(), app).decrypt()
                 )
             );
@@ -77,7 +78,8 @@ const jobApplicationApi = {
             const endpoint = `job-applications?${queryParams.toString()}`;
             const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint);
 
-            const rawApps = response.data.data.map((app) =>
+            const items = response.data?.data ?? [];
+            const rawApps = items.map((app) =>
                 Object.assign(new JobApplication(), app)
             );
 
@@ -139,7 +141,10 @@ const jobApplicationApi = {
         data: Partial<CreateJobApplicationData>
     ): Promise<ApiResponse<JobApplication | null>> => {
         try {
-            const instance = Object.assign(new CreateJobApplicationData(), data);
+            const sanitizedData = Object.fromEntries(
+                Object.entries(data).filter(([_, value]) => value !== undefined)
+            );
+            const instance = Object.assign(new CreateJobApplicationData(), sanitizedData);
             const encryptedData = await instance.encrypt();
 
             const endpoint = jobApplicationEndpoints.update.replace("{id}", id);
@@ -177,7 +182,10 @@ const jobApplicationApi = {
         try {
             const encryptedUpdates = await Promise.all(
                 updates.map(async (update) => {
-                    const instance = Object.assign(new CreateJobApplicationData(), update.data);
+                    const sanitizedData = Object.fromEntries(
+                        Object.entries(update.data).filter(([_, value]) => value !== undefined)
+                    );
+                    const instance = Object.assign(new CreateJobApplicationData(), sanitizedData);
                     const encryptedData = await instance.encrypt();
                     return { id: update.id, data: encryptedData };
                 })

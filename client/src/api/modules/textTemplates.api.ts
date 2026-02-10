@@ -27,8 +27,9 @@ const textTemplateApi = {
         endpoint
       );
 
+      const items = response.data?.data ?? [];
       const decryptedTemplates = await Promise.all(
-        response.data.data.map(async (template) => {
+        items.map(async (template) => {
           const decrypted = await Object.assign(new TextTemplate(), template).decrypt();
           return decrypted;
         })
@@ -63,7 +64,8 @@ const textTemplateApi = {
         endpoint
       );
 
-      const rawTemplates = response.data.data.map((template) =>
+      const items = response.data?.data ?? [];
+      const rawTemplates = items.map((template) =>
         Object.assign(new TextTemplate(), template)
       );
 
@@ -135,9 +137,12 @@ const textTemplateApi = {
     data: Partial<CreateTextTemplateData>
   ): Promise<ApiResponse<TextTemplate | null>> => {
     try {
+      const sanitizedData = Object.fromEntries(
+        Object.entries(data).filter(([_, value]) => value !== undefined)
+      );
       const createNoteInstance = Object.assign(
         new CreateTextTemplateData(),
-        data
+        sanitizedData
       );
       const encryptedData = await createNoteInstance.encrypt();
 
@@ -179,7 +184,10 @@ const textTemplateApi = {
     try {
       const encryptedUpdates = await Promise.all(
         updates.map(async (update) => {
-          const instance = Object.assign(new CreateTextTemplateData(), update.data);
+          const sanitizedData = Object.fromEntries(
+            Object.entries(update.data).filter(([_, value]) => value !== undefined)
+          );
+          const instance = Object.assign(new CreateTextTemplateData(), sanitizedData);
           const encryptedData = await instance.encrypt();
           return { id: update.id, data: encryptedData };
         })
