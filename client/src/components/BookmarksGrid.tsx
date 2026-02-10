@@ -10,8 +10,7 @@ import {
 import { MdEdit, MdDelete } from "react-icons/md";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
-import { Bookmark } from "@/models/Bookmark";
-import { CreateBookmarkData } from "@/api/modules/bookmarks.api";
+import { Bookmark, CreateBookmarkData } from "@/models/Bookmark";
 import BookmarkDialog from "./BookmarkDialog";
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "./ui/menu";
 import { HiOutlineDotsVertical } from "react-icons/hi";

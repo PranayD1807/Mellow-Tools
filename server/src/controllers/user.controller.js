@@ -24,20 +24,32 @@ const generateTokens = (userId) => {
 };
 
 export const signup = catchAsync(async (req, res) => {
-    const { email, password, displayName } = req.body;
+    const { email, password, displayName, encryptedAESKey, passwordKeySalt } = req.body;
+
+    if (!encryptedAESKey || !passwordKeySalt) {
+        throw new AppError("Encryption keys are required.", 400);
+    }
 
     const user = new userModel({ displayName, email });
     await user.save();
 
     const auth = new authModel({ user: user.id });
     auth.setPassword(password);
+    auth.encryptedAESKey = encryptedAESKey;
+    auth.passwordKeySalt = passwordKeySalt;
+    auth.encryptionStatus = "ENCRYPTED";
     await auth.save();
 
     const { token, refreshToken } = generateTokens(user.id);
 
+    // Convert Mongoose document to plain object so we can attach extra fields
+    const userData = user.toObject();
+    userData.passwordKeySalt = passwordKeySalt;
+    userData.encryptedAESKey = encryptedAESKey;
+
     res.status(201).json({
         status: "success",
-        data: user,
+        data: userData,
         token: token,
         refreshToken: refreshToken,
         message: "Signed-up successfully.",
@@ -50,7 +62,7 @@ export const signin = catchAsync(async (req, res) => {
     const user = await userModel.findOne({ email });
     if (!user) throw new AppError("User not exist", 400);
 
-    const auth = await authModel.findOne({ user: user.id }).select("+password +salt +twoFactorSecret +isTwoFactorEnabled");
+    const auth = await authModel.findOne({ user: user.id }).select("+password +salt +twoFactorSecret +isTwoFactorEnabled +encryptedAESKey +passwordKeySalt");
 
     if (!auth) throw new AppError("Authentication record missing. Contact support.", 500);
 
@@ -66,9 +78,15 @@ export const signin = catchAsync(async (req, res) => {
 
     const { token, refreshToken } = generateTokens(user.id);
 
+    // Convert Mongoose document to plain object so we can attach extra fields
+    const userData = user.toObject();
+    userData.passwordKeySalt = auth.passwordKeySalt;
+    userData.encryptedAESKey = auth.encryptedAESKey;
+    userData.encryptionStatus = auth.encryptionStatus; // Add encryption status
+
     res.status(200).json({
         status: "success",
-        data: user,
+        data: userData,
         message: "Signed-in successfully.",
         token: token,
         refreshToken: refreshToken,
@@ -76,7 +94,7 @@ export const signin = catchAsync(async (req, res) => {
 });
 
 export const updatePassword = catchAsync(async (req, res) => {
-    const { password, newPassword } = req.body;
+    const { password, newPassword, encryptedAESKey, passwordKeySalt } = req.body;
 
     const auth = await authModel.findOne({ user: req.user.id }).select("+password +salt");
     if (!auth) throw new AppError("Unauthorized", 401);
@@ -84,11 +102,54 @@ export const updatePassword = catchAsync(async (req, res) => {
     if (!auth.validPassword(password)) throw new AppError("Wrong password", 400);
 
     auth.setPassword(newPassword);
+
+    // For ENCRYPTED or MIGRATED accounts, enforce strict key rotation requirement
+    if (auth.encryptionStatus === "ENCRYPTED" || auth.encryptionStatus === "MIGRATED") {
+        if (!encryptedAESKey || !passwordKeySalt) {
+            throw new AppError("Encrypted accounts require key rotation", 400);
+        }
+        // Update both keys
+        auth.encryptedAESKey = encryptedAESKey;
+        auth.passwordKeySalt = passwordKeySalt;
+    } else {
+        // Legacy behavior: update keys only if provided
+        if (encryptedAESKey && passwordKeySalt) {
+            auth.encryptedAESKey = encryptedAESKey;
+            auth.passwordKeySalt = passwordKeySalt;
+        }
+    }
+
     await auth.save();
 
     res.status(200).json({
         status: "success",
         message: "Password updated successfully.",
+    });
+});
+
+export const migrateEncryption = catchAsync(async (req, res) => {
+    const { password, encryptedAESKey, passwordKeySalt } = req.body;
+
+    const auth = await authModel.findOne({ user: req.user.id }).select("+password +salt");
+    if (!auth) throw new AppError("User not found", 404);
+
+    if (!auth.validPassword(password)) {
+        throw new AppError("Wrong password. Verification failed.", 400);
+    }
+
+    if (!encryptedAESKey || !passwordKeySalt) {
+        throw new AppError("Encryption keys are required for migration.", 400);
+    }
+
+    auth.encryptedAESKey = encryptedAESKey;
+    auth.passwordKeySalt = passwordKeySalt;
+    auth.encryptionStatus = "MIGRATED";
+
+    await auth.save();
+
+    res.status(200).json({
+        status: "success",
+        message: "Encryption migrated successfully.",
     });
 });
 
@@ -168,7 +229,7 @@ export const validate2FA = catchAsync(async (req, res) => {
     const user = await userModel.findById(userId);
     if (!user) throw new AppError("User not found", 404);
 
-    const auth = await authModel.findOne({ user: userId }).select("+twoFactorSecret +isTwoFactorEnabled");
+    const auth = await authModel.findOne({ user: userId }).select("+twoFactorSecret +isTwoFactorEnabled +encryptedAESKey +passwordKeySalt");
     if (!auth || !auth.isTwoFactorEnabled) throw new AppError("2FA not enabled", 400);
 
     const isValid = authenticator.check(token, auth.twoFactorSecret);
@@ -176,14 +237,21 @@ export const validate2FA = catchAsync(async (req, res) => {
 
     const tokens = generateTokens(userId);
 
+    // Convert Mongoose document to plain object so we can attach extra fields
+    const userData = user.toObject();
+    userData.passwordKeySalt = auth.passwordKeySalt;
+    userData.encryptedAESKey = auth.encryptedAESKey;
+    userData.encryptionStatus = auth.encryptionStatus; // Add encryption status
+
     res.status(200).json({
         status: "success",
-        data: user,
+        data: userData,
         message: "Signed-in successfully.",
         token: tokens.token,
         refreshToken: tokens.refreshToken
     });
 });
+
 
 export const disable2FA = catchAsync(async (req, res) => {
     const auth = await authModel.findOne({ user: req.user.id });
@@ -196,5 +264,30 @@ export const disable2FA = catchAsync(async (req, res) => {
     res.status(200).json({
         status: "success",
         message: "Two-factor authentication disabled."
+    });
+});
+
+export const updateEncryptionStatus = catchAsync(async (req, res) => {
+    const { encryptionStatus } = req.body;
+
+    // Explicit validation for encryptionStatus
+    const allowedStatuses = ["UNENCRYPTED", "MIGRATED", "ENCRYPTED"];
+    if (typeof encryptionStatus !== "string" || !allowedStatuses.includes(encryptionStatus)) {
+        throw new AppError(`Invalid encryption status. Must be one of: ${allowedStatuses.join(", ")}`, 400);
+    }
+
+    const auth = await authModel.findOne({ user: req.user.id }).select("+encryptedAESKey +passwordKeySalt");
+    if (!auth) throw new AppError("User not found", 404);
+
+    if (encryptionStatus === "ENCRYPTED" && (!auth.encryptedAESKey || !auth.passwordKeySalt)) {
+        throw new AppError("Cannot set status to ENCRYPTED without encryption keys.", 400);
+    }
+
+    auth.encryptionStatus = encryptionStatus;
+    await auth.save();
+
+    res.status(200).json({
+        status: "success",
+        message: "Encryption status updated successfully."
     });
 });

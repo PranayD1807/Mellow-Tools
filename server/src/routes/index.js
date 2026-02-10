@@ -1,8 +1,6 @@
 import express from "express";
 const router = express.Router();
-import AppError from "../utils/appError.js";
 import { verifyJWT } from "../middlewares/token.middleware.js"
-import catchAsync from "../utils/catchAsync.js";
 
 import textTemplateRoutes from "./textTemplate.routes.js";
 import authRoutes from "./auth.routes.js";

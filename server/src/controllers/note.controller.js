@@ -1,4 +1,4 @@
-import { createOne, updateOne, getAll, getOne, deleteOne } from "./handlerFactory.js";
+import { createOne, updateOne, getAll, getOne, deleteOne, bulkUpdate } from "./handlerFactory.js";
 import noteModel from "../models/note.model.js";
 
 export const createNote = (req, res, next) => {
@@ -25,4 +25,9 @@ export const getNote = (req, res, next) => {
 export const deleteNote = (req, res, next) => {
     const preFilter = { user: req.user.id };
     return deleteOne(noteModel, preFilter)(req, res, next);
+};
+
+export const bulkUpdateNotes = (req, res, next) => {
+    const preFilter = { user: req.user.id };
+    return bulkUpdate(noteModel, preFilter)(req, res, next);
 };

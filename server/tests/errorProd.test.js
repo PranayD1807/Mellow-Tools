@@ -1,11 +1,8 @@
-
 import { jest } from '@jest/globals';
 import request from 'supertest';
 import app from '../app.js';
 import mongoose from 'mongoose';
-import userModel from '../src/models/user.model.js';
 import jobApplicationModel from '../src/models/jobApplication.model.js';
-import noteModel from '../src/models/note.model.js';
 import jsonwebtoken from 'jsonwebtoken';
 
 const originalEnv = process.env.NODE_ENV;
@@ -27,7 +24,9 @@ describe('Error Handling in PROD', () => {
             email: `prod_${Math.random()}@test.com`,
             password: 'Password123!',
             displayName: 'Prod User',
-            confirmPassword: 'Password123!'
+            confirmPassword: 'Password123!',
+            passwordKeySalt: 'dummy-salt',
+            encryptedAESKey: 'dummy-encrypted-key'
         });
         token = res.body.token;
     });

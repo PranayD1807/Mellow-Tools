@@ -27,7 +27,9 @@ describe('Edge Cases and Missing Branches', () => {
             email: 'edge@example.com',
             password: 'Password123!',
             displayName: 'Edge User',
-            confirmPassword: 'Password123!'
+            confirmPassword: 'Password123!',
+            passwordKeySalt: 'dummy-salt',
+            encryptedAESKey: 'dummy-encrypted-key'
         };
 
         it('should handle signup email already used branch', async () => {
@@ -51,7 +53,13 @@ describe('Edge Cases and Missing Branches', () => {
             const res = await request(app)
                 .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ password: 'Password123!', newPassword: 'NewPassword123!', confirmPassword: 'NewPassword123!' });
+                .send({
+                    password: 'Password123!',
+                    newPassword: 'NewPassword123!',
+                    confirmNewPassword: 'NewPassword123!',
+                    passwordKeySalt: 'new-dummy-salt',
+                    encryptedAESKey: 'new-dummy-encrypted-key'
+                });
 
             expect(res.statusCode).toBe(401);
             spy.mockRestore();
@@ -92,7 +100,13 @@ describe('Edge Cases and Missing Branches', () => {
             const res = await request(app)
                 .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ password: 'Password123!', newPassword: 'NewPassword123!', confirmPassword: 'NewPassword123!' });
+                .send({
+                    password: 'Password123!',
+                    newPassword: 'NewPassword123!',
+                    confirmNewPassword: 'NewPassword123!',
+                    passwordKeySalt: 'new-dummy-salt',
+                    encryptedAESKey: 'new-dummy-encrypted-key'
+                });
 
             expect(res.statusCode).toBe(401);
         });
@@ -119,7 +133,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'missing_auth@test.com',
                 password: 'Password123!',
                 displayName: 'Missing Auth',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const userId = signupRes.body.data.id;
 
@@ -142,7 +158,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'missing_auth_info@test.com',
                 password: 'Password123!',
                 displayName: 'Info User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
             const userId = signupRes.body.data.id;
@@ -167,7 +185,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'token_edge@test.com',
                 password: 'Password123!',
                 displayName: 'Token User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -187,7 +207,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'api_edge@test.com',
                 password: 'Password123!',
                 displayName: 'API User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -203,7 +225,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'api_empty@test.com',
                 password: 'Password123!',
                 displayName: 'API User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -220,7 +244,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'sort_desc@test.com',
                 password: 'Password123!',
                 displayName: 'Sort User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -237,7 +263,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'sort_created@test.com',
                 password: 'Password123!',
                 displayName: 'Sort User 2',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -253,7 +281,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'search_edge@test.com',
                 password: 'Password123!',
                 displayName: 'Search User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -268,7 +298,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: `in_operator_${Date.now()}@test.com`,
                 password: 'Password123!',
                 displayName: 'InOperatorUser',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -288,7 +320,9 @@ describe('Edge Cases and Missing Branches', () => {
                 email: 'fields_edge@test.com',
                 password: 'Password123!',
                 displayName: 'Fields User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             });
             const token = signupRes.body.token;
 
@@ -339,7 +373,9 @@ describe('Edge Cases and Missing Branches', () => {
             email: `2fa_edge_${Date.now()}@test.com`,
             password: 'Password123!',
             displayName: '2FAEdgeUser',
-            confirmPassword: 'Password123!'
+            confirmPassword: 'Password123!',
+            passwordKeySalt: 'dummy-salt',
+            encryptedAESKey: 'dummy-encrypted-key'
         };
 
         let token;
@@ -424,19 +460,19 @@ describe('Edge Cases and Missing Branches', () => {
 
     describe('APIFeatures Unit Tests', () => {
         it('should skip search if searchableFields is empty', () => {
-             const query = { find: jest.fn().mockReturnThis() };
-             const queryString = { search: 'term' };
-             const features = new APIFeatures(query, queryString);
-             features.search([]); // Empty fields
-             expect(query.find).not.toHaveBeenCalled();
+            const query = { find: jest.fn().mockReturnThis() };
+            const queryString = { search: 'term' };
+            const features = new APIFeatures(query, queryString);
+            features.search([]); // Empty fields
+            expect(query.find).not.toHaveBeenCalled();
         });
 
         it('should use default empty array if searchableFields not provided', () => {
-             const query = { find: jest.fn().mockReturnThis() };
-             const queryString = { search: 'term' };
-             const features = new APIFeatures(query, queryString);
-             features.search(); // No args, triggers default = []
-             expect(query.find).not.toHaveBeenCalled();
+            const query = { find: jest.fn().mockReturnThis() };
+            const queryString = { search: 'term' };
+            const features = new APIFeatures(query, queryString);
+            features.search(); // No args, triggers default = []
+            expect(query.find).not.toHaveBeenCalled();
         });
     });
 

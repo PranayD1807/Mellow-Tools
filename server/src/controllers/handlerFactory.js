@@ -38,7 +38,7 @@ export function updateOne(Model, preFilter = {}) {
 }
 
 export function createOne(Model) {
-    return catchAsync(async (req, res, next) => {
+    return catchAsync(async (req, res, _next) => {
         const doc = await Model.create(req.body);
 
         res.status(201).json({
@@ -66,7 +66,7 @@ export function getOne(Model, popOptions, preFilter = {}) {
 }
 
 export function getAll(Model, preFilter = {}, searchableFields = []) {
-    return catchAsync(async (req, res, next) => {
+    return catchAsync(async (req, res, _next) => {
         const features = new APIFeatures(Model.find(preFilter), req.query)
             .search(searchableFields)
             .filter()
@@ -90,6 +90,43 @@ export function getAll(Model, preFilter = {}, searchableFields = []) {
             page,
             results: doc.length,
             data: doc,
+        });
+    });
+}
+
+export function bulkUpdate(Model, preFilter = {}) {
+    return catchAsync(async (req, res, next) => {
+        const { updates } = req.body; // Array of { id: string, data: object }
+
+        if (!updates || !Array.isArray(updates) || updates.length === 0) {
+            return next(new AppError("Updates must be a non-empty array of { id, data } objects", 400));
+        }
+
+        // Validate each item shape
+        for (const update of updates) {
+            if (!update.id || typeof update.id !== "string") {
+                return next(new AppError("Each update must have a non-empty string id", 400));
+            }
+            if (!update.data || typeof update.data !== "object" || Array.isArray(update.data)) {
+                return next(new AppError("Each update must have a plain object data", 400));
+            }
+        }
+
+        const bulkOps = updates.map((update) => ({
+            updateOne: {
+                filter: { _id: update.id, ...preFilter },
+                update: { $set: update.data },
+            },
+        }));
+
+        const result = await Model.bulkWrite(bulkOps);
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                matchedCount: result.matchedCount,
+                modifiedCount: result.modifiedCount,
+            },
         });
     });
 }

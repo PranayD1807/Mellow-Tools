@@ -23,6 +23,17 @@ const textTemplateSchema = new mongoose.Schema({
     ],
 }, {
     ...modelOptions,
+    toJSON: {
+        virtuals: true, versionKey: false, transform: (_, ret) => {
+            if (ret.placeholders) {
+                ret.placeholders.forEach(placeholder => {
+                    delete placeholder._id; 
+                    delete placeholder.id; 
+                });
+            }
+            return ret;
+        }
+    }
 });
 
 const textTemplateModel = mongoose.model("TextTemplate", textTemplateSchema);

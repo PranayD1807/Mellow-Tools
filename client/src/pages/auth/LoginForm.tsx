@@ -23,8 +23,10 @@ import userApi from "@/api/modules/user.api";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/userSlice";
 import { toast } from "react-toastify";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
+import Encryption from "@/helper/encryption.helper";
 
-// Password Strength function (all factors required)
+
 const calculatePasswordStrength = (password: string): number => {
   let strength = 0;
   if (password.length >= 8) strength++; // Length must be 8+
@@ -33,27 +35,28 @@ const calculatePasswordStrength = (password: string): number => {
   if (password.match(/[0-9]/)) strength++; // Must contain number
   if (password.match(/[@$!%*?&]/)) strength++; // Must contain special character
 
-  return strength; // returns a value between 0 and 5
+
+  return strength;
 };
 
-// Validation function
+
 const validate = (values: { email: string; password: string }) => {
   const errors: { email?: string; password?: string } = {};
 
-  // Email Validation
+
   if (!values.email) {
     errors.email = "Email is required";
   } else if (!/\S+@\S+\.\S+/.test(values.email)) {
     errors.email = "Please enter a valid email address";
   }
 
-  // Password Validation
+
   if (!values.password) {
     errors.password = "Password is required";
   } else {
     const passwordStrength = calculatePasswordStrength(values.password);
 
-    // Check for password length
+
     if (values.password.length < 8) {
       errors.password = "Password must be at least 8 characters long";
     }
@@ -90,6 +93,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
   const [userId, setUserId] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState("");
 
   const dispatch = useDispatch();
 
@@ -107,16 +111,75 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
       } else if (res.data) {
         const userData = res.data.data!;
 
+        if (
+          !userData.encryptedAESKey ||
+          !userData.passwordKeySalt
+        ) {
+          try {
+            if (res.data.token) {
+              localStorage.setItem("actkn", res.data.token);
+              localStorage.setItem("refreshToken", res.data.refreshToken || "");
+            }
+
+            const freshlyGeneratedAESKey = await Encryption.generateAESKey();
+            const passwordKeySalt = Encryption.generatePasswordKeySalt();
+            const passwordDerivedKey = await Encryption.getPasswordDerivedKey(
+              password,
+              passwordKeySalt
+            );
+            const encryptedAESKey = await Encryption.encryptAESKey(
+              freshlyGeneratedAESKey,
+              passwordDerivedKey
+            );
+
+            const migrationRes = await userApi.migrateEncryption({
+              password: password,
+              encryptedAESKey,
+              passwordKeySalt,
+            });
+
+            if (migrationRes.status === "error") {
+              throw new Error(migrationRes.err?.message || "Migration API failed");
+            }
+
+            userData.encryptedAESKey = encryptedAESKey;
+            userData.passwordKeySalt = passwordKeySalt;
+            userData.encryptionStatus = "MIGRATED";
+            toast.success("Account migrated to E2E Encryption!");
+          } catch (_error) {
+            console.error("Migration failed during 2FA", _error);
+            toast.error("Encryption migration failed. Please contact support.");
+
+            localStorage.removeItem("actkn");
+            localStorage.removeItem("refreshToken");
+            return;
+          }
+        }
+
         dispatch(
           login({
             displayName: userData.displayName,
             email: userData.email,
             userId: userData.id,
+            encryptionStatus: userData.encryptionStatus,
           })
         );
         localStorage.setItem("actkn", res.data.token);
         localStorage.setItem("refreshToken", res.data.refreshToken);
-        toast.success("Login successful!");
+
+        try {
+          await LocalStorageHelper.saveUserCreds({
+            userInfo: userData,
+            password: password,
+            jwtToken: res.data.token,
+            refreshToken: res.data.refreshToken,
+          });
+          toast.success("Login successful!");
+        } catch (_error) {
+          LocalStorageHelper.logoutUser();
+          toast.error("Failed to save credentials");
+          return;
+        }
       }
     } catch (_) {
       setLoading(false);
@@ -136,20 +199,82 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.status === "2fa_required" && res.data?.userId) {
         setIs2FARequired(true);
-        setUserId(res.data.userId); // userId is on the response object based on user.api.ts interface update
+        setUserId(res.data.userId || null);
+        setPassword(values.password);
         toast.info("Two-Factor Authentication Required");
       } else if (res.data) {
         const userData = res.data.data!;
+        if (
+          !userData.encryptedAESKey ||
+          !userData.passwordKeySalt
+        ) {
+
+          try {
+
+            if (res.data.token) {
+              localStorage.setItem("actkn", res.data.token);
+              localStorage.setItem("refreshToken", res.data.refreshToken || "");
+            }
+
+            const freshlyGeneratedAESKey = await Encryption.generateAESKey();
+            const passwordKeySalt = Encryption.generatePasswordKeySalt();
+            const passwordDerivedKey = await Encryption.getPasswordDerivedKey(
+              values.password,
+              passwordKeySalt
+            );
+            const encryptedAESKey = await Encryption.encryptAESKey(
+              freshlyGeneratedAESKey,
+              passwordDerivedKey
+            );
+
+            const migrationRes = await userApi.migrateEncryption({
+              password: values.password,
+              encryptedAESKey,
+              passwordKeySalt,
+            });
+
+            if (migrationRes.status === "error") {
+              throw new Error(migrationRes.err?.message || "Migration API failed");
+            }
+
+
+            userData.encryptedAESKey = encryptedAESKey;
+            userData.passwordKeySalt = passwordKeySalt;
+            userData.encryptionStatus = "MIGRATED"; // Update status so Redux state is correct
+            toast.success("Account migrated to E2E Encryption!");
+          } catch (_error) {
+            console.error("Migration failed", _error);
+            toast.error("Encryption migration failed. Please contact support.");
+
+            // Migration failed, ensure we don't proceed with invalid state
+            localStorage.removeItem("actkn");
+            localStorage.removeItem("refreshToken");
+            return;
+          }
+        }
+
         dispatch(
           login({
             displayName: userData.displayName,
             email: userData.email,
             userId: userData.id,
+            encryptionStatus: userData.encryptionStatus,
           })
         );
-        localStorage.setItem("actkn", res.data.token!);
-        localStorage.setItem("refreshToken", res.data.refreshToken!);
-        toast.success(res.data.message);
+
+        try {
+          await LocalStorageHelper.saveUserCreds({
+            userInfo: userData,
+            password: values.password,
+            jwtToken: res.data.token,
+            refreshToken: res.data.refreshToken,
+          });
+          toast.success(res.data.message);
+        } catch (_error) {
+          LocalStorageHelper.logoutUser();
+          toast.error("Failed to save credentials");
+          return;
+        }
       }
     } catch (error: unknown) {
       console.log(error);
@@ -288,7 +413,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
                 onSubmit={handleSubmit}
               >
                 <VStack gap="20px" align="stretch">
-                  {/* Email Field */}
+
                   <Field
                     label="Email"
                     required
@@ -305,7 +430,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     />
                   </Field>
 
-                  {/* Password Field */}
+
                   <Field
                     label="Password"
                     required
@@ -319,7 +444,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
                       variant="outline"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         handleChange(e);
-                        handlePasswordChange(e.target.value); // update password strength
+                        handlePasswordChange(e.target.value);
                       }}
                       value={values.password}
                     />

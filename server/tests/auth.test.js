@@ -1,9 +1,5 @@
-
 import request from 'supertest';
 import app from '../app.js';
-import mongoose from 'mongoose';
-import otplib from 'otplib';
-const { authenticator } = otplib;
 
 
 describe('Auth Endpoints', () => {
@@ -11,7 +7,9 @@ describe('Auth Endpoints', () => {
         email: 'test@example.com',
         password: 'Password123!',
         displayName: 'Test User',
-        confirmPassword: 'Password123!'
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
     };
 
     let token;
@@ -42,7 +40,11 @@ describe('Auth Endpoints', () => {
         });
 
         it('should fail if passwords do not match', async () => {
-            const invalidUser = { ...testUser, confirmPassword: 'DifferentPassword123!', email: 'mismatch@example.com' };
+            const invalidUser = {
+                ...testUser,
+                confirmPassword: 'DifferentPassword123!',
+                email: 'mismatch@example.com'
+            };
             const res = await request(app).post('/api/v1/auth/signup').send(invalidUser);
             expect(res.statusCode).toEqual(400);
             expect(res.body.message).toMatch(/confirmPassword does not match password/i);
@@ -109,7 +111,13 @@ describe('Auth Endpoints', () => {
             const res = await request(app)
                 .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ password: testUser.password, newPassword: 'NewPassword123!', confirmPassword: 'NewPassword123!' });
+                .send({
+                    password: testUser.password,
+                    newPassword: 'NewPassword123!',
+                    confirmNewPassword: 'NewPassword123!',
+                    passwordKeySalt: 'new-dummy-salt',
+                    encryptedAESKey: 'new-dummy-encrypted-key'
+                });
 
             expect(res.statusCode).toEqual(200);
 
@@ -124,7 +132,13 @@ describe('Auth Endpoints', () => {
             const res = await request(app)
                 .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ password: 'WrongCurrentPassword', newPassword: 'NewPassword123!', confirmPassword: 'NewPassword123!' });
+                .send({
+                    password: 'WrongCurrentPassword',
+                    newPassword: 'NewPassword123!',
+                    confirmNewPassword: 'NewPassword123!',
+                    passwordKeySalt: 'new-dummy-salt',
+                    encryptedAESKey: 'new-dummy-encrypted-key'
+                });
 
             expect(res.statusCode).toEqual(400);
             expect(res.body.message).toMatch(/Wrong password/i);
@@ -134,7 +148,11 @@ describe('Auth Endpoints', () => {
             const res = await request(app)
                 .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
-                .send({ password: testUser.password, newPassword: 'NewPassword123!', confirmPassword: 'Mismatch' });
+                .send({
+                    password: testUser.password,
+                    newPassword: 'NewPassword123!',
+                    confirmNewPassword: 'Mismatch'
+                });
 
             expect(res.statusCode).toEqual(400);
         });

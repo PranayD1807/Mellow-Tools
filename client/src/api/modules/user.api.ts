@@ -1,6 +1,7 @@
-import privateClient from "../client/private.client";
-import publicClient from "../client/public.client";
-import { handleApiError } from "../helper/error.helper";
+import { UserInfo } from "@/models/UserInfo";
+import privateClient from "@/api/client/private.client";
+import publicClient from "@/api/client/public.client";
+import { handleApiError } from "@/helper/error.helper";
 import { ApiResponse } from "@/models/ApiResponse";
 
 const userEndpoints = {
@@ -12,6 +13,8 @@ const userEndpoints = {
   verify2FA: "auth/2fa/verify",
   validate2FA: "auth/2fa/validate",
   disable2FA: "auth/2fa/disable",
+  migrateEncryption: "auth/migrate-encryption",
+  updateEncryptionStatus: "auth/update-encryption-status",
 };
 
 interface SigninData {
@@ -24,19 +27,16 @@ interface SignupData {
   password: string;
   confirmPassword: string;
   displayName: string;
+  encryptedAESKey: string;
+  passwordKeySalt: string;
 }
 
 interface PasswordUpdateData {
   password: string;
   newPassword: string;
   confirmNewPassword: string;
-}
-
-export interface UserInfo {
-  id: string;
-  email: string;
-  displayName: string;
-  isTwoFactorEnabled?: boolean;
+  encryptedAESKey?: string;
+  passwordKeySalt?: string;
 }
 
 interface SigninResponse {
@@ -92,6 +92,17 @@ interface Disable2FAResponse {
   message: string;
 }
 
+interface MigrateEncryptionData {
+  password: string;
+  encryptedAESKey: string;
+  passwordKeySalt: string;
+}
+
+interface MigrateEncryptionResponse {
+  status: string;
+  message: string;
+}
+
 const userApi = {
   signin: async ({
     email,
@@ -117,6 +128,8 @@ const userApi = {
     password,
     confirmPassword,
     displayName,
+    encryptedAESKey,
+    passwordKeySalt,
   }: SignupData): Promise<ApiResponse<SignupResponse>> => {
     try {
       const response = await publicClient.post<SignupResponse>(
@@ -126,6 +139,8 @@ const userApi = {
           password,
           confirmPassword,
           displayName,
+          encryptedAESKey,
+          passwordKeySalt,
         }
       );
 
@@ -157,6 +172,8 @@ const userApi = {
     password,
     newPassword,
     confirmNewPassword,
+    encryptedAESKey,
+    passwordKeySalt,
   }: PasswordUpdateData): Promise<ApiResponse<PasswordUpdateResponse>> => {
     try {
       const response = await privateClient.post<PasswordUpdateResponse>(
@@ -164,7 +181,9 @@ const userApi = {
         {
           password,
           newPassword,
-          confirmPassword: confirmNewPassword,
+          confirmNewPassword,
+          encryptedAESKey,
+          passwordKeySalt,
         }
       );
 
@@ -174,6 +193,30 @@ const userApi = {
       };
     } catch (err: unknown) {
       return handleApiError<PasswordUpdateResponse>(err);
+    }
+  },
+
+  migrateEncryption: async ({
+    password,
+    encryptedAESKey,
+    passwordKeySalt,
+  }: MigrateEncryptionData): Promise<ApiResponse<MigrateEncryptionResponse>> => {
+    try {
+      const response = await privateClient.post<MigrateEncryptionResponse>(
+        userEndpoints.migrateEncryption,
+        {
+          password,
+          encryptedAESKey,
+          passwordKeySalt,
+        }
+      );
+
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<MigrateEncryptionResponse>(err);
     }
   },
 
@@ -235,6 +278,21 @@ const userApi = {
       };
     } catch (err: unknown) {
       return handleApiError<Disable2FAResponse>(err);
+    }
+  },
+
+  updateEncryptionStatus: async (status: string): Promise<ApiResponse<{ status: string; message: string }>> => {
+    try {
+      const response = await privateClient.post<{ status: string; message: string }>(
+        userEndpoints.updateEncryptionStatus,
+        { encryptionStatus: status }
+      );
+      return {
+        status: response.data.status,
+        data: response.data,
+      };
+    } catch (err: unknown) {
+      return handleApiError<{ status: string; message: string }>(err);
     }
   },
 };

@@ -8,7 +8,9 @@ describe('Text Template Endpoints', () => {
         email: 'templatetest@example.com',
         password: 'Password123!',
         displayName: 'Template Test User',
-        confirmPassword: 'Password123!'
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
     };
 
     let token;

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     VStack,
 } from "@chakra-ui/react";
@@ -11,6 +12,8 @@ import { Field } from "@/components/ui/field";
 import { Formik, Field as FormikField, FormikHelpers } from "formik";
 import { toast } from "react-toastify";
 import userApi from "@/api/modules/user.api";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
+import Encryption from "@/helper/encryption.helper";
 
 // Password Strength function
 const calculatePasswordStrength = (password: string): number => {
@@ -71,6 +74,7 @@ const validate = (values: {
 };
 
 const UpdatePasswordForm = () => {
+    const navigate = useNavigate();
     const [passwordStrength, setPasswordStrength] = useState(0);
 
     const onSubmit = async (
@@ -87,7 +91,32 @@ const UpdatePasswordForm = () => {
     ) => {
         actions.setSubmitting(true);
         try {
-            const res = await userApi.passwordUpdate(values);
+
+
+            const aesKey = await LocalStorageHelper.getAESKey();
+
+            if (!aesKey) {
+                toast.error("Encryption key not found. Please log in again.");
+                actions.setSubmitting(false);
+                return;
+            }
+
+            // Generate new salt and re-encrypt AES key with new password
+            const passwordKeySalt = Encryption.generatePasswordKeySalt();
+            const newPasswordDerivedKey = await Encryption.getPasswordDerivedKey(
+                values.newPassword,
+                passwordKeySalt
+            );
+            const encryptedAESKey = await Encryption.encryptAESKey(
+                aesKey,
+                newPasswordDerivedKey
+            );
+
+            const res = await userApi.passwordUpdate({
+                ...values,
+                encryptedAESKey,
+                passwordKeySalt,
+            });
 
             if (res.status === "error") {
                 toast.error(res.err?.message || "Something went wrong");
@@ -95,6 +124,8 @@ const UpdatePasswordForm = () => {
                 toast.success(res.data.message);
                 actions.resetForm();
                 setPasswordStrength(0);
+                navigate("/dashboard");
+
             }
         } catch (error: unknown) {
             console.log(error);

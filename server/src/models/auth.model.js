@@ -26,8 +26,26 @@ const authSchema = new mongoose.Schema({
     isTwoFactorEnabled: {
         type: Boolean,
         default: false
-    }
+    },
+    // Salt value used for deriving passwordDerivedKey.
+    // Optional - only exists for users with encryption enabled
+    passwordKeySalt: {
+        type: String,
+        required: false,
+    },
+    // Encrypted AES Key for E2E Encryption
+    // Optional - only exists for users with encryption enabled
+    encryptedAESKey: {
+        type: String,
+        required: false,
+    },
+    encryptionStatus: {
+        type: String,
+        enum: ["UNENCRYPTED", "MIGRATED", "ENCRYPTED"],
+        default: "UNENCRYPTED"
+    },
 }, modelOptions);
+
 
 authSchema.methods.setPassword = function (password) {
     this.salt = crypto.randomBytes(16).toString("hex");

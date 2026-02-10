@@ -8,6 +8,7 @@ import {
   Separator,
   Text,
   VStack,
+  Image,
 } from "@chakra-ui/react";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import { useSelector } from "react-redux";
@@ -21,6 +22,7 @@ import Logo from "@/components/Logo";
 import { showcaseInfo } from "@/models/ShowcaseInfo";
 import ShowcaseCard from "@/components/ShowcaseCard";
 import SEO from "@/components/SEO";
+import { MdSecurity } from "react-icons/md";
 
 const bulletPoints = [
   {
@@ -40,6 +42,12 @@ const bulletPoints = [
     description:
       "Peek under the hood, tweak it, or make it your own—this is tech for everyone to build on.",
     icon: BiCodeBlock,
+  },
+  {
+    label: "Privacy First",
+    description:
+      "Your data belongs to you. We use bank-grade encryption to ensure your information stays private and secure.",
+    icon: MdSecurity,
   },
 ];
 
@@ -218,6 +226,84 @@ const LandingPage = () => {
       </Text>
 
       <ShowcaseCard info={showcaseInfos[3]} />
+
+      <Flex
+        w="full"
+        bg="bg.subtle"
+        py={24}
+        px={{ base: 6, md: 24 }}
+        direction={{ base: "column", md: "row" }}
+        alignItems="center"
+        gap={16}
+        my={20}
+      >
+        <Box flex={1} display="flex" justifyContent="center">
+          <Box position="relative">
+            <Box
+              position="absolute"
+              top="-10px"
+              left="-10px"
+              right="-10px"
+              bottom="-10px"
+              bg="blue.500"
+              opacity={0.1}
+              filter="blur(40px)"
+              borderRadius="full"
+            />
+            <Image
+              src="/e2e-encryption-preview.png"
+              alt="End-to-End Encryption"
+              boxShadow="2xl"
+              borderRadius="2xl"
+              maxW="500px"
+              w="full"
+              position="relative"
+              zIndex={1}
+              _hover={{ transform: "scale(1.02)" }}
+              transition="all 0.3s ease"
+            />
+          </Box>
+        </Box>
+        <VStack flex={1} alignItems="start" gap={8}>
+          <Text
+            fontSize={{ base: "4xl", md: "6xl" }}
+            fontWeight="bold"
+            lineHeight="1.1"
+            fontFamily="Inter"
+          >
+            Your Data. <br />
+            <Text as="span" color="blue.500">
+              Only Your Eyes.
+            </Text>
+          </Text>
+          <Text fontSize="xl" opacity={0.7} lineHeight="tall">
+            With industry-standard{" "}
+            <Text as="span" fontWeight="bold">
+              AES-256 GCM
+            </Text>{" "}
+            encryption, your notes, bookmarks, and templates are encrypted right
+            in your browser. We don't hold the keys —
+            <Text as="span" fontWeight="bold">
+              YOU DO
+            </Text>
+            . Even we can't see what's inside. Total privacy, zero compromise.
+          </Text>
+          <Link to="/auth">
+            <Button
+              variant="solid"
+              size="lg"
+              h={14}
+              px={12}
+              fontSize="lg"
+              borderRadius="full"
+              boxShadow="lg"
+              _hover={{ transform: "translateY(-2px)", boxShadow: "xl" }}
+            >
+              Experience True Privacy
+            </Button>
+          </Link>
+        </VStack>
+      </Flex>
 
       <Flex
         w="80%"

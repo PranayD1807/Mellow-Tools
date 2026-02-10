@@ -1,4 +1,4 @@
-import { createOne, updateOne, getAll, getOne, deleteOne } from "./handlerFactory.js";
+import { createOne, updateOne, getAll, getOne, deleteOne, bulkUpdate } from "./handlerFactory.js";
 import textTemplateModel from "../models/textTemplate.model.js";
 
 export const createTextTemplate = (req, res, next) => {
@@ -25,4 +25,9 @@ export const getTextTemplate = (req, res, next) => {
 export const deleteTextTemplate = (req, res, next) => {
     const preFilter = { user: req.user.id };
     return deleteOne(textTemplateModel, preFilter)(req, res, next);
+};
+
+export const bulkUpdateTextTemplates = (req, res, next) => {
+    const preFilter = { user: req.user.id };
+    return bulkUpdate(textTemplateModel, preFilter)(req, res, next);
 };

@@ -98,40 +98,42 @@ const wrapInBrowserFrame = async (page, imgBuffer) => {
 
   await page.setViewport(VIEWPORT);
 
-  // Force Light Mode
+
   await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
 
   console.log('Logging in...');
   await page.goto(`${BASE_URL}/auth`);
 
-  // Also ensure localStorage says light mode
+
   await page.evaluate(() => {
     localStorage.setItem('chakra-ui-color-mode', 'light');
   });
 
-  // Wait for login form
+
   await page.waitForSelector('input[name="email"]');
   await page.type('input[name="email"]', CREDENTIALS.email);
   await page.type('input[name="password"]', CREDENTIALS.password);
 
-  await page.keyboard.press('Enter');
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: 'networkidle0' }),
+    page.keyboard.press('Enter'),
+  ]);
 
-  await page.waitForNavigation({ waitUntil: 'networkidle0' });
   console.log('Login successful');
 
   for (const route of ROUTES) {
     console.log(`Navigating to ${route.path}...`);
 
-    // Force light mode again just in case
+
     await page.evaluate(() => {
       localStorage.setItem('chakra-ui-color-mode', 'light');
     });
 
     if (route.path === '/text-templates') {
-      // Navigate to list first
+
       await page.goto(`${BASE_URL}${route.path}`, { waitUntil: 'networkidle0' });
 
-      // Try to find the "Use" button (card link)
+
       try {
         await page.waitForSelector('a[href^="/text-templates/"]', { timeout: 5000 });
         const links = await page.$$('a[href^="/text-templates/"]');
@@ -154,13 +156,13 @@ const wrapInBrowserFrame = async (page, imgBuffer) => {
       await page.goto(`${BASE_URL}${route.path}`, { waitUntil: 'networkidle0' });
     }
 
-    // Optional delay for animations/loading
+
     if (route.delay) await new Promise(r => setTimeout(r, route.delay));
 
-    // Capture raw screenshot
+
     const rawScreenshot = await page.screenshot({ fullPage: false });
 
-    // Wrap in frame
+
     console.log(`Framing ${route.output}...`);
     const framedScreenshot = await wrapInBrowserFrame(page, rawScreenshot);
 

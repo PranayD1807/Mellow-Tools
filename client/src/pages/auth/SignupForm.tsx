@@ -21,72 +21,17 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import userApi from "@/api/modules/user.api";
 import { login } from "@/store/userSlice";
+import Encryption from "@/helper/encryption.helper";
+import { LocalStorageHelper } from "@/helper/localStorage.helper";
 
-// Password Strength function
 const calculatePasswordStrength = (password: string): number => {
   let strength = 0;
-  if (password.length >= 8) strength++; // Length must be 8+
-  if (password.match(/[a-z]/)) strength++; // Must contain lowercase
-  if (password.match(/[A-Z]/)) strength++; // Must contain uppercase
-  if (password.match(/[0-9]/)) strength++; // Must contain number
-  if (password.match(/[@$!%*?&]/)) strength++; // Must contain special character
-
-  return strength; // returns a value between 0 and 5
-};
-
-// Validation function
-const validate = (values: {
-  email: string;
-  displayName: string;
-  password: string;
-  confirmPassword: string;
-}) => {
-  const errors: {
-    email?: string;
-    username?: string;
-    password?: string;
-    confirmPassword?: string;
-  } = {};
-
-  // Email Validation
-  if (!values.email) {
-    errors.email = "Email is required";
-  } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-    errors.email = "Please enter a valid email address";
-  }
-
-  // Username Validation
-  if (!values.displayName) {
-    errors.username = "Username is required";
-  }
-
-  // Password Validation
-  if (!values.password) {
-    errors.password = "Password is required";
-  } else {
-    const passwordStrength = calculatePasswordStrength(values.password);
-
-    if (values.password.length < 8) {
-      errors.password = "Password must be at least 8 characters long";
-    } else if (!/[a-z]/.test(values.password)) {
-      errors.password = "Password must contain at least one lowercase letter";
-    } else if (!/[A-Z]/.test(values.password)) {
-      errors.password = "Password must contain at least one uppercase letter";
-    } else if (!/[0-9]/.test(values.password)) {
-      errors.password = "Password must contain at least one number";
-    } else if (!/[@$!%*?&]/.test(values.password)) {
-      errors.password = "Password must contain at least one special character";
-    } else if (passwordStrength < 5) {
-      errors.password = "Password must meet all the strength requirements.";
-    }
-  }
-
-  // Confirm Password Validation
-  if (values.confirmPassword !== values.password) {
-    errors.confirmPassword = "Passwords do not match";
-  }
-
-  return errors;
+  if (password.length >= 8) strength++;
+  if (/[a-z]/.test(password)) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[@$!%*?&]/.test(password)) strength++;
+  return strength;
 };
 
 const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
@@ -111,8 +56,28 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
   ) => {
     actions.setSubmitting(true);
     try {
-      const res = await userApi.signup(values);
+      if (values.password !== values.confirmPassword) {
+        toast.error("Passwords do not match");
+        actions.setSubmitting(false);
+        return;
+      }
 
+      const freshlyGeneratedAESKey = await Encryption.generateAESKey();
+      const passwordKeySalt = Encryption.generatePasswordKeySalt();
+      const passwordDerivedKey = await Encryption.getPasswordDerivedKey(
+        values.password,
+        passwordKeySalt
+      );
+      const encryptedAESKey = await Encryption.encryptAESKey(
+        freshlyGeneratedAESKey,
+        passwordDerivedKey
+      );
+
+      const res = await userApi.signup({
+        ...values,
+        encryptedAESKey,
+        passwordKeySalt,
+      });
       if (res.status === "error") {
         toast.error(res.err?.message || "Something went wrong");
       } else if (res.data) {
@@ -122,23 +87,23 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
             displayName: userData.displayName,
             email: userData.email,
             userId: userData.id,
+            encryptionStatus: userData.encryptionStatus,
           })
         );
-        localStorage.setItem("actkn", res.data.token);
-        localStorage.setItem("refreshToken", res.data.refreshToken);
+        await LocalStorageHelper.saveUserCreds({
+          userInfo: userData,
+          password: values.password,
+          jwtToken: res.data.token,
+          refreshToken: res.data.refreshToken,
+        });
         toast.success(res.data.message);
       }
-    } catch (error: unknown) {
-      console.log(error);
+    } catch (error) {
+      console.error(error);
       toast.error("Something went wrong");
     } finally {
       actions.setSubmitting(false);
     }
-  };
-
-  // Handle password strength calculation
-  const handlePasswordChange = (password: string) => {
-    setPasswordStrength(calculatePasswordStrength(password));
   };
 
   return (
@@ -166,31 +131,13 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
             password: "",
             confirmPassword: "",
           }}
-          validate={validate} // using the extracted validate function
-          onSubmit={onSubmit} // using the extracted onSubmit function
+          onSubmit={onSubmit}
         >
-          {({
-            handleSubmit,
-            values,
-            errors,
-            touched,
-            handleChange,
-            isSubmitting,
-          }) => (
+          {({ handleSubmit, values, handleChange, isSubmitting }) => (
             <form style={{ width: "100%" }} onSubmit={handleSubmit}>
               <VStack gap="20px" align="stretch">
-                {/* Grid layout for Username, Email, Password, and Confirm Password */}
-                <Grid
-                  templateColumns={["1fr", "1fr 1fr"]} // Single column on small screens, 2 columns on larger screens
-                  gap={4}
-                >
-                  {/* Username Field */}
-                  <Field
-                    label="Username"
-                    required
-                    errorText={errors.displayName}
-                    invalid={touched.displayName && !!errors.displayName}
-                  >
+                <Grid templateColumns={["1fr", "1fr 1fr"]} gap={4}>
+                  <Field label="Full Name" required>
                     <FormikField
                       name="displayName"
                       as={Input}
@@ -201,14 +148,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                       value={values.displayName}
                     />
                   </Field>
-
-                  {/* Email Field */}
-                  <Field
-                    label="Email"
-                    required
-                    errorText={errors.email}
-                    invalid={touched.email && !!errors.email}
-                  >
+                  <Field label="Email" required>
                     <FormikField
                       name="email"
                       as={Input}
@@ -219,14 +159,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                       value={values.email}
                     />
                   </Field>
-
-                  {/* Password Field */}
-                  <Field
-                    label="Password"
-                    required
-                    errorText={errors.password}
-                    invalid={touched.password && !!errors.password}
-                  >
+                  <Field label="Password" required>
                     <FormikField
                       name="password"
                       as={PasswordInput}
@@ -235,7 +168,9 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                       variant="outline"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         handleChange(e);
-                        handlePasswordChange(e.target.value); // update password strength
+                        setPasswordStrength(
+                          calculatePasswordStrength(e.target.value)
+                        );
                       }}
                       value={values.password}
                     />
@@ -245,16 +180,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                       minWidth="40%"
                     />
                   </Field>
-
-                  {/* Confirm Password Field */}
-                  <Field
-                    label="Confirm Password"
-                    required
-                    errorText={errors.confirmPassword}
-                    invalid={
-                      touched.confirmPassword && !!errors.confirmPassword
-                    }
-                  >
+                  <Field label="Confirm Password" required>
                     <FormikField
                       name="confirmPassword"
                       as={PasswordInput}
@@ -266,7 +192,6 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     />
                   </Field>
                 </Grid>
-
                 <Button
                   colorScheme="blue"
                   type="submit"

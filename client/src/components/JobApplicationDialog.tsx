@@ -25,7 +25,7 @@ import { Formik, Field as FormikField } from "formik";
 import { Field } from "@/components/ui/field";
 import { CreateJobApplicationData } from "@/models/JobApplication";
 
-const validateForm = (values: CreateJobApplicationData) => {
+const validateForm = (values: Partial<CreateJobApplicationData>) => {
     const errors: Partial<Record<keyof CreateJobApplicationData, string>> = {};
 
     if (!values.company) {
@@ -45,7 +45,7 @@ const validateForm = (values: CreateJobApplicationData) => {
 
 interface JobApplicationDialogProps {
     children?: ReactNode;
-    onSave: (values: CreateJobApplicationData) => Promise<void>;
+    onSave: (values: Partial<CreateJobApplicationData>) => Promise<void>;
     initialValues?: Partial<CreateJobApplicationData>;
     title?: string;
     open?: boolean;
@@ -75,7 +75,7 @@ const JobApplicationDialog: React.FC<JobApplicationDialogProps> = ({
     // Check if this is an edit (has initial values) or a new application
     const isEditing = !!(initialValues.company || initialValues.role || initialValues.location);
 
-    const formattedInitialValues: CreateJobApplicationData = {
+    const formattedInitialValues: Partial<CreateJobApplicationData> = {
         company: initialValues.company || "",
         role: initialValues.role || "",
         location: initialValues.location || "",

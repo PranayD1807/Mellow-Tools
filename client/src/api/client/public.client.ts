@@ -33,7 +33,6 @@ publicClient.interceptors.response.use(
   (error) => {
     console.log("Error Occured: ", error);
     if (error.response?.status === 401) {
-      localStorage.removeItem("actkn");
       store.dispatch(logout());
       window.location.href = "/auth";
     }

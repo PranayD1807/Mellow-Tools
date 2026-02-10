@@ -1,0 +1,181 @@
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { ApiResponse } from "@/models/ApiResponse";
+
+interface UseIterativeSearchProps<T extends { id: string }> {
+    fetchFunction: (page: number, limit: number, signal?: AbortSignal) => Promise<ApiResponse<T[]>>;
+    searchQuery: string;
+    filterFunction: (item: T, query: string) => boolean;
+    pageSize?: number;
+    requestLimit?: number;
+}
+
+export function useIterativeSearch<T extends { id: string }>({
+    fetchFunction,
+    searchQuery,
+    filterFunction,
+    pageSize = 20,
+    requestLimit = pageSize,
+    enabled = true,
+}: UseIterativeSearchProps<T> & { enabled?: boolean }) {
+    const [allMatches, setAllMatches] = useState<T[]>([]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [serverExhausted, setServerExhausted] = useState(false);
+
+
+    const serverPageRef = useRef(1);
+    const mountedRef = useRef(true);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const fetchIdRef = useRef(0);
+
+    useEffect(() => {
+        mountedRef.current = true;
+        const controller = abortControllerRef.current;
+        return () => {
+            mountedRef.current = false;
+            controller?.abort();
+        };
+    }, []);
+
+
+    useEffect(() => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = new AbortController();
+        fetchIdRef.current += 1;
+
+        setAllMatches([]);
+        setCurrentPage(0);
+        setServerExhausted(false);
+        serverPageRef.current = 1;
+
+        setLoading(false);
+        setIsSearching(false);
+        setError(null);
+    }, [searchQuery, fetchFunction, enabled]);
+
+    const fetchMore = useCallback(async () => {
+        if (!enabled || serverExhausted || loading || isSearching) return;
+
+        setLoading(true);
+        if (searchQuery.trim()) setIsSearching(true);
+        setError(null);
+
+        const currentFetchId = fetchIdRef.current;
+
+        if (!abortControllerRef.current) {
+            abortControllerRef.current = new AbortController();
+        }
+        const signal = abortControllerRef.current.signal;
+
+        try {
+            let hasMoreOnServer = true;
+            let currentMatches = [...allMatches];
+
+            const targetCount = (currentPage + 1) * pageSize;
+
+            while (
+                currentMatches.length < targetCount &&
+                hasMoreOnServer &&
+                mountedRef.current &&
+                !signal.aborted &&
+                fetchIdRef.current === currentFetchId
+            ) {
+                const effectiveLimit = searchQuery.trim() ? pageSize * 4 : requestLimit;
+                const response = await fetchFunction(serverPageRef.current, effectiveLimit, signal);
+
+                if (!mountedRef.current || fetchIdRef.current !== currentFetchId || signal.aborted) break;
+
+                if (response.status === "error") {
+                    setError(response.err?.message || "Error fetching data");
+                    break;
+                }
+
+                const fetchedItems = response.data || [];
+
+
+                let validItems = fetchedItems;
+                if (searchQuery.trim()) {
+                    validItems = fetchedItems.filter(item => filterFunction(item, searchQuery));
+                }
+
+
+                setAllMatches(prev => {
+                    const existingIds = new Set(prev.map(i => i.id));
+                    const uniqueNewItems = validItems.filter(i => !existingIds.has(i.id));
+                    return [...prev, ...uniqueNewItems];
+                });
+
+                // Update local snapshot for loop termination check
+                const existingIds = new Set(currentMatches.map(i => i.id));
+                const uniqueNewItems = validItems.filter(i => !existingIds.has(i.id));
+                currentMatches = [...currentMatches, ...uniqueNewItems];
+
+                if (fetchedItems.length < effectiveLimit) {
+                    hasMoreOnServer = false;
+                    setServerExhausted(true);
+                } else {
+                    serverPageRef.current += 1;
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+        } catch (err) {
+            if (mountedRef.current && fetchIdRef.current === currentFetchId) setError("An unexpected error occurred");
+            console.error(err);
+        } finally {
+            if (mountedRef.current && fetchIdRef.current === currentFetchId) {
+                setLoading(false);
+                setIsSearching(false);
+            }
+        }
+    }, [enabled, serverExhausted, loading, isSearching, searchQuery, allMatches, currentPage, pageSize, fetchFunction, requestLimit, filterFunction]);
+
+
+    useEffect(() => {
+        const targetCount = (currentPage + 1) * pageSize;
+        if (allMatches.length < targetCount && !serverExhausted && !loading && !isSearching) {
+            fetchMore();
+        }
+    }, [currentPage, allMatches.length, serverExhausted, loading, isSearching, pageSize, fetchMore]);
+
+    const pagedItems = useMemo(() => {
+        const start = currentPage * pageSize;
+        const end = start + pageSize;
+        return allMatches.slice(start, end);
+    }, [allMatches, currentPage, pageSize]);
+
+    const hasMore = useMemo(() => {
+
+
+        return allMatches.length > (currentPage + 1) * pageSize || !serverExhausted;
+    }, [allMatches.length, currentPage, pageSize, serverExhausted]);
+
+    const hasPrev = currentPage > 0;
+
+    const nextPage = () => {
+        if (hasMore) setCurrentPage(prev => prev + 1);
+    };
+
+    const prevPage = () => {
+        if (hasPrev) setCurrentPage(prev => prev - 1);
+    };
+
+    return {
+        items: pagedItems,
+        setItems: setAllMatches,
+        loading,
+        isSearching,
+        error,
+        currentPage,
+        setCurrentPage,
+        pageSize,
+        hasMore,
+        hasPrev,
+        nextPage,
+        prevPage,
+        totalBuffer: allMatches.length,
+        serverExhausted
+    };
+}

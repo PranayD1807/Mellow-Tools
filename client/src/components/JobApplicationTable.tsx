@@ -7,7 +7,7 @@ import JobApplicationRow from "./JobApplicationRow";
 
 interface JobApplicationTableProps {
     applications: JobApplication[];
-    handleUpdateApplication: (id: string, values: CreateJobApplicationData) => Promise<void>;
+    handleUpdateApplication: (id: string, values: Partial<CreateJobApplicationData>) => Promise<void>;
     handleDeleteApplication: (id: string) => Promise<void>;
 }
 
@@ -26,7 +26,7 @@ const JobApplicationTable: React.FC<JobApplicationTableProps> = ({
         setIsEditDialogOpen(true);
     };
 
-    const handleEditSave = async (values: CreateJobApplicationData) => {
+    const handleEditSave = async (values: Partial<CreateJobApplicationData>) => {
         if (editingApplication) {
             await handleUpdateApplication(editingApplication.id, values);
             setEditingApplication(null);

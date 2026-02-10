@@ -1,24 +1,16 @@
 import { ApiResponse } from "@/models/ApiResponse";
 import privateClient from "../client/private.client";
-import { handleApiError } from "../helper/error.helper";
+import { handleApiError } from "@/helper/error.helper";
 import { JobApplication, CreateJobApplicationData } from "@/models/JobApplication";
 
 const jobApplicationEndpoints = {
-    getAll: (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}) => {
-        const queryParams = new URLSearchParams();
-        queryParams.append("fields", "-user");
-        if (params.search) queryParams.append("search", params.search);
-        if (params.status) queryParams.append("status", params.status);
-        if (params.sort) queryParams.append("sort", params.sort);
-        if (params.page) queryParams.append("page", params.page.toString());
-        if (params.limit) queryParams.append("limit", params.limit.toString());
-        return `job-applications?${queryParams.toString()}`;
-    },
+
     create: "job-applications",
     get: "job-applications/{id}",
     update: "job-applications/{id}",
     delete: "job-applications/{id}",
     getStats: "job-applications/stats",
+    bulkUpdate: "job-applications/bulk-update",
 };
 
 const jobApplicationApi = {
@@ -33,14 +25,67 @@ const jobApplicationApi = {
             return handleApiError(err);
         }
     },
-    getAll: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<JobApplication[]>> => {
+    getAll: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}, signal?: AbortSignal): Promise<ApiResponse<JobApplication[]>> => {
         try {
-            const endpoint = jobApplicationEndpoints.getAll(params);
-            const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint);
+            // Note: Server-side search/sort on encrypted fields (company, role, etc.) is not possible.
+            // We pass status and dates through, but search is handled client-side via Iterative Search.
+            const queryParams = new URLSearchParams();
+            queryParams.append("fields", "-user");
+
+            // Status is unencrypted, so we can filter by it on server
+            if (params.status && params.status !== "all") queryParams.append("status", params.status);
+
+            // Dates are unencrypted, so we can sort by them on server
+            if (params.sort) queryParams.append("sort", params.sort);
+
+            if (params.page) queryParams.append("page", params.page.toString());
+            if (params.limit) queryParams.append("limit", params.limit.toString());
+
+            const endpoint = `job-applications?${queryParams.toString()}`;
+            const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint, { signal });
+
+            const items = response.data?.data ?? [];
+            const decryptedApps = await Promise.all(
+                items.map(async (app) =>
+                    Object.assign(new JobApplication(), app).decrypt()
+                )
+            );
 
             return {
                 status: response.data.status,
-                data: response.data.data || [],
+                data: decryptedApps,
+                results: response.data.results || 0,
+                totalResults: response.data.totalResults || 0,
+                totalPages: response.data.totalPages || 0,
+                page: response.data.page || 1,
+            };
+        } catch (err: unknown) {
+            return handleApiError(err);
+        }
+    },
+
+    // Raw version for migration - returns data without auto-decryption
+    getAllRaw: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}): Promise<ApiResponse<JobApplication[]>> => {
+        try {
+            const queryParams = new URLSearchParams();
+            queryParams.append("fields", "-user");
+
+            if (params.status && params.status !== "all") queryParams.append("status", params.status);
+            if (params.sort) queryParams.append("sort", params.sort);
+            if (params.page) queryParams.append("page", params.page.toString());
+            if (params.limit) queryParams.append("limit", params.limit.toString());
+
+            const endpoint = `job-applications?${queryParams.toString()}`;
+            const response = await privateClient.get<ApiResponse<JobApplication[]>>(endpoint);
+
+            const items = response.data?.data ?? [];
+            const rawApps = items.map((app) =>
+                Object.assign(new JobApplication(), app)
+            );
+
+            return {
+                status: response.data.status,
+                data: rawApps,
                 results: response.data.results || 0,
                 totalResults: response.data.totalResults || 0,
                 totalPages: response.data.totalPages || 0,
@@ -56,25 +101,35 @@ const jobApplicationApi = {
             const endpoint = jobApplicationEndpoints.get.replace("{id}", id);
             const response = await privateClient.get<ApiResponse<JobApplication>>(endpoint);
 
+            let decryptedApp: JobApplication | null = null;
+            if (response.data.data) {
+                decryptedApp = await Object.assign(new JobApplication(), response.data.data).decrypt();
+            }
+
             return {
                 status: response.data.status,
-                data: response.data.data || null,
+                data: decryptedApp,
             };
         } catch (err: unknown) {
             return handleApiError(err);
         }
     },
 
-    create: async (data: CreateJobApplicationData): Promise<ApiResponse<JobApplication | null>> => {
+    create: async (data: Partial<CreateJobApplicationData>): Promise<ApiResponse<JobApplication | null>> => {
         try {
+            const instance = Object.assign(new CreateJobApplicationData(), data);
+            const encryptedData = await instance.encrypt();
+
             const response = await privateClient.post<ApiResponse<JobApplication>>(
                 jobApplicationEndpoints.create,
-                data
+                encryptedData
             );
 
             return {
                 status: response.data.status,
-                data: response.data.data || null,
+                data: response.data.data
+                    ? await Object.assign(new JobApplication(), response.data.data).decrypt()
+                    : null,
             };
         } catch (err: unknown) {
             return handleApiError(err);
@@ -83,18 +138,26 @@ const jobApplicationApi = {
 
     update: async (
         id: string,
-        data: CreateJobApplicationData
+        data: Partial<CreateJobApplicationData>
     ): Promise<ApiResponse<JobApplication | null>> => {
         try {
+            const sanitizedData = Object.fromEntries(
+                Object.entries(data).filter(([_, value]) => value !== undefined)
+            );
+            const instance = Object.assign(new CreateJobApplicationData(), sanitizedData);
+            const encryptedData = await instance.encrypt();
+
             const endpoint = jobApplicationEndpoints.update.replace("{id}", id);
             const response = await privateClient.patch<ApiResponse<JobApplication>>(
                 endpoint,
-                data
+                encryptedData
             );
 
             return {
                 status: response.data.status,
-                data: response.data.data || null,
+                data: response.data.data
+                    ? await Object.assign(new JobApplication(), response.data.data).decrypt()
+                    : null,
             };
         } catch (err: unknown) {
             return handleApiError(err);
@@ -109,6 +172,32 @@ const jobApplicationApi = {
             return {
                 status: response.data.status,
                 data: null,
+            };
+        } catch (err: unknown) {
+            return handleApiError(err);
+        }
+    },
+
+    bulkUpdate: async (updates: Array<{ id: string; data: Partial<CreateJobApplicationData> }>): Promise<ApiResponse<{ matchedCount: number; modifiedCount: number }>> => {
+        try {
+            const encryptedUpdates = await Promise.all(
+                updates.map(async (update) => {
+                    const sanitizedData = Object.fromEntries(
+                        Object.entries(update.data).filter(([_, value]) => value !== undefined)
+                    );
+                    const instance = Object.assign(new CreateJobApplicationData(), sanitizedData);
+                    const encryptedData = await instance.encrypt();
+                    return { id: update.id, data: encryptedData };
+                })
+            );
+
+            const response = await privateClient.patch<ApiResponse<{ matchedCount: number; modifiedCount: number }>>(
+                jobApplicationEndpoints.bulkUpdate,
+                { updates: encryptedUpdates }
+            );
+            return {
+                status: response.data.status,
+                data: response.data.data,
             };
         } catch (err: unknown) {
             return handleApiError(err);

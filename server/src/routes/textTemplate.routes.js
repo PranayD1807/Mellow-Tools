@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { createTextTemplate, deleteTextTemplate, getAllTextTemplates, getTextTemplate, updateTextTemplate } from "../controllers/textTemplate.controller.js";
+import { createTextTemplate, deleteTextTemplate, getAllTextTemplates, getTextTemplate, updateTextTemplate, bulkUpdateTextTemplates } from "../controllers/textTemplate.controller.js";
 
 const router = Router();
+
+router.patch("/bulk-update", bulkUpdateTextTemplates);
 
 router
     .route("/")

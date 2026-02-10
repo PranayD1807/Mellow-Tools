@@ -9,7 +9,9 @@ describe('Note Endpoints', () => {
         email: 'notetest@example.com',
         password: 'Password123!',
         displayName: 'Note Test User',
-        confirmPassword: 'Password123!'
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
     };
 
     let token;
@@ -130,7 +132,9 @@ describe('Note Endpoints', () => {
                 email: 'other_note@example.com',
                 password: 'Password123!',
                 displayName: 'Other User',
-                confirmPassword: 'Password123!'
+                confirmPassword: 'Password123!',
+                passwordKeySalt: 'dummy-salt',
+                encryptedAESKey: 'dummy-encrypted-key'
             };
             const otherRes = await request(app).post('/api/v1/auth/signup').send(otherUser);
             const otherToken = otherRes.body.token;

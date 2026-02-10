@@ -9,14 +9,14 @@ interface SEOProps {
     type?: string;
 }
 
-const SEO = ({
+export default function SEO({
     title = "Mellow Tools | Friendly Tools for Text Templates and Notes",
     description = "Mellow Tools - A collection of friendly, useful tools like text templates, notes, and more to enhance your productivity effortlessly.",
     keywords = "productivity tools, text templates, notes, job tracker, bookmarks, developer tools",
     image = "/og-image.png",
     url = "https://mellow-tools.vercel.app",
     type = "website",
-}: SEOProps) => {
+}: SEOProps) {
     const siteTitle = "Mellow Tools";
     const fullTitle = title.includes(siteTitle) ? title : `${title} | ${siteTitle}`;
 
@@ -50,6 +50,4 @@ const SEO = ({
             <link rel="canonical" href={url} />
         </Helmet>
     );
-};
-
-export default SEO;
+}
