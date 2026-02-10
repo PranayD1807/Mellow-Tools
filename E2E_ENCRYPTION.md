@@ -82,6 +82,7 @@ graph LR
         Note[Text Notes<br/>title, text]
         Bookmark[Bookmarks<br/>label, note, url, logoUrl]
         Template[Text Templates<br/>title, content, placeholders]
+        Job[Job Applications<br/>company, role, location, jobLink, note, interviewStage]
     end
     
     AESKey[AES-256 Key]
@@ -89,6 +90,7 @@ graph LR
     Note -->|Encrypt/Decrypt| AESKey
     Bookmark -->|Encrypt/Decrypt| AESKey
     Template -->|Encrypt/Decrypt| AESKey
+    Job -->|Encrypt/Decrypt| AESKey
     
     AESKey -->|AES-GCM| EncData[Encrypted Data<br/>Stored on Server]
     
@@ -534,15 +536,36 @@ The system detects unencrypted data by attempting decryption recursively. If a f
 ```typescript
 // Recursive decryption check
 static async isFieldEncrypted(value, aesKey) {
-  if (typeof value === "string") {
-    try {
-      await Encryption.decryptData(value, aesKey, true, true);
-      return true;
-    } catch {
-      return false;
+  // Handle null/undefined (considered "secure" for migration)
+  if (value === undefined || value === null) return true;
+
+  // Handle recursive structures (Arrays)
+  if (Array.isArray(value)) {
+    if (value.length === 0) return true;
+    for (const item of value) {
+      if (!(await this.isFieldEncrypted(item, aesKey))) return false;
     }
+    return true;
   }
-  // Recursive logic for Array/Object...
+
+  // Handle recursive structures (Objects)
+  if (typeof value === "object" && value !== null) {
+      const keys = Object.keys(value);
+      if (keys.length === 0) return true;
+      for (const key of keys) {
+          if (!(await this.isFieldEncrypted(value[key], aesKey))) return false;
+      }
+      return true;
+  }
+
+  // Handle non-string primitives (not encryption targets)
+  if (typeof value !== "string") return true;
+
+  // Optimization: Very short strings (<20 chars) are likely not encrypted
+  if (value.length < 20) return false;
+
+  // Attempt decryption
+  return await Encryption.isEncrypted(value, aesKey);
 }
 ```
 
