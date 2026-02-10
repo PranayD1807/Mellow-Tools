@@ -132,13 +132,11 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               passwordDerivedKey
             );
 
-            console.log("Attempting migration in 2FA...");
             const migrationRes = await userApi.migrateEncryption({
               password: password,
               encryptedAESKey,
               passwordKeySalt,
             });
-            console.log("Migration Response (2FA):", migrationRes);
 
             if (migrationRes.status === "error") {
               throw new Error(migrationRes.err?.message || "Migration API failed");
@@ -148,8 +146,8 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             userData.passwordKeySalt = passwordKeySalt;
             userData.encryptionStatus = "MIGRATED";
             toast.success("Account migrated to E2E Encryption!");
-          } catch (error) {
-            console.error("Migration failed during 2FA", error);
+          } catch (_error) {
+            console.error("Migration failed during 2FA", _error);
             toast.error("Encryption migration failed. Please contact support.");
 
             localStorage.removeItem("actkn");
@@ -177,7 +175,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             refreshToken: res.data.refreshToken,
           });
           toast.success("Login successful!");
-        } catch (error) {
+        } catch (_error) {
           LocalStorageHelper.logoutUser();
           toast.error("Failed to save credentials");
           return;
@@ -229,13 +227,11 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               passwordDerivedKey
             );
 
-            console.log("Attempting migration...");
             const migrationRes = await userApi.migrateEncryption({
               password: values.password,
               encryptedAESKey,
               passwordKeySalt,
             });
-            console.log("Migration Response:", migrationRes);
 
             if (migrationRes.status === "error") {
               throw new Error(migrationRes.err?.message || "Migration API failed");
@@ -246,8 +242,8 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             userData.passwordKeySalt = passwordKeySalt;
             userData.encryptionStatus = "MIGRATED"; // Update status so Redux state is correct
             toast.success("Account migrated to E2E Encryption!");
-          } catch (error) {
-            console.error("Migration failed", error);
+          } catch (_error) {
+            console.error("Migration failed", _error);
             toast.error("Encryption migration failed. Please contact support.");
 
             // Migration failed, ensure we don't proceed with invalid state
@@ -274,7 +270,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             refreshToken: res.data.refreshToken,
           });
           toast.success(res.data.message);
-        } catch (error) {
+        } catch (_error) {
           LocalStorageHelper.logoutUser();
           toast.error("Failed to save credentials");
           return;

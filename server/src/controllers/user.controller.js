@@ -276,8 +276,12 @@ export const updateEncryptionStatus = catchAsync(async (req, res) => {
         throw new AppError(`Invalid encryption status. Must be one of: ${allowedStatuses.join(", ")}`, 400);
     }
 
-    const auth = await authModel.findOne({ user: req.user.id });
+    const auth = await authModel.findOne({ user: req.user.id }).select("+encryptedAESKey +passwordKeySalt");
     if (!auth) throw new AppError("User not found", 404);
+
+    if (encryptionStatus === "ENCRYPTED" && (!auth.encryptedAESKey || !auth.passwordKeySalt)) {
+        throw new AppError("Cannot set status to ENCRYPTED without encryption keys.", 400);
+    }
 
     auth.encryptionStatus = encryptionStatus;
     await auth.save();

@@ -126,24 +126,6 @@ const UpdatePasswordForm = () => {
                 setPasswordStrength(0);
                 navigate("/dashboard");
 
-                // If successful, we should probably update the stored credentials too?
-                // Actually, LocalStorageHelper stores "Encrypted AES Key with Refresh Token".
-                // That depends on the Refresh Token, NOT the password.
-                // The Password Key is only used for initial login to unlock the AES Key.
-                // Or if we want to update the "Cached" password?
-                // LocalStorageHelper.saveUserCreds saves the "password" in memory or something?
-                // No, it re-generates everything.
-                // But we don't need to update LocalStorage here because the Refresh Token didn't change.
-                // AND the AES Key didn't change.
-                // ONLY the "User's Password" changed.
-                // The Server stores "Encrypted AES Key (with Password)".
-                // LocalStorage stores "Encrypted AES Key (with Refresh Token)".
-                // So LocalStorage is UNAFFECTED.
-                // Verify this logic:
-                // Login: Password -> Decrypt Server Key -> AES Key -> Encrypt with Refresh Token -> Store.
-                // Auto-Login: Refresh Token -> Decrypt Stored Key -> AES Key.
-                // So changing password DOES NOT invalidate LocalStorage encryption.
-                // Correct.
             }
         } catch (error: unknown) {
             console.log(error);
