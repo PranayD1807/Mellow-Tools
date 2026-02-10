@@ -90,7 +90,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
             encryptionStatus: userData.encryptionStatus,
           })
         );
-        LocalStorageHelper.saveUserCreds({
+        await LocalStorageHelper.saveUserCreds({
           userInfo: userData,
           password: values.password,
           jwtToken: res.data.token,

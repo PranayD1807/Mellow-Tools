@@ -12,8 +12,12 @@ export class TextTemplate extends EncryptableEntity {
   createdAt!: string;
   updatedAt!: string;
 
-  encryptFields(): (keyof this)[] {
+  static encryptFields(): string[] {
     return ["title", "content", "placeholders"];
+  }
+
+  encryptFields(): (keyof this)[] {
+    return TextTemplate.encryptFields() as (keyof this)[];
   }
 }
 

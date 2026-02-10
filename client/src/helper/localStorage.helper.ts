@@ -15,37 +15,69 @@ export class LocalStorageHelper {
     jwtToken?: string;
     refreshToken?: string;
   }) => {
-    // Derive password key
-    const passwordDerivedKey: CryptoKey =
-      await Encryption.getPasswordDerivedKey(
-        password,
-        userInfo.passwordKeySalt
+    let passwordDerivedKey: CryptoKey | null = null;
+    let aesKey: CryptoKey | null = null;
+    let aesRefreshToken: string | null = null;
+
+    try {
+      // Derive password key
+      try {
+        passwordDerivedKey = await Encryption.getPasswordDerivedKey(
+          password,
+          userInfo.passwordKeySalt
+        );
+      } catch (error) {
+        throw new Error(`Failed to derive password key: ${error}`);
+      }
+
+      // Derive AES KEY
+      try {
+        aesKey = await Encryption.decryptEncryptedAESKey(
+          userInfo.encryptedAESKey,
+          passwordDerivedKey!
+        );
+      } catch (error) {
+        throw new Error(`Failed to decrypt AES key: ${error}`);
+      }
+
+      // generate refesh token
+      aesRefreshToken = Encryption.generateRefreshToken();
+
+      let encryptedAesKeyWithRefreshToken: string;
+      try {
+        encryptedAesKeyWithRefreshToken =
+          await Encryption.encryptAESKeyWithRefreshToken(
+            aesKey!,
+            aesRefreshToken
+          );
+      } catch (error) {
+        throw new Error(`Failed to encrypt AES key with refresh token: ${error}`);
+      }
+
+      localStorage.setItem(LocalStorageConstants.JWT_TOKEN, jwtToken || "");
+      localStorage.setItem(
+        LocalStorageConstants.REFRESH_TOKEN,
+        refreshToken || ""
       );
 
-    // Derive AES KEY
-    const aesKey: CryptoKey = await Encryption.decryptEncryptedAESKey(
-      userInfo.encryptedAESKey,
-      passwordDerivedKey
-    );
+      localStorage.setItem(
+        LocalStorageConstants.AES_REFRESH_TOKEN,
+        aesRefreshToken
+      );
 
-    // generate refesh token
-    const aesRefreshToken: string = Encryption.generateRefreshToken();
-
-    const encryptedAesKeyWithRefreshToken: string =
-      await Encryption.encryptAESKeyWithRefreshToken(aesKey, aesRefreshToken);
-
-    localStorage.setItem(LocalStorageConstants.JWT_TOKEN, jwtToken || "");
-    localStorage.setItem(LocalStorageConstants.REFRESH_TOKEN, refreshToken || "");
-
-    localStorage.setItem(
-      LocalStorageConstants.AES_REFRESH_TOKEN,
-      aesRefreshToken
-    );
-
-    localStorage.setItem(
-      LocalStorageConstants.ENCRYPTED_AES_KEY_WITH_REFRESH_TOKEN,
-      encryptedAesKeyWithRefreshToken
-    );
+      localStorage.setItem(
+        LocalStorageConstants.ENCRYPTED_AES_KEY_WITH_REFRESH_TOKEN,
+        encryptedAesKeyWithRefreshToken
+      );
+    } catch (error) {
+      console.error("Error during user credentials preservation:", error);
+      throw error;
+    } finally {
+      // Clear sensitive in-memory values
+      passwordDerivedKey = null;
+      aesKey = null;
+      aesRefreshToken = null;
+    }
   };
 
   static getAESKey = async (): Promise<CryptoKey | undefined> => {

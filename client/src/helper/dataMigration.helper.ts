@@ -156,28 +156,58 @@ export class DataMigrationHelper {
         // Process in batches
         for (let i = 0; i < itemsToEncrypt.length; i += BATCH_SIZE) {
             const batch = itemsToEncrypt.slice(i, i + BATCH_SIZE);
-            try {
-                const updates = batch.map((item) => {
+            const settledResults = await Promise.allSettled(
+                batch.map(async (item) => {
+                    const encryptedItem = await item.encrypt();
                     const data: any = {};
-                    encryptFields.forEach(field => {
-                        data[field] = (item as any)[field];
+                    encryptFields.forEach((field) => {
+                        data[field] = (encryptedItem as any)[field];
                     });
-
                     return { id: item.id, data };
-                });
+                })
+            );
 
-                await bulkUpdateFn(updates);
-                result.encrypted += batch.length;
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "Batch update failed";
-                console.error(`[Migration] Batch update failed for ${collectionName}:`, error);
-                result.failed += batch.length;
-                batch.forEach(item => {
+            const successfulUpdates: Array<{ id: string; data: any }> = [];
+
+            settledResults.forEach((settledResult, index) => {
+                const originalItem = batch[index];
+                if (settledResult.status === "fulfilled") {
+                    successfulUpdates.push(settledResult.value);
+                    result.encrypted++;
+                } else {
+                    const errorMessage =
+                        settledResult.reason instanceof Error
+                            ? settledResult.reason.message
+                            : "Encryption failed";
+                    console.error(
+                        `[Migration] Encryption failed for item ${originalItem.id} in ${collectionName}:`,
+                        settledResult.reason
+                    );
+                    result.failed++;
                     result.errors.push({
-                        id: item.id,
+                        id: originalItem.id,
                         error: errorMessage,
                     });
-                });
+                }
+            });
+
+            if (successfulUpdates.length > 0) {
+                try {
+                    await bulkUpdateFn(successfulUpdates);
+                } catch (error) {
+                    const errorMessage =
+                        error instanceof Error ? error.message : "Batch update failed";
+                    console.error(`[Migration] Batch update failed for ${collectionName}:`, error);
+                    // If bulkUpdate fails, we need to adjust results
+                    result.encrypted -= successfulUpdates.length;
+                    result.failed += successfulUpdates.length;
+                    successfulUpdates.forEach((update) => {
+                        result.errors.push({
+                            id: update.id,
+                            error: errorMessage,
+                        });
+                    });
+                }
             }
         }
 
@@ -218,7 +248,7 @@ export class DataMigrationHelper {
                     const pageResult = await this.migrateCollection(
                         "Notes",
                         notes,
-                        ["title", "text"],
+                        TextNote.encryptFields(),
                         async (updates) => {
                             return await noteApi.bulkUpdate(updates);
                         }
@@ -282,7 +312,7 @@ export class DataMigrationHelper {
                     const pageResult = await this.migrateCollection(
                         "Bookmarks",
                         bookmarks,
-                        ["label", "note", "logoUrl", "url"],
+                        Bookmark.encryptFields(),
                         async (updates) => {
                             return await bookmarksApi.bulkUpdate(updates);
                         }
@@ -346,7 +376,7 @@ export class DataMigrationHelper {
                     const pageResult = await this.migrateCollection(
                         "Text Templates",
                         templates,
-                        ["title", "content", "placeholders"],
+                        TextTemplate.encryptFields(),
                         async (updates) => {
                             return await textTemplatesApi.bulkUpdate(updates);
                         }
@@ -410,7 +440,7 @@ export class DataMigrationHelper {
                     const pageResult = await this.migrateCollection(
                         "Job Applications",
                         jobs,
-                        ["company", "role", "location", "jobLink", "note", "interviewStage"],
+                        JobApplication.encryptFields(),
                         async (updates) => {
                             return await jobApplicationApi.bulkUpdate(updates);
                         }

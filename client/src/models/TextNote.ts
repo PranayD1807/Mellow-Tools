@@ -8,8 +8,12 @@ export class TextNote extends EncryptableEntity {
   createdAt!: string;
   updatedAt!: string;
 
-  encryptFields(): (keyof this)[] {
+  static encryptFields(): string[] {
     return ["title", "text"];
+  }
+
+  encryptFields(): (keyof this)[] {
+    return TextNote.encryptFields() as (keyof this)[];
   }
 }
 

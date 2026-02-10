@@ -122,7 +122,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
         localStorage.setItem("actkn", res.data.token);
         localStorage.setItem("refreshToken", res.data.refreshToken);
 
-        LocalStorageHelper.saveUserCreds({
+        await LocalStorageHelper.saveUserCreds({
           userInfo: userData,
           password: password,
           jwtToken: res.data.token,
@@ -209,7 +209,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
           })
         );
 
-        LocalStorageHelper.saveUserCreds({
+        await LocalStorageHelper.saveUserCreds({
           userInfo: userData,
           password: values.password,
           jwtToken: res.data.token,

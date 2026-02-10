@@ -72,7 +72,39 @@ const AccountMigrationDialog: React.FC = () => {
                 return;
             }
 
-            // Update Redux state
+            // Retrieve tokens early and validate
+            const jwtToken = localStorage.getItem("actkn");
+            const refreshToken = localStorage.getItem("refreshToken");
+
+            if (!jwtToken || !refreshToken) {
+                throw new Error("Session tokens not found. Please log in again.");
+            }
+
+            // Update LocalStorage (crucial for keys)
+            try {
+                const userInfo: UserInfo = {
+                    id: user.userId!,
+                    displayName: user.displayName!,
+                    email: user.email!,
+                    encryptionStatus: "MIGRATED",
+                    encryptedAESKey,
+                    passwordKeySalt,
+                };
+
+                await LocalStorageHelper.saveUserCreds({
+                    userInfo,
+                    password: password,
+                    jwtToken,
+                    refreshToken,
+                });
+            } catch (storageError) {
+                console.error("Failed to persist migration credentials", storageError);
+                toast.error("Failed to secure your account locally. Please try again.");
+                setLoading(false);
+                return;
+            }
+
+            // Update Redux state ONLY after successful persistence
             dispatch(
                 login({
                     displayName: user.displayName!,
@@ -82,31 +114,12 @@ const AccountMigrationDialog: React.FC = () => {
                 })
             );
 
-            // Update LocalStorage (crucial for keys)
-            const jwtToken = localStorage.getItem("actkn");
-            const refreshToken = localStorage.getItem("refreshToken");
-
-            if (jwtToken && refreshToken) {
-                LocalStorageHelper.saveUserCreds({
-                    userInfo: {
-                        id: user.userId!,
-                        displayName: user.displayName!,
-                        email: user.email!,
-                        encryptionStatus: "MIGRATED",
-                        encryptedAESKey,
-                        passwordKeySalt,
-                    } as UserInfo,
-                    password: password,
-                    jwtToken,
-                    refreshToken,
-                });
-            }
-
             toast.success("Security update complete! Your account is now E2E encrypted.");
             setIsOpen(false);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Account migration failed", error);
-            toast.error("An error occurred during migration. Please try again.");
+            const errorMessage = error instanceof Error ? error.message : "An error occurred during migration. Please try again.";
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

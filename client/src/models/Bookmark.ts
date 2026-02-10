@@ -10,8 +10,12 @@ export class Bookmark extends EncryptableEntity {
   createdAt!: string;
   updatedAt!: string;
 
-  encryptFields(): (keyof this)[] {
+  static encryptFields(): string[] {
     return ["label", "note", "logoUrl", "url"];
+  }
+
+  encryptFields(): (keyof this)[] {
+    return Bookmark.encryptFields() as (keyof this)[];
   }
 }
 

@@ -15,8 +15,12 @@ export class JobApplication extends EncryptableEntity {
     createdAt!: string;
     updatedAt!: string;
 
-    encryptFields(): (keyof this)[] {
+    static encryptFields(): string[] {
         return ["company", "role", "location", "jobLink", "note", "interviewStage"];
+    }
+
+    encryptFields(): (keyof this)[] {
+        return JobApplication.encryptFields() as (keyof this)[];
     }
 }
 
