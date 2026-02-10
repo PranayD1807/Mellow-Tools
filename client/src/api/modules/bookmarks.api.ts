@@ -162,9 +162,17 @@ const bookmarkApi = {
 
   bulkUpdate: async (updates: Array<{ id: string; data: Partial<CreateBookmarkData> }>): Promise<ApiResponse<{ matchedCount: number; modifiedCount: number }>> => {
     try {
+      const encryptedUpdates = await Promise.all(
+        updates.map(async (update) => {
+          const instance = Object.assign(new CreateBookmarkData(), update.data);
+          const encryptedData = await instance.encrypt();
+          return { id: update.id, data: encryptedData };
+        })
+      );
+
       const response = await privateClient.patch<ApiResponse<{ matchedCount: number; modifiedCount: number }>>(
         bookmarkEndpoints.bulkUpdate,
-        { updates }
+        { updates: encryptedUpdates }
       );
       return {
         status: response.data.status,

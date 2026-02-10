@@ -157,22 +157,14 @@ export class DataMigrationHelper {
         for (let i = 0; i < itemsToEncrypt.length; i += BATCH_SIZE) {
             const batch = itemsToEncrypt.slice(i, i + BATCH_SIZE);
             try {
-                const updates = await Promise.all(
-                    batch.map(async (item, _) => {
-                        try {
-                            const encryptedItem = await item.encrypt();
-                            const data: any = {};
-                            encryptFields.forEach(field => {
-                                data[field] = (encryptedItem as any)[field];
-                            });
+                const updates = batch.map((item) => {
+                    const data: any = {};
+                    encryptFields.forEach(field => {
+                        data[field] = (item as any)[field];
+                    });
 
-                            return { id: item.id, data };
-                        } catch (encryptError) {
-                            console.error(`[Migration] Encryption failed for item ${item.id} in ${collectionName}:`, encryptError);
-                            throw encryptError;
-                        }
-                    })
-                );
+                    return { id: item.id, data };
+                });
 
                 await bulkUpdateFn(updates);
                 result.encrypted += batch.length;

@@ -163,9 +163,17 @@ const noteApi = {
 
   bulkUpdate: async (updates: Array<{ id: string; data: Partial<CreateTextNoteData> }>): Promise<ApiResponse<{ matchedCount: number; modifiedCount: number }>> => {
     try {
+      const encryptedUpdates = await Promise.all(
+        updates.map(async (update) => {
+          const instance = Object.assign(new CreateTextNoteData(), update.data);
+          const encryptedData = await instance.encrypt();
+          return { id: update.id, data: encryptedData };
+        })
+      );
+
       const response = await privateClient.patch<ApiResponse<{ matchedCount: number; modifiedCount: number }>>(
         noteEndpoints.bulkUpdate,
-        { updates }
+        { updates: encryptedUpdates }
       );
       return {
         status: response.data.status,
