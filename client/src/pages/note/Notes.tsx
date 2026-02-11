@@ -200,7 +200,7 @@ const Notes = () => {
 
         {!loading && notes.length === 0 && !isSearching && <NoItems text="notes" />}
 
-        {(notes.length > 0 || isSearching) && (
+        {notes.length > 0 && (
           <>
             <NotesGrid
               handleUpdateNote={handleUpdate}

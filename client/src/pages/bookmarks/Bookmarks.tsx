@@ -226,7 +226,7 @@ const Bookmarks = () => {
 
         {!loading && bookmarks.length === 0 && !isSearching && <NoItems text="bookmarks" />}
 
-        {(bookmarks.length > 0 || isSearching) && (
+        {bookmarks.length > 0 && (
           <>
             <BookmarksGrid
               handleUpdateBookmark={handleUpdate}
