@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 import globalErrorHandler from "./src/controllers/error.controller.js";
 import routes from "./src/routes/index.js";
 import AppError from "./src/utils/appError.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./src/utils/swagger.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -49,6 +51,7 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/v1", routes);
 
 app.all("*", (req, res, next) => {
