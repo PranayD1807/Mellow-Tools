@@ -142,10 +142,18 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               throw new Error(migrationRes.err?.message || "Migration API failed");
             }
 
-            userData.encryptedAESKey = encryptedAESKey;
-            userData.passwordKeySalt = passwordKeySalt;
-            userData.encryptionStatus = "MIGRATED";
-            toast.success("Account migrated to E2E Encryption!");
+            // Atomic bundle selection: Sync with existing server-side keys if available, otherwise use local keys.
+            const serverData = migrationRes.data?.data;
+            const useServerKeys = !!(serverData?.encryptedAESKey && serverData?.passwordKeySalt);
+
+            const finalEncryptedAESKey = useServerKeys ? serverData!.encryptedAESKey : encryptedAESKey;
+            const finalPasswordKeySalt = useServerKeys ? serverData!.passwordKeySalt : passwordKeySalt;
+            const finalStatus = useServerKeys ? serverData!.encryptionStatus : "MIGRATED";
+
+            userData.encryptedAESKey = finalEncryptedAESKey;
+            userData.passwordKeySalt = finalPasswordKeySalt;
+            userData.encryptionStatus = finalStatus;
+            toast.success(migrationRes.data?.message || "Account migrated to E2E Encryption!");
           } catch (_error) {
             console.error("Migration failed during 2FA", _error);
             toast.error("Encryption migration failed. Please contact support.");
@@ -237,11 +245,18 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               throw new Error(migrationRes.err?.message || "Migration API failed");
             }
 
+            // Atomic bundle selection: Sync with existing server-side keys if available, otherwise use local keys.
+            const serverData = migrationRes.data?.data;
+            const useServerKeys = !!(serverData?.encryptedAESKey && serverData?.passwordKeySalt);
 
-            userData.encryptedAESKey = encryptedAESKey;
-            userData.passwordKeySalt = passwordKeySalt;
-            userData.encryptionStatus = "MIGRATED"; // Update status so Redux state is correct
-            toast.success("Account migrated to E2E Encryption!");
+            const finalEncryptedAESKey = useServerKeys ? serverData!.encryptedAESKey : encryptedAESKey;
+            const finalPasswordKeySalt = useServerKeys ? serverData!.passwordKeySalt : passwordKeySalt;
+            const finalStatus = useServerKeys ? serverData!.encryptionStatus : "MIGRATED";
+
+            userData.encryptedAESKey = finalEncryptedAESKey;
+            userData.passwordKeySalt = finalPasswordKeySalt;
+            userData.encryptionStatus = finalStatus; // Update status so Redux state is correct
+            toast.success(migrationRes.data?.message || "Account migrated to E2E Encryption!");
           } catch (_error) {
             console.error("Migration failed", _error);
             toast.error("Encryption migration failed. Please contact support.");

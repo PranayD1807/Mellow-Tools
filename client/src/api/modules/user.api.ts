@@ -101,6 +101,11 @@ interface MigrateEncryptionData {
 interface MigrateEncryptionResponse {
   status: string;
   message: string;
+  data?: {
+    encryptedAESKey: string;
+    passwordKeySalt: string;
+    encryptionStatus: string;
+  };
 }
 
 const userApi = {

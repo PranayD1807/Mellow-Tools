@@ -130,11 +130,29 @@ export const updatePassword = catchAsync(async (req, res) => {
 export const migrateEncryption = catchAsync(async (req, res) => {
     const { password, encryptedAESKey, passwordKeySalt } = req.body;
 
-    const auth = await authModel.findOne({ user: req.user.id }).select("+password +salt");
+    const auth = await authModel.findOne({ user: req.user.id }).select("+password +salt +encryptedAESKey +passwordKeySalt");
     if (!auth) throw new AppError("User not found", 404);
 
     if (!auth.validPassword(password)) {
         throw new AppError("Wrong password. Verification failed.", 400);
+    }
+
+    // Failsafe: If already migrated or encrypted, do NOT overwrite keys if they exist.
+    // Instead, return the existing keys so the client can sync.
+    if (auth.encryptionStatus === "MIGRATED" || auth.encryptionStatus === "ENCRYPTED") {
+        if (auth.encryptedAESKey && auth.passwordKeySalt) {
+            return res.status(200).json({
+                status: "success",
+                message: "User already migrated. Syncing existing keys.",
+                data: {
+                    encryptedAESKey: auth.encryptedAESKey,
+                    passwordKeySalt: auth.passwordKeySalt,
+                    encryptionStatus: auth.encryptionStatus
+                }
+            });
+        }
+
+        console.warn(`[EncryptionMigration] User ${auth.user} has status ${auth.encryptionStatus} but missing keys. Proceeding with migration/recovery. Keys present: encryptedAESKey=${!!auth.encryptedAESKey}, passwordKeySalt=${!!auth.passwordKeySalt}`);
     }
 
     if (!encryptedAESKey || !passwordKeySalt) {
