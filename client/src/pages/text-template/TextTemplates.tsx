@@ -169,7 +169,7 @@ const TextTemplates = () => {
 
         {!loading && templates.length === 0 && !isSearching && <NoItems text="templates" />}
 
-        {(templates.length > 0 || isSearching) && (
+        {templates.length > 0 && (
           <>
             <TextTemplatesGrid
               templates={templates}
