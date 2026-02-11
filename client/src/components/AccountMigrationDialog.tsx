@@ -72,6 +72,11 @@ const AccountMigrationDialog: React.FC = () => {
                 return;
             }
 
+            // Sync with existing server-side keys if available (multi-browser failsafe)
+            const finalEncryptedAESKey = res.data?.data?.encryptedAESKey || encryptedAESKey;
+            const finalPasswordKeySalt = res.data?.data?.passwordKeySalt || passwordKeySalt;
+            const finalStatus = res.data?.data?.encryptionStatus || "MIGRATED";
+
             // Retrieve tokens early and validate
             const jwtToken = localStorage.getItem("actkn");
             const refreshToken = localStorage.getItem("refreshToken");
@@ -86,9 +91,9 @@ const AccountMigrationDialog: React.FC = () => {
                     id: user.userId!,
                     displayName: user.displayName!,
                     email: user.email!,
-                    encryptionStatus: "MIGRATED",
-                    encryptedAESKey,
-                    passwordKeySalt,
+                    encryptionStatus: finalStatus,
+                    encryptedAESKey: finalEncryptedAESKey,
+                    passwordKeySalt: finalPasswordKeySalt,
                 };
 
                 await LocalStorageHelper.saveUserCreds({
@@ -110,7 +115,7 @@ const AccountMigrationDialog: React.FC = () => {
                     displayName: user.displayName!,
                     email: user.email!,
                     userId: user.userId!,
-                    encryptionStatus: "MIGRATED",
+                    encryptionStatus: finalStatus,
                 })
             );
 
