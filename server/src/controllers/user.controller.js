@@ -137,18 +137,22 @@ export const migrateEncryption = catchAsync(async (req, res) => {
         throw new AppError("Wrong password. Verification failed.", 400);
     }
 
-    // Failsafe: If already migrated or encrypted, do NOT overwrite keys.
+    // Failsafe: If already migrated or encrypted, do NOT overwrite keys if they exist.
     // Instead, return the existing keys so the client can sync.
     if (auth.encryptionStatus === "MIGRATED" || auth.encryptionStatus === "ENCRYPTED") {
-        return res.status(200).json({
-            status: "success",
-            message: "User already migrated. Syncing existing keys.",
-            data: {
-                encryptedAESKey: auth.encryptedAESKey,
-                passwordKeySalt: auth.passwordKeySalt,
-                encryptionStatus: auth.encryptionStatus
-            }
-        });
+        if (auth.encryptedAESKey && auth.passwordKeySalt) {
+            return res.status(200).json({
+                status: "success",
+                message: "User already migrated. Syncing existing keys.",
+                data: {
+                    encryptedAESKey: auth.encryptedAESKey,
+                    passwordKeySalt: auth.passwordKeySalt,
+                    encryptionStatus: auth.encryptionStatus
+                }
+            });
+        }
+
+        console.warn(`[EncryptionMigration] User ${auth.user} has status ${auth.encryptionStatus} but missing keys. Proceeding with migration/recovery. Keys present: encryptedAESKey=${!!auth.encryptedAESKey}, passwordKeySalt=${!!auth.passwordKeySalt}`);
     }
 
     if (!encryptedAESKey || !passwordKeySalt) {

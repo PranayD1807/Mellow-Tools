@@ -142,10 +142,13 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               throw new Error(migrationRes.err?.message || "Migration API failed");
             }
 
-            // Sync with existing server-side keys if available (multi-browser failsafe)
-            const finalEncryptedAESKey = migrationRes.data?.data?.encryptedAESKey || encryptedAESKey;
-            const finalPasswordKeySalt = migrationRes.data?.data?.passwordKeySalt || passwordKeySalt;
-            const finalStatus = migrationRes.data?.data?.encryptionStatus || "MIGRATED";
+            // Atomic bundle selection: Sync with existing server-side keys if available, otherwise use local keys.
+            const serverData = migrationRes.data?.data;
+            const useServerKeys = !!(serverData?.encryptedAESKey && serverData?.passwordKeySalt);
+
+            const finalEncryptedAESKey = useServerKeys ? serverData!.encryptedAESKey : encryptedAESKey;
+            const finalPasswordKeySalt = useServerKeys ? serverData!.passwordKeySalt : passwordKeySalt;
+            const finalStatus = useServerKeys ? serverData!.encryptionStatus : "MIGRATED";
 
             userData.encryptedAESKey = finalEncryptedAESKey;
             userData.passwordKeySalt = finalPasswordKeySalt;
@@ -242,10 +245,13 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
               throw new Error(migrationRes.err?.message || "Migration API failed");
             }
 
-            // Sync with existing server-side keys if available (multi-browser failsafe)
-            const finalEncryptedAESKey = migrationRes.data?.data?.encryptedAESKey || encryptedAESKey;
-            const finalPasswordKeySalt = migrationRes.data?.data?.passwordKeySalt || passwordKeySalt;
-            const finalStatus = migrationRes.data?.data?.encryptionStatus || "MIGRATED";
+            // Atomic bundle selection: Sync with existing server-side keys if available, otherwise use local keys.
+            const serverData = migrationRes.data?.data;
+            const useServerKeys = !!(serverData?.encryptedAESKey && serverData?.passwordKeySalt);
+
+            const finalEncryptedAESKey = useServerKeys ? serverData!.encryptedAESKey : encryptedAESKey;
+            const finalPasswordKeySalt = useServerKeys ? serverData!.passwordKeySalt : passwordKeySalt;
+            const finalStatus = useServerKeys ? serverData!.encryptionStatus : "MIGRATED";
 
             userData.encryptedAESKey = finalEncryptedAESKey;
             userData.passwordKeySalt = finalPasswordKeySalt;

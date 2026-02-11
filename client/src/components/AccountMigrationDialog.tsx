@@ -72,10 +72,14 @@ const AccountMigrationDialog: React.FC = () => {
                 return;
             }
 
-            // Sync with existing server-side keys if available (multi-browser failsafe)
-            const finalEncryptedAESKey = res.data?.data?.encryptedAESKey || encryptedAESKey;
-            const finalPasswordKeySalt = res.data?.data?.passwordKeySalt || passwordKeySalt;
-            const finalStatus = res.data?.data?.encryptionStatus || "MIGRATED";
+            // Atomic bundle selection: Sync with existing server-side keys if available, otherwise use local keys.
+            // We only use server keys if both encryptedAESKey and passwordKeySalt are present.
+            const serverData = res.data?.data;
+            const useServerKeys = !!(serverData?.encryptedAESKey && serverData?.passwordKeySalt);
+
+            const finalEncryptedAESKey = useServerKeys ? serverData!.encryptedAESKey : encryptedAESKey;
+            const finalPasswordKeySalt = useServerKeys ? serverData!.passwordKeySalt : passwordKeySalt;
+            const finalStatus = useServerKeys ? serverData!.encryptionStatus : "MIGRATED";
 
             // Retrieve tokens early and validate
             const jwtToken = localStorage.getItem("actkn");

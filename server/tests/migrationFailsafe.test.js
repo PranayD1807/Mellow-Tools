@@ -108,4 +108,36 @@ describe("Encryption Migration Failsafe", () => {
         expect(res.status).toBe(400);
         expect(res.body.message).toBe("Wrong password. Verification failed.");
     });
+    it("should proceed with migration if status is MIGRATED but keys are missing", async () => {
+        // PRE-CONDITION: Status is MIGRATED but keys are missing (corrupt state)
+        await authModel.findOneAndUpdate({ user: userId }, {
+            $unset: {
+                encryptedAESKey: 1,
+                passwordKeySalt: 1
+            },
+            $set: {
+                encryptionStatus: "MIGRATED"
+            }
+        });
+
+        const migrationPayload = {
+            password: userInput.password,
+            encryptedAESKey: "recovered_key",
+            passwordKeySalt: "recovered_salt"
+        };
+
+        const res = await request(app)
+            .post("/api/v1/auth/migrate-encryption")
+            .set("Authorization", `Bearer ${token}`)
+            .send(migrationPayload);
+
+        // Should return success and actually save the new keys
+        expect(res.status).toBe(200);
+        expect(res.body.message).toBe("Encryption migrated successfully.");
+
+        const auth = await authModel.findOne({ user: userId });
+        expect(auth.encryptedAESKey).toBe("recovered_key");
+        expect(auth.passwordKeySalt).toBe("recovered_salt");
+        expect(auth.encryptionStatus).toBe("MIGRATED");
+    });
 });
