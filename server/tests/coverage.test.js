@@ -25,6 +25,12 @@ describe('Coverage and Edge Case Tests', () => {
 
     describe('User Controller - Encryption Migration', () => {
         it('should migrate encryption successfully', async () => {
+            // Set user to UNENCRYPTED first to actually test migration logic
+            await authModel.findOneAndUpdate({ user: userId }, {
+                $unset: { encryptedAESKey: 1, passwordKeySalt: 1 },
+                $set: { encryptionStatus: 'UNENCRYPTED' }
+            });
+
             const res = await request(app)
                 .post('/api/v1/auth/migrate-encryption')
                 .set('Authorization', `Bearer ${token}`)
