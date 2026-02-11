@@ -40,6 +40,7 @@ const router = Router();
  *             required:
  *               - email
  *               - password
+ *               - confirmPassword
  *               - displayName
  *               - encryptedAESKey
  *               - passwordKeySalt
@@ -47,6 +48,8 @@ const router = Router();
  *               email:
  *                 type: string
  *               password:
+ *                 type: string
+ *               confirmPassword:
  *                 type: string
  *               displayName:
  *                 type: string
