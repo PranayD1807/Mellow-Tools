@@ -30,6 +30,7 @@ const router = Router();
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -40,6 +41,8 @@ const router = Router();
  *               - email
  *               - password
  *               - displayName
+ *               - encryptedAESKey
+ *               - passwordKeySalt
  *             properties:
  *               email:
  *                 type: string
@@ -64,6 +67,7 @@ const router = Router();
  *   post:
  *     summary: Login a user
  *     tags: [Auth]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -109,6 +113,7 @@ router.post("/get-info", verifyJWT, getInfo);
  *   post:
  *     summary: Refresh access token
  *     tags: [Auth]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -238,6 +243,7 @@ router.post("/2fa/verify", verifyJWT, verify2FA);
  *   post:
  *     summary: Validate 2FA token for login
  *     tags: [Auth]
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
