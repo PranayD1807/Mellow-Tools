@@ -22,6 +22,7 @@ describe('Auth Endpoints', () => {
 
             expect(res.statusCode).toEqual(201);
             expect(res.body.data).toHaveProperty('email', testUser.email);
+            expect(res.body.data.encryptionStatus).toBe('ENCRYPTED');
             expect(res.body.token).toBeDefined();
         });
 

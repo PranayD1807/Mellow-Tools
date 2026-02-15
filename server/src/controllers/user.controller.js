@@ -46,6 +46,7 @@ export const signup = catchAsync(async (req, res) => {
     const userData = user.toObject();
     userData.passwordKeySalt = passwordKeySalt;
     userData.encryptedAESKey = encryptedAESKey;
+    userData.encryptionStatus = auth.encryptionStatus;
 
     res.status(201).json({
         status: "success",
