@@ -28,7 +28,7 @@ export interface PasswordVisibilityProps {
 
 export interface PasswordInputProps
   extends InputProps,
-    PasswordVisibilityProps {
+  PasswordVisibilityProps {
   rootProps?: GroupProps;
 }
 
@@ -138,11 +138,11 @@ export const PasswordStrengthMeter = React.forwardRef<
 
 function getColorPalette(percent: number) {
   switch (true) {
-    case percent < 33:
-      return { label: "Low", colorPalette: "red" };
-    case percent < 66:
+    case percent < 50:
+      return { label: "Weak", colorPalette: "red" };
+    case percent < 100:
       return { label: "Medium", colorPalette: "orange" };
     default:
-      return { label: "High", colorPalette: "green" };
+      return { label: "Strong", colorPalette: "green" };
   }
 }

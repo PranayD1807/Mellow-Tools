@@ -17,7 +17,7 @@ const passwordComplexity = (fieldName) => [
         .matches(/[a-z]/).withMessage(`${fieldName} must contain at least one lowercase letter`)
         .matches(/[A-Z]/).withMessage(`${fieldName} must contain at least one uppercase letter`)
         .matches(/[0-9]/).withMessage(`${fieldName} must contain at least one number`)
-        .matches(/[@$!%*?&]/).withMessage(`${fieldName} must contain at least one special character (e.g., @$!%*?&)`),
+        .matches(/[@$!%*?&#^]/).withMessage(`${fieldName} must contain at least one special character (e.g., @$!%*?&#^)`),
 ];
 
 const passwordValidation = [

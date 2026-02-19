@@ -3,13 +3,16 @@ import {
   Box,
   Flex,
   VStack,
+  HStack,
   Text,
   Input,
   Heading,
   useBreakpointValue,
   Grid,
   Separator,
+  Icon,
 } from "@chakra-ui/react";
+import { LuCheck, LuCircle } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 import {
   PasswordInput,
@@ -24,20 +27,27 @@ import { login } from "@/store/userSlice";
 import Encryption from "@/helper/encryption.helper";
 import { LocalStorageHelper } from "@/helper/localStorage.helper";
 
-const calculatePasswordStrength = (password: string): number => {
-  let strength = 0;
-  if (password.length >= 8) strength++;
-  if (/[a-z]/.test(password)) strength++;
-  if (/[A-Z]/.test(password)) strength++;
-  if (/[0-9]/.test(password)) strength++;
-  if (/[@$!%*?&]/.test(password)) strength++;
-  return strength;
+const checkPasswordStrength = (password: string) => {
+  const criteria = [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "Contains lowercase letter", met: /[a-z]/.test(password) },
+    { label: "Contains uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "Contains number", met: /[0-9]/.test(password) },
+    {
+      label: "Contains special character (@$!%*?&#^)",
+      met: /[@$!%*?&#^]/.test(password),
+    },
+  ];
+  const score = criteria.filter((c) => c.met).length;
+  return { score, criteria };
 };
 
 const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
   toggleAuthMode,
 }) => {
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [passwordStrength, setPasswordStrength] = useState(
+    checkPasswordStrength("")
+  );
   const dispatch = useDispatch();
 
   const onSubmit = async (
@@ -169,16 +179,33 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         handleChange(e);
                         setPasswordStrength(
-                          calculatePasswordStrength(e.target.value)
+                          checkPasswordStrength(e.target.value)
                         );
                       }}
                       value={values.password}
                     />
                     <PasswordStrengthMeter
                       marginTop="5px"
-                      value={passwordStrength}
+                      value={passwordStrength.score}
                       minWidth="40%"
                     />
+                    <VStack align="start" gap={1} mt={2}>
+                      {passwordStrength.criteria.map((criterion, index) => (
+                        <HStack key={index} gap={2}>
+                          <Icon
+                            as={criterion.met ? LuCheck : LuCircle}
+                            color={criterion.met ? "green.500" : "gray.300"}
+                            boxSize={3}
+                          />
+                          <Text
+                            fontSize="xs"
+                            color={criterion.met ? "green.500" : "gray.500"}
+                          >
+                            {criterion.label}
+                          </Text>
+                        </HStack>
+                      ))}
+                    </VStack>
                   </Field>
                   <Field label="Confirm Password" required>
                     <FormikField
@@ -198,7 +225,7 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                   width={{ base: "100%", md: "80%", lg: "60%" }}
                   loading={isSubmitting}
                   loadingText="Signing up..."
-                  disabled={passwordStrength < 5}
+                  disabled={passwordStrength.score < 5}
                   margin="auto"
                   marginTop={4}
                 >
