@@ -54,6 +54,7 @@ const Header = () => {
         "/update-password",
         "/dashboard",
         "/2fa",
+        "/admin",
       ].includes(path)
     ) {
       if (path === "/dashboard") {
