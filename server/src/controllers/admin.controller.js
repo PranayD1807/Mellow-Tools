@@ -19,40 +19,55 @@ const getLifetimeStats = async (model, dateField) => {
 };
 
 export const getAdminStats = catchAsync(async (req, res) => {
-    // Users stats
-    const usersCount = await userModel.countDocuments();
-
-    // Auth stats (2FA, Encryption)
-    const usersWith2FA = await authModel.countDocuments({ isTwoFactorEnabled: true });
-    const usersEncrypted = await authModel.countDocuments({ encryptionStatus: "ENCRYPTED" });
-
-    // Time-based user stats (signups in last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentUsers = await userModel.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
 
-    // Entities count
-    const templatesCount = await textTemplateModel.countDocuments();
-    const notesCount = await noteModel.countDocuments();
-    const bookmarksCount = await bookmarkModel.countDocuments();
-
-    // Jobs stats
-    const jobsCount = await jobApplicationModel.countDocuments();
-    const jobsApplied = await jobApplicationModel.countDocuments({ status: "Applied" });
-    const jobsInterviewing = await jobApplicationModel.countDocuments({ status: "Interviewing" });
-    const jobsOffer = await jobApplicationModel.countDocuments({ status: "Offer" });
-    const jobsRejected = await jobApplicationModel.countDocuments({ status: "Rejected" });
-
-    // Specific Monthly Activity Stats for Charts (Lifetime)
-    const userCreations = await getLifetimeStats(userModel, 'createdAt');
-    const templateCreations = await getLifetimeStats(textTemplateModel, 'createdAt');
-    const templateUpdates = await getLifetimeStats(textTemplateModel, 'updatedAt');
-    const noteCreations = await getLifetimeStats(noteModel, 'createdAt');
-    const noteUpdates = await getLifetimeStats(noteModel, 'updatedAt');
-    const bookmarkCreations = await getLifetimeStats(bookmarkModel, 'createdAt');
-    const bookmarkUpdates = await getLifetimeStats(bookmarkModel, 'updatedAt');
-    const jobCreations = await getLifetimeStats(jobApplicationModel, 'createdAt');
-    const jobUpdates = await getLifetimeStats(jobApplicationModel, 'updatedAt');
+    // Concurrently fetch all independent statistics to drastically reduce timeout risk
+    const [
+        usersCount,
+        usersWith2FA,
+        usersEncrypted,
+        recentUsers,
+        templatesCount,
+        notesCount,
+        bookmarksCount,
+        jobsCount,
+        jobsApplied,
+        jobsInterviewing,
+        jobsOffer,
+        jobsRejected,
+        userCreations,
+        templateCreations,
+        templateUpdates,
+        noteCreations,
+        noteUpdates,
+        bookmarkCreations,
+        bookmarkUpdates,
+        jobCreations,
+        jobUpdates
+    ] = await Promise.all([
+        userModel.countDocuments(),
+        authModel.countDocuments({ isTwoFactorEnabled: true }),
+        authModel.countDocuments({ encryptionStatus: "ENCRYPTED" }),
+        userModel.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
+        textTemplateModel.countDocuments(),
+        noteModel.countDocuments(),
+        bookmarkModel.countDocuments(),
+        jobApplicationModel.countDocuments(),
+        jobApplicationModel.countDocuments({ status: "Applied" }),
+        jobApplicationModel.countDocuments({ status: "Interviewing" }),
+        jobApplicationModel.countDocuments({ status: "Offer" }),
+        jobApplicationModel.countDocuments({ status: "Rejected" }),
+        getLifetimeStats(userModel, 'createdAt'),
+        getLifetimeStats(textTemplateModel, 'createdAt'),
+        getLifetimeStats(textTemplateModel, 'updatedAt'),
+        getLifetimeStats(noteModel, 'createdAt'),
+        getLifetimeStats(noteModel, 'updatedAt'),
+        getLifetimeStats(bookmarkModel, 'createdAt'),
+        getLifetimeStats(bookmarkModel, 'updatedAt'),
+        getLifetimeStats(jobApplicationModel, 'createdAt'),
+        getLifetimeStats(jobApplicationModel, 'updatedAt')
+    ]);
 
     const allDates = new Set([
         ...Object.keys(userCreations),
