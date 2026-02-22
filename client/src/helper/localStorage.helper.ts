@@ -107,7 +107,7 @@ export class LocalStorageHelper {
     return aesKey;
   };
 
-  static setUserInfo = (displayName: string, email: string, userId: string, encryptionStatus?: string) => {
+  static setUserInfo = (displayName: string, email: string, userId: string, encryptionStatus?: string, isAdmin?: boolean) => {
     localStorage.setItem(
       LocalStorageConstants.USER,
       JSON.stringify({
@@ -115,6 +115,7 @@ export class LocalStorageHelper {
         email: email,
         userId: userId,
         encryptionStatus: encryptionStatus || null,
+        isAdmin: isAdmin || false,
       })
     );
   };

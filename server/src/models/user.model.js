@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema({
     }
 }, modelOptions);
 
+userSchema.virtual('isAdmin').get(function () {
+    const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',') : ['mellow@example.com'];
+    return adminEmails.includes(this.email);
+});
+
 userSchema.methods.getCleanData = function () {
     const user = this.toObject();
     return user;

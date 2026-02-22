@@ -58,6 +58,7 @@ const DataMigrationDialog: React.FC<DataMigrationDialogProps> = ({
                         email: user.email!,
                         userId: user.userId!,
                         encryptionStatus: "ENCRYPTED",
+                        isAdmin: user.isAdmin,
                     })
                 );
                 setState("success");

@@ -6,4 +6,5 @@ export interface UserInfo {
   encryptedAESKey: string;
   isTwoFactorEnabled?: boolean;
   encryptionStatus?: string;
+  isAdmin?: boolean;
 }

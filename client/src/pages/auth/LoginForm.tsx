@@ -170,6 +170,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             email: userData.email,
             userId: userData.id,
             encryptionStatus: userData.encryptionStatus,
+            isAdmin: userData.isAdmin,
           })
         );
         localStorage.setItem("actkn", res.data.token);
@@ -274,6 +275,7 @@ const LoginForm: React.FC<{ toggleAuthMode: () => void }> = ({
             email: userData.email,
             userId: userData.id,
             encryptionStatus: userData.encryptionStatus,
+            isAdmin: userData.isAdmin,
           })
         );
 

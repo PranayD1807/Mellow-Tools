@@ -120,6 +120,7 @@ const AccountMigrationDialog: React.FC = () => {
                     email: user.email!,
                     userId: user.userId!,
                     encryptionStatus: finalStatus,
+                    isAdmin: user.isAdmin,
                 })
             );
 
