@@ -1,6 +1,7 @@
 import express from "express";
 import { getAdminStats } from "../controllers/admin.controller.js";
 import { verifyAdmin } from "../middlewares/admin.middleware.js";
+import { verifyJWT } from "../middlewares/token.middleware.js";
 
 const router = express.Router();
 
@@ -16,21 +17,18 @@ const router = express.Router();
  * /admin/stats:
  *   get:
  *     summary: Retrieve lifetime platform statistics
- *     description: Returns deep analytics and metrics mapping. Requires a valid admin secret header for authorization.
+ *     description: Returns deep analytics and metrics mapping. Requires an admin JWT.
  *     tags: [Admin]
- *     parameters:
- *       - in: header
- *         name: x-admin-secret
- *         required: true
- *         schema:
- *           type: string
- *         description: Master admin secret key for panel authentication
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Dashboard statistics returned successfully
  *       401:
- *         description: Invalid Admin Secret! Access Denied.
+ *         description: Unauthorized.
+ *       403:
+ *         description: Admin access denied.
  */
-router.get("/stats", verifyAdmin, getAdminStats);
+router.get("/stats", verifyJWT, verifyAdmin, getAdminStats);
 
 export default router;

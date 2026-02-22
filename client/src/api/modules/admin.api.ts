@@ -32,13 +32,9 @@ export interface AdminStatsResponse {
 }
 
 const adminApi = {
-    getStats: async (adminSecret: string) => {
+    getStats: async () => {
         try {
-            const response = await privateClient.get<AdminStatsResponse>(adminEndpoints.stats, {
-                headers: {
-                    "x-admin-secret": adminSecret,
-                },
-            });
+            const response = await privateClient.get<AdminStatsResponse>(adminEndpoints.stats);
             return { response, err: null };
         } catch (err: unknown) {
             return { response: null, err };

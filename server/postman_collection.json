@@ -1009,13 +1009,7 @@
                     "name": "Get Platform Stats",
                     "request": {
                         "method": "GET",
-                        "header": [
-                            {
-                                "key": "x-admin-secret",
-                                "value": "{{admin_secret}}",
-                                "type": "text"
-                            }
-                        ],
+                        "header": [],
                         "url": {
                             "raw": "{{base_url}}/admin/stats",
                             "host": [
@@ -1044,11 +1038,6 @@
         },
         {
             "key": "refreshToken",
-            "value": "",
-            "type": "string"
-        },
-        {
-            "key": "admin_secret",
             "value": "",
             "type": "string"
         }

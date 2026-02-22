@@ -10,16 +10,12 @@ const userSchema = new mongoose.Schema({
     displayName: {
         type: String,
         required: true
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
     }
 }, modelOptions);
-
-userSchema.virtual('isAdmin').get(function () {
-    if (!this.email) return false;
-    const adminEmails = process.env.ADMIN_EMAILS
-        ? process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase())
-        : ['mellow@example.com'];
-    return adminEmails.includes(this.email.toLowerCase());
-});
 
 userSchema.methods.getCleanData = function () {
     const user = this.toObject();

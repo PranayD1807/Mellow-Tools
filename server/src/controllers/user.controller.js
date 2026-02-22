@@ -30,6 +30,10 @@ export const signup = catchAsync(async (req, res) => {
         throw new AppError("Encryption keys are required.", 400);
     }
 
+    if (req.body.isAdmin !== undefined) {
+        throw new AppError("You cannot assign admin privileges via this API.", 403);
+    }
+
     const user = new userModel({ displayName, email });
     await user.save();
 
