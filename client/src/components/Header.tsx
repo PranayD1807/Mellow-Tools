@@ -16,7 +16,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 
-import { FiLogOut, FiMenu, FiUser } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiUser, FiShield } from "react-icons/fi";
 import { RootState } from "@/store/store";
 import Logo from "./Logo";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -117,6 +117,7 @@ const Header = () => {
                 </MenuItem>
                 {isAdmin && (
                   <MenuItem value="admin" onClick={() => navigate("/admin")}>
+                    <FiShield />
                     Admin Panel
                   </MenuItem>
                 )}

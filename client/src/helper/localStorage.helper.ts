@@ -115,7 +115,7 @@ export class LocalStorageHelper {
         email: email,
         userId: userId,
         encryptionStatus: encryptionStatus || null,
-        isAdmin: isAdmin || false,
+        isAdmin: Boolean(isAdmin),
       })
     );
   };

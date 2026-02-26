@@ -36,6 +36,9 @@ const AdminPanel = () => {
                 navigate("/dashboard");
             } else if (response && response.data) {
                 setStats(response.data);
+            } else {
+                toast.error("Invalid analytics data received.");
+                navigate("/dashboard");
             }
             setLoading(false);
         };
@@ -125,7 +128,7 @@ const AdminPanel = () => {
                             <Heading size="md" mb={6} fontWeight="extrabold">Monthly New Registrations</Heading>
                             <Box h="300px">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={stats.dailyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={stats.monthlyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#3182CE" stopOpacity={0.8} />
@@ -150,7 +153,7 @@ const AdminPanel = () => {
                             <Heading size="md" mb={6} fontWeight="extrabold">Templates Activity</Heading>
                             <Box h="300px">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={stats.dailyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={stats.monthlyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorTemplatesCreated" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#319795" stopOpacity={0.6} />
@@ -181,7 +184,7 @@ const AdminPanel = () => {
                             <Heading size="md" mb={6} fontWeight="extrabold">Notes Activity</Heading>
                             <Box h="300px">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={stats.dailyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={stats.monthlyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorNotesCreated" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#D69E2E" stopOpacity={0.6} />
@@ -212,7 +215,7 @@ const AdminPanel = () => {
                             <Heading size="md" mb={6} fontWeight="extrabold">Bookmarks Activity</Heading>
                             <Box h="300px">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={stats.dailyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={stats.monthlyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorBookmarksCreated" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#00B5D8" stopOpacity={0.6} />
@@ -244,7 +247,7 @@ const AdminPanel = () => {
                             <Heading size="md" mb={6} fontWeight="extrabold">Job Applications Activity</Heading>
                             <Box h="300px">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={stats.dailyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <AreaChart data={stats.monthlyActivity} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorJobsCreated" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#805AD5" stopOpacity={0.6} />

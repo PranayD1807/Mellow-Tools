@@ -17,7 +17,7 @@ export interface AdminStatsResponse {
     jobsInterviewing: number;
     jobsOffer: number;
     jobsRejected: number;
-    dailyActivity: {
+    monthlyActivity: {
         date: string;
         users: number;
         templatesCreated: number;

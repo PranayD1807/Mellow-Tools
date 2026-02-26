@@ -96,7 +96,7 @@ export const getAdminStats = catchAsync(async (req, res) => {
         dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
     }
 
-    const dailyActivity = dates.map(date => {
+    const monthlyActivity = dates.map(date => {
         return {
             date,
             users: userCreations[date] || 0,
@@ -124,6 +124,6 @@ export const getAdminStats = catchAsync(async (req, res) => {
         jobsInterviewing,
         jobsOffer,
         jobsRejected,
-        dailyActivity
+        monthlyActivity
     });
 });
