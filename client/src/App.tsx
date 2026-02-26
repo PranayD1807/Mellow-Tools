@@ -26,21 +26,23 @@ import UpdatePassword from "@/pages/auth/UpdatePassword";
 import TwoFactorAuth from "./pages/auth/TwoFactorAuth";
 
 import LoginBanner from "./components/LoginBanner";
+import AdminPanel from "./pages/admin/AdminPanel";
 
 interface PrivateRouteProps {
   // Expect a JSX element as a component
   component: JSX.Element;
+  hideBanner?: boolean;
 }
 
 // Protected Route
-const ProtectedRoute = ({ component }: PrivateRouteProps) => {
+const ProtectedRoute = ({ component, hideBanner = false }: PrivateRouteProps) => {
   // Check if the user is logged in
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
 
   // Instead of redirecting, we render the component but show a login banner if not logged in
   return (
     <>
-      {!isLoggedIn && <LoginBanner />}
+      {(!isLoggedIn && !hideBanner) && <LoginBanner />}
       {component}
     </>
   );
@@ -91,6 +93,10 @@ const router = createBrowserRouter(
       <Route
         path="job-tracker"
         element={<ProtectedRoute component={<JobTracker />} />}
+      />
+      <Route
+        path="admin"
+        element={<ProtectedRoute component={<AdminPanel />} hideBanner={true} />}
       />
     </Route>
   )

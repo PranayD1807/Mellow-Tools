@@ -1001,6 +1001,28 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "Admin",
+            "item": [
+                {
+                    "name": "Get Platform Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/admin/stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "admin",
+                                "stats"
+                            ]
+                        }
+                    }
+                }
+            ]
         }
     ],
     "variable": [

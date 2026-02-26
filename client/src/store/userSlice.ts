@@ -7,6 +7,7 @@ interface UserState {
   email: string | null;
   userId: string | null;
   encryptionStatus: string | null;
+  isAdmin: boolean;
 }
 
 const initialState: UserState = {
@@ -15,6 +16,7 @@ const initialState: UserState = {
   email: null,
   userId: null,
   encryptionStatus: null,
+  isAdmin: false,
 };
 
 const persistedUser = localStorage.getItem("user");
@@ -27,6 +29,7 @@ const initialStateFromStorage = userFromStorage
     email: userFromStorage.email,
     userId: userFromStorage.userId,
     encryptionStatus: userFromStorage.encryptionStatus || null,
+    isAdmin: userFromStorage.isAdmin || false,
   }
   : initialState;
 
@@ -35,6 +38,7 @@ interface LoginPayload {
   email: string;
   userId: string;
   encryptionStatus?: string;
+  isAdmin?: boolean;
 }
 
 const userSlice = createSlice({
@@ -47,13 +51,15 @@ const userSlice = createSlice({
       state.email = action.payload.email;
       state.userId = action.payload.userId;
       state.encryptionStatus = action.payload.encryptionStatus || null;
+      state.isAdmin = action.payload.isAdmin || false;
 
       // Save to localStorage
       LocalStorageHelper.setUserInfo(
         action.payload.displayName,
         action.payload.email,
         action.payload.userId,
-        action.payload.encryptionStatus
+        action.payload.encryptionStatus,
+        action.payload.isAdmin
       );
     },
     logout: (state) => {

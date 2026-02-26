@@ -51,6 +51,7 @@ export const signupValidator = [
         .withMessage("username must be minimum 8 characters"),
     body("passwordKeySalt").exists().isString().withMessage("Something went wrong"),
     body("encryptedAESKey").exists().isString().withMessage("Something went wrong"),
+    body("isAdmin").not().exists().withMessage("Cannot set admin role via API"),
     handleValidationErrors,
 ];
 

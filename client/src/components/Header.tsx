@@ -16,7 +16,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 
-import { FiLogOut, FiMenu, FiUser } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiUser, FiShield } from "react-icons/fi";
 import { RootState } from "@/store/store";
 import Logo from "./Logo";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -28,6 +28,7 @@ import { useState } from "react";
 
 const Header = () => {
   const isLoggedIn = useSelector((state: RootState) => state.user.isLoggedIn);
+  const isAdmin = useSelector((state: RootState) => state.user.isAdmin);
   const dispatch = useDispatch();
   const { toggleColorMode, colorMode } = useColorMode();
   const location = useLocation();
@@ -53,6 +54,7 @@ const Header = () => {
         "/update-password",
         "/dashboard",
         "/2fa",
+        "/admin",
       ].includes(path)
     ) {
       if (path === "/dashboard") {
@@ -113,6 +115,12 @@ const Header = () => {
                   <FiUser />
                   Profile
                 </MenuItem>
+                {isAdmin && (
+                  <MenuItem value="admin" onClick={() => navigate("/admin")}>
+                    <FiShield />
+                    Admin Panel
+                  </MenuItem>
+                )}
                 <MenuItem value="log-out" onClick={handleLogout}>
                   <FiLogOut />
                   Logout
@@ -133,6 +141,14 @@ const Header = () => {
               >
                 <FiUser />
               </Button>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/admin")}
+                >
+                  Admin Panel
+                </Button>
+              )}
               <Button variant="outline" h={10} onClick={handleLogout}>
                 <FiLogOut />
                 Log Out

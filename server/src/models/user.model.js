@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
     displayName: {
         type: String,
         required: true
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
     }
 }, modelOptions);
 
