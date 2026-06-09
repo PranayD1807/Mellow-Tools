@@ -9,6 +9,8 @@ export interface AdminStatsResponse {
     usersWith2FA: number;
     usersEncrypted: number;
     recentUsers: number;
+    activeUsers24h: number;
+    activeUsers7d: number;
     templatesCount: number;
     notesCount: number;
     bookmarksCount: number;
