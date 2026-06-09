@@ -19,6 +19,10 @@ const getLifetimeStats = async (model, dateField) => {
 };
 
 export const getAdminStats = catchAsync(async (req, res) => {
+    console.log(`[Admin Stats] Fetching platform statistics for admin: ${req.user.email}`);
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -28,6 +32,8 @@ export const getAdminStats = catchAsync(async (req, res) => {
         usersWith2FA,
         usersEncrypted,
         recentUsers,
+        activeUsers24h,
+        activeUsers7d,
         templatesCount,
         notesCount,
         bookmarksCount,
@@ -50,6 +56,18 @@ export const getAdminStats = catchAsync(async (req, res) => {
         authModel.countDocuments({ isTwoFactorEnabled: true }),
         authModel.countDocuments({ encryptionStatus: "ENCRYPTED" }),
         userModel.countDocuments({ createdAt: { $gte: sevenDaysAgo } }),
+        userModel.countDocuments({
+            $or: [
+                { lastActiveAt: { $gte: twentyFourHoursAgo } },
+                { lastActiveAt: { $exists: false }, createdAt: { $gte: twentyFourHoursAgo } }
+            ]
+        }),
+        userModel.countDocuments({
+            $or: [
+                { lastActiveAt: { $gte: sevenDaysAgo } },
+                { lastActiveAt: { $exists: false }, createdAt: { $gte: sevenDaysAgo } }
+            ]
+        }),
         textTemplateModel.countDocuments(),
         noteModel.countDocuments(),
         bookmarkModel.countDocuments(),
@@ -111,11 +129,15 @@ export const getAdminStats = catchAsync(async (req, res) => {
         };
     });
 
+    console.log(`[Admin Stats] Success. Total Users: ${usersCount}, Active (24h): ${activeUsers24h}, Active (7d): ${activeUsers7d}`);
+
     res.status(200).json({
         usersCount,
         usersWith2FA,
         usersEncrypted,
         recentUsers,
+        activeUsers24h,
+        activeUsers7d,
         templatesCount,
         notesCount,
         bookmarksCount,
