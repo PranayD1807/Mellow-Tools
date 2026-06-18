@@ -22,6 +22,7 @@ import {
 import SEO from "@/components/SEO";
 import adminApi, { AdminStatsResponse } from "@/api/modules/admin.api";
 import AdminStatsCard from "@/components/AdminStatsCard";
+import FeedbackViewer from "./FeedbackViewer";
 
 const AdminPanel = () => {
     const [stats, setStats] = useState<AdminStatsResponse | null>(null);
@@ -273,6 +274,14 @@ const AdminPanel = () => {
                         </Box>
 
                     </SimpleGrid>
+                </Box>
+
+                {/* Feedbacks Section */}
+                <Box mb={8}>
+                    <Heading size="sm" mb={6} textTransform="uppercase" letterSpacing="widest" color="fg.muted" fontWeight="bold">
+                        User Feedbacks
+                    </Heading>
+                    <FeedbackViewer />
                 </Box>
 
             </Flex>

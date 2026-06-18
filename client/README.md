@@ -1,50 +1,54 @@
-# React + TypeScript + Vite
+# Mellow Tools - Frontend (`/client`)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the frontend code base of **Mellow Tools**, a clean, reactive, and feature-rich React client powered by **Vite**, **TypeScript**, and **Chakra UI (v3)**.
 
-Currently, two official plugins are available:
+## 🚀 Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Global Navigation & Interceptors**: Centralized API handlers with automated authentication token headers, token refresh interceptors, and dynamic `multipart/form-data` content type resolution for file uploads.
+- **User Feedback Modal**: Accessible globally via the main Navigation Header and Mobile Menu. Users can draft submissions and upload up to two image attachments (JPEG/PNG, under 5MB). Includes stacking file selectors and pre-upload file preview management.
+- **Admin Feedback Panel**: A secure viewer interface where administrators can view all submitted feedback, user metadata (display name and email), and expand uploaded image attachments.
+- **Tools Dashboard**: Interfaces to manage and track notes, text templates with dynamic tag replacements, categorized bookmarks, and job applications.
 
-## Expanding the ESLint configuration
+## 🛠 Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Framework**: React with Vite
+- **Language**: TypeScript
+- **Styling & Layout**: Chakra UI (v3), Framer Motion, Vanilla CSS
+- **Notifications**: `react-toastify` for unified, sleek alerts
+- **State Management**: Redux Toolkit (RTK)
+- **Rich Text Editor**: TinyMCE and Editor.js integration
 
-- Configure the top-level `parserOptions` property like this:
+## ⚙️ Development Setup
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 1. Prerequisites
+Ensure you have [Node.js](https://nodejs.org/) installed (v18+ recommended).
+
+### 2. Configure Environment Variables
+Create a `.env` file in the `client` directory:
+```env
+VITE_ENV=DEV # DEV or PROD
+VITE_EDITOR_KEY=your_tinymce_api_key
+VITE_LOGO_DEV_KEY=your_dev_logo_key
+
+# Cloudinary (Optional, for client-side reference if needed)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 3. Install Dependencies
+Run the following command inside the `client` directory:
+```bash
+npm install
+```
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+### 4. Run Locally
+Start the local Vite development server (typically served at `http://localhost:5173`):
+```bash
+npm run dev
+```
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+### 5. Build for Production
+Create an optimized production bundle:
+```bash
+npm run build
 ```

@@ -24,7 +24,11 @@ privateClient.interceptors.request.use(
     cfg.headers["Authorization"] = `Bearer ${
       localStorage.getItem(LocalStorageConstants.JWT_TOKEN) || ""
     }`;
-    cfg.headers["Content-Type"] = "application/json";
+    if (cfg.data instanceof FormData) {
+      delete cfg.headers["Content-Type"];
+    } else if (!cfg.headers["Content-Type"]) {
+      cfg.headers["Content-Type"] = "application/json";
+    }
     return cfg;
   },
   (error) => {
