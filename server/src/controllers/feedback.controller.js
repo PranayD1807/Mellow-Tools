@@ -51,7 +51,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
 
     const images = req.files ? req.files.map(file => file.path) : [];
 
-    console.log(`[Feedback] Submitting feedback for user: ${req.user.email} with ${images.length} images.`);
+    console.log(`[Feedback] Submitting feedback for user: ${req.user._id} with ${images.length} images.`);
 
     try {
         const feedback = new feedbackModel({
@@ -85,7 +85,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
 });
 
 export const getFeedbacks = catchAsync(async (req, res) => {
-    console.log(`[Feedback] Fetching all user feedbacks for admin: ${req.user.email}`);
+    console.log(`[Feedback] Fetching all user feedbacks for admin: ${req.user._id}`);
 
     const feedbacks = await feedbackModel.find()
         .populate("user", "displayName email")
