@@ -35,6 +35,17 @@ export const createFeedback = catchAsync(async (req, res, next) => {
     const { text } = req.body;
     
     if (!text || text.trim() === "") {
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                if (file.filename) {
+                    try {
+                        await cloudinary.uploader.destroy(file.filename);
+                    } catch (err) {
+                        console.error(`Failed to delete orphaned image ${file.filename} from Cloudinary:`, err);
+                    }
+                }
+            }
+        }
         return next(new AppError("Feedback text is required.", 400));
     }
 
@@ -42,20 +53,35 @@ export const createFeedback = catchAsync(async (req, res, next) => {
 
     console.log(`[Feedback] Submitting feedback for user: ${req.user.email} with ${images.length} images.`);
 
-    const feedback = new feedbackModel({
-        user: req.user._id,
-        text,
-        images
-    });
+    try {
+        const feedback = new feedbackModel({
+            user: req.user._id,
+            text,
+            images
+        });
 
-    await feedback.save();
+        await feedback.save();
 
-    console.log(`[Feedback] Feedback successfully created with ID: ${feedback._id}`);
+        console.log(`[Feedback] Feedback successfully created with ID: ${feedback._id}`);
 
-    res.status(201).json({
-        status: "success",
-        data: feedback
-    });
+        res.status(201).json({
+            status: "success",
+            data: feedback
+        });
+    } catch (error) {
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                if (file.filename) {
+                    try {
+                        await cloudinary.uploader.destroy(file.filename);
+                    } catch (err) {
+                        console.error(`Failed to delete image ${file.filename} after save failure from Cloudinary:`, err);
+                    }
+                }
+            }
+        }
+        return next(error);
+    }
 });
 
 export const getFeedbacks = catchAsync(async (req, res) => {

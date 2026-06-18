@@ -3,7 +3,10 @@ import { jest } from '@jest/globals';
 // Mocking modules at the very top before app imports
 jest.unstable_mockModule('cloudinary', () => ({
     v2: {
-        config: jest.fn()
+        config: jest.fn(),
+        uploader: {
+            destroy: jest.fn().mockResolvedValue({ result: 'ok' })
+        }
     }
 }));
 
@@ -14,7 +17,10 @@ jest.unstable_mockModule('multer-storage-cloudinary', () => {
                 _handleFile: (req, file, cb) => {
                     file.stream.on('data', () => {});
                     file.stream.on('end', () => {
-                        cb(null, { path: `https://res.cloudinary.com/dummy-cloud/image/upload/v12345/${file.originalname}` });
+                        cb(null, {
+                            path: `https://res.cloudinary.com/dummy-cloud/image/upload/v12345/${file.originalname}`,
+                            filename: `mellowtools_feedbacks/${file.originalname}`
+                        });
                     });
                     file.stream.on('error', (err) => {
                         cb(err);
@@ -59,6 +65,11 @@ describe('Feedback Endpoints & Model Validation', () => {
     let normalUserId;
 
     beforeEach(async () => {
+        const { v2: cloudinary } = await import('cloudinary');
+        if (cloudinary.uploader && cloudinary.uploader.destroy && typeof cloudinary.uploader.destroy.mockClear === 'function') {
+            cloudinary.uploader.destroy.mockClear();
+        }
+
         // Create normal user
         const resNormal = await request(app).post('/api/v1/auth/signup').send(testNormalUser);
         userToken = resNormal.body.token;
@@ -107,6 +118,42 @@ describe('Feedback Endpoints & Model Validation', () => {
             expect(res.body.data.images).toHaveLength(2);
             expect(res.body.data.images[0]).toContain('pic1.png');
             expect(res.body.data.images[1]).toContain('pic2.png');
+        });
+
+        it('should clean up uploaded images from Cloudinary if text validation fails (400)', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', '')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-img-data-2'), 'pic2.png');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toEqual('Feedback text is required.');
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(2);
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(1, 'mellowtools_feedbacks/pic1.png');
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(2, 'mellowtools_feedbacks/pic2.png');
+        });
+
+        it('should clean up uploaded images from Cloudinary if database save fails (500)', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            
+            // Force save to fail by mocking feedbackModel.prototype.save
+            const saveSpy = jest.spyOn(feedbackModel.prototype, 'save')
+                .mockRejectedValue(new Error('Mock DB Save Error'));
+
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Save failure test')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png');
+
+            expect(res.statusCode).toEqual(500);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(1);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/pic1.png');
+
+            saveSpy.mockRestore();
         });
     });
 
