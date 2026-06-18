@@ -1,6 +1,6 @@
 import express from "express";
 import { createFeedback, getFeedbacks, uploadFeedbackImages } from "../controllers/feedback.controller.js";
-import { verifyJWT } from "../middlewares/token.middleware.js";
+
 import { verifyAdmin } from "../middlewares/admin.middleware.js";
 
 const router = express.Router();
@@ -41,7 +41,7 @@ const router = express.Router();
  *       400:
  *         description: Invalid inputs or file limits exceeded.
  */
-router.post("/", verifyJWT, uploadFeedbackImages, createFeedback);
+router.post("/", uploadFeedbackImages, createFeedback);
 
 /**
  * @swagger
@@ -58,6 +58,6 @@ router.post("/", verifyJWT, uploadFeedbackImages, createFeedback);
  *       403:
  *         description: Forbidden. Admin access required.
  */
-router.get("/", verifyJWT, verifyAdmin, getFeedbacks);
+router.get("/", verifyAdmin, getFeedbacks);
 
 export default router;
