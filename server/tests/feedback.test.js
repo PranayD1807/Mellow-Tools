@@ -15,7 +15,7 @@ jest.unstable_mockModule('multer-storage-cloudinary', () => {
         CloudinaryStorage: jest.fn().mockImplementation(() => {
             return {
                 _handleFile: (req, file, cb) => {
-                    file.stream.on('data', () => {});
+                    file.stream.on('data', () => { });
                     file.stream.on('end', () => {
                         cb(null, {
                             path: `https://res.cloudinary.com/dummy-cloud/image/upload/v12345/${file.originalname}`,
@@ -37,7 +37,6 @@ jest.unstable_mockModule('multer-storage-cloudinary', () => {
 // Import using dynamic await import to ensure mocks are registered first
 const { default: request } = await import('supertest');
 const { default: app } = await import('../app.js');
-const { default: mongoose } = await import('mongoose');
 const { default: feedbackModel } = await import('../src/models/feedback.model.js');
 const { default: userModel } = await import('../src/models/user.model.js');
 
@@ -138,7 +137,7 @@ describe('Feedback Endpoints & Model Validation', () => {
 
         it('should clean up uploaded images from Cloudinary if database save fails (500)', async () => {
             const { v2: cloudinary } = await import('cloudinary');
-            
+
             // Force save to fail by mocking feedbackModel.prototype.save
             const saveSpy = jest.spyOn(feedbackModel.prototype, 'save')
                 .mockRejectedValue(new Error('Mock DB Save Error'));

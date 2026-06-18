@@ -1,7 +1,6 @@
 import { jest } from '@jest/globals';
 import request from 'supertest';
 import app from '../app.js';
-import mongoose from 'mongoose';
 import userModel from '../src/models/user.model.js';
 import authModel from '../src/models/auth.model.js';
 import noteModel from '../src/models/note.model.js';
