@@ -30,7 +30,6 @@ describe('Admin Endpoints & Active Users Tracking', () => {
     let adminToken;
     let userToken;
     let adminUserId;
-    let normalUserId;
 
     beforeEach(async () => {
         // Register normal user
@@ -38,7 +37,6 @@ describe('Admin Endpoints & Active Users Tracking', () => {
             .post('/api/v1/auth/signup')
             .send(testUser);
         userToken = userRes.body.token;
-        normalUserId = userRes.body.data.id;
 
         // Register admin user
         const adminRes = await request(app)
