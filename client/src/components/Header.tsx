@@ -16,7 +16,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 
-import { FiLogOut, FiMenu, FiUser, FiShield } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiUser, FiShield, FiMessageSquare } from "react-icons/fi";
 import { RootState } from "@/store/store";
 import Logo from "./Logo";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ import { IoChevronBackOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { GiDeathcab } from "react-icons/gi";
 import ProfileDrawer from "./ProfileDrawer";
+import FeedbackModal from "./FeedbackModal";
 import { useState } from "react";
 
 const Header = () => {
@@ -34,6 +35,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Handle logout
   const handleLogout = () => {
@@ -115,6 +117,14 @@ const Header = () => {
                   <FiUser />
                   Profile
                 </MenuItem>
+                <MenuItem
+                  value="feedback"
+                  onClick={() => setFeedbackOpen(true)}
+                  data-testid="feedback-menu-item"
+                >
+                  <FiMessageSquare />
+                  Feedback
+                </MenuItem>
                 {isAdmin && (
                   <MenuItem value="admin" onClick={() => navigate("/admin")}>
                     <FiShield />
@@ -134,6 +144,13 @@ const Header = () => {
           <ColorModeButton variant="outline" h={10} w={10} />
           {isLoggedIn && location.pathname != "/" && (
             <>
+              <Button
+                variant="outline"
+                onClick={() => setFeedbackOpen(true)}
+                data-testid="feedback-button"
+              >
+                <FiMessageSquare /> Feedback
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => setProfileOpen(true)}
@@ -167,6 +184,10 @@ const Header = () => {
       <ProfileDrawer
         open={profileOpen}
         onOpenChange={(e) => setProfileOpen(e.open)}
+      />
+      <FeedbackModal
+        isOpen={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
       />
     </chakra.header>
   );
