@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import {
     FaUser, FaFileAlt, FaStickyNote, FaBookmark, FaBriefcase,
     FaLock, FaUserPlus, FaShieldAlt, FaCheckCircle, FaSpinner,
-    FaTimesCircle, FaRegClock
+    FaTimesCircle, FaRegClock, FaUserCheck
 } from "react-icons/fa";
 import {
     XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -80,8 +80,10 @@ const AdminPanel = () => {
                     <Heading size="sm" mb={6} textTransform="uppercase" letterSpacing="widest" color="fg.muted" fontWeight="bold">
                         Security & Demographics
                     </Heading>
-                    <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} gap={6}>
+                    <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 6 }} gap={6}>
                         <AdminStatsCard label="Total Users" value={stats.usersCount} icon={<FaUser />} color="blue.500" />
+                        <AdminStatsCard label="Active (24h)" value={stats.activeUsers24h} icon={<FaUserCheck />} color="teal.500" />
+                        <AdminStatsCard label="Active (7d)" value={stats.activeUsers7d} icon={<FaUserCheck />} color="cyan.500" />
                         <AdminStatsCard label="New Users (7d)" value={stats.recentUsers} icon={<FaUserPlus />} color="green.500" />
                         <AdminStatsCard label="E2E Encrypted" value={stats.usersEncrypted} icon={<FaLock />} color="purple.500" />
                         <AdminStatsCard label="2FA Enabled" value={stats.usersWith2FA} icon={<FaShieldAlt />} color="orange.500" />

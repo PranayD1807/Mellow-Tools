@@ -9,66 +9,75 @@ import textTemplateModel from '../src/models/textTemplate.model.js';
 import bookmarkModel from '../src/models/bookmark.model.js';
 import jobApplicationModel from '../src/models/jobApplication.model.js';
 
-describe('Admin Endpoints & Middleware', () => {
+describe('Admin Endpoints & Active Users Tracking', () => {
     const testAdmin = {
-        email: 'admin_test@example.com',
+        email: 'admin@example.com',
         password: 'Password123!',
         displayName: 'Admin User',
         confirmPassword: 'Password123!',
-        passwordKeySalt: 'dummy-salt',
-        encryptedAESKey: 'dummy-encrypted-key'
+        passwordKeySalt: 'dummy-salt-admin',
+        encryptedAESKey: 'dummy-encrypted-key-admin'
     };
 
-    const testNormalUser = {
-        email: 'normal_test@example.com',
+    const testUser = {
+        email: 'user@example.com',
         password: 'Password123!',
         displayName: 'Normal User',
         confirmPassword: 'Password123!',
-        passwordKeySalt: 'dummy-salt',
-        encryptedAESKey: 'dummy-encrypted-key'
+        passwordKeySalt: 'dummy-salt-user',
+        encryptedAESKey: 'dummy-encrypted-key-user'
     };
 
     let adminToken;
-    let normalToken;
+    let userToken;
     let adminUserId;
+    let normalUserId;
 
     beforeEach(async () => {
-        // Sign up normal user
-        const resNormal = await request(app).post('/api/v1/auth/signup').send(testNormalUser);
-        normalToken = resNormal.body.token;
+        // Register normal user
+        const userRes = await request(app)
+            .post('/api/v1/auth/signup')
+            .send(testUser);
+        userToken = userRes.body.token;
+        normalUserId = userRes.body.data.id;
 
-        // Sign up admin user
-        const resAdmin = await request(app).post('/api/v1/auth/signup').send(testAdmin);
-        adminToken = resAdmin.body.token;
-        adminUserId = resAdmin.body.data.id;
+        // Register admin user
+        const adminRes = await request(app)
+            .post('/api/v1/auth/signup')
+            .send(testAdmin);
+        adminToken = adminRes.body.token;
+        adminUserId = adminRes.body.data.id;
 
-        // Set isAdmin: true for the admin user
+        // Elevate admin user in DB
         await userModel.findByIdAndUpdate(adminUserId, { isAdmin: true });
     });
 
-    describe('verifyAdmin Middleware', () => {
-        it('should block unauthorized request without token (401)', async () => {
+    describe('Access Control for /admin/stats', () => {
+        it('should block unauthenticated requests', async () => {
             const res = await request(app).get('/api/v1/admin/stats');
             expect(res.statusCode).toEqual(401);
         });
 
-        it('should block non-admin user (403)', async () => {
+        it('should block non-admin users', async () => {
             const res = await request(app)
                 .get('/api/v1/admin/stats')
-                .set('Authorization', `Bearer ${normalToken}`);
+                .set('Authorization', `Bearer ${userToken}`);
             expect(res.statusCode).toEqual(403);
-            expect(res.body.message).toEqual('Admin access denied.');
+            expect(res.body.message).toMatch(/Admin access denied/i);
         });
 
-        it('should allow admin user (200)', async () => {
+        it('should allow admin users to fetch stats', async () => {
             const res = await request(app)
                 .get('/api/v1/admin/stats')
                 .set('Authorization', `Bearer ${adminToken}`);
             expect(res.statusCode).toEqual(200);
+            expect(res.body).toHaveProperty('usersCount');
+            expect(res.body).toHaveProperty('activeUsers24h');
+            expect(res.body).toHaveProperty('activeUsers7d');
         });
     });
 
-    describe('GET /api/v1/admin/stats - Controller', () => {
+    describe('GET /api/v1/admin/stats - Data Metrics Aggregation', () => {
         it('should aggregate lifetime stats correctly when items are present', async () => {
             // Seed a note
             const note = new noteModel({ user: adminUserId, title: 'Admin Note', text: 'Some text' });
@@ -133,6 +142,90 @@ describe('Admin Endpoints & Middleware', () => {
             spyTemplate.mockRestore();
             spyBookmark.mockRestore();
             spyJob.mockRestore();
+        });
+    });
+
+    describe('lastActiveAt Tracking & Throttling', () => {
+        it('should update lastActiveAt on authenticated requests', async () => {
+            const user = await userModel.findOne({ email: testUser.email });
+            const initialActiveTime = user.lastActiveAt;
+            expect(initialActiveTime).toBeDefined();
+
+            // Mock time to bypass 5-minute throttling
+            const userDb = await userModel.findOne({ email: testUser.email });
+            // Set lastActiveAt to 10 minutes ago
+            userDb.lastActiveAt = new Date(Date.now() - 10 * 60 * 1000);
+            await userDb.save();
+
+            // Send an authenticated request to trigger verifyJWT
+            await request(app)
+                .post('/api/v1/auth/get-info')
+                .set('Authorization', `Bearer ${userToken}`);
+
+            const updatedUser = await userModel.findOne({ email: testUser.email });
+            expect(updatedUser.lastActiveAt.getTime()).toBeGreaterThan(userDb.lastActiveAt.getTime());
+        });
+
+        it('should throttle lastActiveAt updates within 5 minutes', async () => {
+            const userDb = await userModel.findOne({ email: testUser.email });
+            // Set lastActiveAt to 2 minutes ago
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            userDb.lastActiveAt = twoMinutesAgo;
+            await userDb.save();
+
+            // Send authenticated request
+            await request(app)
+                .post('/api/v1/auth/get-info')
+                .set('Authorization', `Bearer ${userToken}`);
+
+            const checkUser = await userModel.findOne({ email: testUser.email });
+            // The timestamp should NOT be updated because 2 minutes < 5 minutes
+            expect(checkUser.lastActiveAt.getTime()).toEqual(twoMinutesAgo.getTime());
+        });
+    });
+
+    describe('Active Users fallback to createdAt', () => {
+        it('should fallback to createdAt if lastActiveAt is missing', async () => {
+            // Unset lastActiveAt for the normal user in the DB directly
+            await userModel.collection.updateOne(
+                { email: testUser.email },
+                { $unset: { lastActiveAt: "" } }
+            );
+
+            // Verify unset succeeded
+            const userRaw = await userModel.findOne({ email: testUser.email }).select('+lastActiveAt').lean();
+            expect(userRaw.lastActiveAt).toBeUndefined();
+
+            // Request admin stats and make sure the user is still counted as active
+            const res = await request(app)
+                .get('/api/v1/admin/stats')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toEqual(200);
+            // Both the admin and normal user should be counted (total 2 users active in last 24h)
+            expect(res.body.activeUsers24h).toEqual(2);
+        });
+
+        it('should not count users whose fallback createdAt is outside the active window', async () => {
+            // Unset lastActiveAt and set createdAt to 2 days ago for normal user directly
+            await userModel.collection.updateOne(
+                { email: testUser.email },
+                { 
+                    $unset: { lastActiveAt: "" },
+                    $set: { createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000) }
+                }
+            );
+
+            // Request admin stats
+            const res = await request(app)
+                .get('/api/v1/admin/stats')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toEqual(200);
+            // Normal user (48h ago) should not be active in 24h window, but admin is active
+            expect(res.body.activeUsers24h).toEqual(1);
+            // Both are still active in the 7d window
+            expect(res.body.activeUsers7d).toEqual(2);
         });
     });
 });
