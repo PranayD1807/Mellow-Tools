@@ -29,7 +29,59 @@ const upload = multer({
     }
 });
 
-export const uploadFeedbackImages = upload.array("images", 2);
+// Intercept storage._handleFile to keep track of uploaded files in req for cleanup in case subsequent uploads fail
+const originalHandleFile = storage._handleFile;
+storage._handleFile = function (req, file, cb) {
+    originalHandleFile.call(this, req, file, (err, info) => {
+        if (err) return cb(err);
+        if (info && info.filename) {
+            req.uploadedFeedbackImages = req.uploadedFeedbackImages || [];
+            req.uploadedFeedbackImages.push(info.filename);
+        }
+        cb(null, info);
+    });
+};
+
+const multerUpload = upload.array("images", 2);
+
+export const uploadFeedbackImages = (req, res, next) => {
+    req.uploadedFeedbackImages = [];
+    
+    multerUpload(req, res, async (err) => {
+        if (err) {
+            // Clean up any files already uploaded during this request
+            if (req.uploadedFeedbackImages && req.uploadedFeedbackImages.length > 0) {
+                for (const filename of req.uploadedFeedbackImages) {
+                    try {
+                        await cloudinary.uploader.destroy(filename);
+                    } catch (cleanupErr) {
+                        console.error(`Failed to clean up image ${filename} after upload failure:`, cleanupErr);
+                    }
+                }
+            }
+
+            // Map MulterError or Cloudinary validation errors to AppError 400
+            let message = err.message || "File upload failed";
+
+            if (
+                err instanceof multer.MulterError ||
+                (err.message && (
+                    err.message.toLowerCase().includes("format") ||
+                    err.message.toLowerCase().includes("limit") ||
+                    err.message.toLowerCase().includes("type") ||
+                    err.message.toLowerCase().includes("cloudinary") ||
+                    err.message.toLowerCase().includes("invalid") ||
+                    err.message.toLowerCase().includes("allowed")
+                ))
+            ) {
+                return next(new AppError(message, 400));
+            }
+
+            return next(err);
+        }
+        next();
+    });
+};
 
 export const createFeedback = catchAsync(async (req, res, next) => {
     const { text } = req.body;

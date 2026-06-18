@@ -12,9 +12,14 @@ jest.unstable_mockModule('cloudinary', () => ({
 
 jest.unstable_mockModule('multer-storage-cloudinary', () => {
     return {
-        CloudinaryStorage: jest.fn().mockImplementation(() => {
+        CloudinaryStorage: jest.fn().mockImplementation((opts) => {
             return {
                 _handleFile: (req, file, cb) => {
+                    const allowedFormats = opts?.params?.allowed_formats || [];
+                    const ext = file.originalname.split('.').pop().toLowerCase();
+                    if (allowedFormats.length > 0 && !allowedFormats.includes(ext)) {
+                        return cb(new Error("Validation error: Invalid image format."));
+                    }
                     file.stream.on('data', () => { });
                     file.stream.on('end', () => {
                         cb(null, {
@@ -153,6 +158,40 @@ describe('Feedback Endpoints & Model Validation', () => {
             expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/pic1.png');
 
             saveSpy.mockRestore();
+        });
+
+        it('should fail with 400 and clean up uploaded images if file limit is exceeded (3 images)', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Too many files')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-img-data-2'), 'pic2.png')
+                .attach('images', Buffer.from('mock-img-data-3'), 'pic3.png');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toBeDefined();
+            // It should clean up the first 2 images that were successfully uploaded before the 3rd one triggered the limit error
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(2);
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(1, 'mellowtools_feedbacks/pic1.png');
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(2, 'mellowtools_feedbacks/pic2.png');
+        });
+
+        it('should fail with 400 and clean up uploaded images if an invalid format is uploaded', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Invalid format test')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-text-data'), 'invalid.txt');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toContain('Validation error: Invalid image format');
+            // The first image was uploaded successfully, so it should be cleaned up. The second one failed upload and didn't generate a public ID.
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(1);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/pic1.png');
         });
     });
 
