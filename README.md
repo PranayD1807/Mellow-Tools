@@ -12,6 +12,8 @@ Mellow Tools offers a suite of utilities to manage your professional life and wo
 -   **Notes**: Create, edit, and organize rich-text notes for your projects or personal thoughts.
 -   **Text Templates**: Manage reusable text snippets for repetitive tasks like cold emails or cover letters.
 -   **Bookmarks**: Save and categorize important links for quick access.
+-   **User Feedback**: Submit text feedback along with up to 2 image attachments directly from the app. Uploads are streamed directly to Cloudinary.
+-   **Admin Dashboard**: Administrators can view real-time statistics (total users, users with 2FA/encryption enabled, monthly activity graphs) and browse/manage submitted feedbacks.
 -   **Automation**: Backend automation capabilities and scripts to streamline data management.
 
 ## 🛠 Tech Stack
@@ -22,7 +24,7 @@ The project is built using a modern full-stack architecture (MERN):
 -   **Framework**: [React](https://reactjs.org/) with [Vite](https://vitejs.dev/)
 -   **Language**: TypeScript
 -   **State Management**: Redux Toolkit
--   **Styling**: Chakra UI, Framer Motion
+-   **Styling**: Chakra UI (v3), Framer Motion
 -   **Rich Text Editor**: TinyMCE, Editor.js
 -   **Routing**: React Router DOM
 
@@ -30,6 +32,7 @@ The project is built using a modern full-stack architecture (MERN):
 -   **Runtime**: [Node.js](https://nodejs.org/)
 -   **Framework**: [Express.js](https://expressjs.com/)
 -   **Database**: MongoDB (with Mongoose ODM)
+-   **Image Storage & Processing**: Cloudinary (streamed directly via `multer` and `multer-storage-cloudinary`)
 -   **Security**: xss-clean, hpp, express-mongo-sanitize, express-rate-limit, CORS
 -   **Authentication**: JWT (JSON Web Tokens)
 
@@ -70,6 +73,12 @@ Create a `.env` file in the `client` directory:
 ```env
 VITE_ENV=DEV # or PROD
 VITE_EDITOR_KEY=your_tinymce_api_key
+VITE_LOGO_DEV_KEY=your_dev_logo_key
+
+# Cloudinary Config
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 **Server** (`server/.env`):
@@ -80,6 +89,13 @@ DATABASE=your_mongodb_connection_string
 MONGODB_PASSWORD=your_mongodb_password
 NODE_ENV=DEV # or PROD
 TOKEN_SECRET=your_jwt_secret_key
+TEMP_PASS=your_temp_password
+
+# Cloudinary Config
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
 # Optional
 PORT=8080
 ```
@@ -125,6 +141,19 @@ cd client
 npm run dev
 ```
 
+## 🧪 Testing
+
+The backend contains a suite of Jest tests covering all routes, middleware, and database operations.
+
+- **ES Modules (ESM) Mocking**: The test runner executes with the `--experimental-vm-modules` flag to enable ES Modules support in Jest.
+- **In-Memory Database**: Tests utilize `mongodb-memory-server` to automatically spin up a local in-memory instance. Data is completely wiped between tests to ensure strict isolation.
+- **Cloudinary Mocking**: Cloudinary integrations are fully mocked using `jest.unstable_mockModule` and dynamic imports to bypass network requirements.
+
+To run the test suite and generate a detailed code coverage report:
+```bash
+cd server
+npm run test
+```
 ## 🤖 Automation Scripts
 
 The `automation` directory contains scripts for specific tasks:
