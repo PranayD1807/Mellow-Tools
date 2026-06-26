@@ -404,7 +404,7 @@ const LandingPage = () => {
           <Text color="bg" fontSize="sm">
             {"Made with ❤️ by "}
             <Link
-              to="https://pranaydhongade.site/"
+              to="https://pranaydhongade.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
             >
