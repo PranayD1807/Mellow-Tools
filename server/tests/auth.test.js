@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../app.js';
-import { jest } from '@jest/globals';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
@@ -272,7 +271,7 @@ describe('Auth Endpoints', () => {
                 expect(res.body.message).toMatch(/invalid token/i); // Assuming global error handler catches it
             });
 
-            it('should fail with 404/401 if the token payload is missing data', async () => {
+            it('should fail with 401 if the token payload is missing data', async () => {
                 // Sign a valid token but without the 'data' field
                 const emptyPayloadToken = jwt.sign(
                     { },
@@ -284,9 +283,8 @@ describe('Auth Endpoints', () => {
                     .post('/api/v1/auth/refresh-token')
                     .send({ refreshToken: emptyPayloadToken });
 
-                // In controller: userModel.findById(undefined) might return 404 or throw CastError handled as 400/500
-                // Let's assert it's just not 200 success
-                expect(res.statusCode).not.toEqual(200);
+                expect(res.statusCode).toEqual(401);
+                expect(res.body.message).toMatch(/invalid token payload/i);
             });
 
             it('should fail with 401 for completely malformed string', async () => {
