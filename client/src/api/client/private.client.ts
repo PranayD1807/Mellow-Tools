@@ -64,6 +64,9 @@ privateClient.interceptors.response.use(
 
           if (data.status === "success" && data.token) {
             localStorage.setItem(LocalStorageConstants.JWT_TOKEN, data.token);
+            if (data.refreshToken) {
+              localStorage.setItem(LocalStorageConstants.REFRESH_TOKEN, data.refreshToken);
+            }
             error.config.headers["Authorization"] = `Bearer ${data.token}`;
             return privateClient(error.config);
           }
