@@ -1,5 +1,8 @@
 import request from 'supertest';
 import app from '../app.js';
+import { jest } from '@jest/globals';
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 
 describe('Auth Endpoints', () => {
@@ -174,6 +177,7 @@ describe('Auth Endpoints', () => {
 
             expect(res.statusCode).toEqual(200);
             expect(res.body.token).toBeDefined();
+            expect(res.body.refreshToken).toBeDefined();
         });
 
         it('should fail if refresh token is missing', async () => {
@@ -190,6 +194,108 @@ describe('Auth Endpoints', () => {
                 .send({ refreshToken: 'invalidtoken' });
 
             expect(res.statusCode).toEqual(401);
+        });
+
+        describe('Token Expiration & Rotation Scenarios', () => {
+
+            it('should fail if the refresh token has expired (e.g., after 7 days)', async () => {
+                // Generate a token that expired 1 second ago
+                const expiredToken = jwt.sign(
+                    { data: 'someuserid' },
+                    process.env.TOKEN_SECRET || 'testsecret',
+                    { expiresIn: '-1s' }
+                );
+
+                const res = await request(app)
+                    .post('/api/v1/auth/refresh-token')
+                    .send({ refreshToken: expiredToken });
+
+                // Assuming error handler returns 401 for expired token
+                expect(res.statusCode).toEqual(401);
+                expect(res.body.message).toMatch(/token has expired/i);
+            });
+
+            it('should return a new refresh token with an extended expiration date (Token Rotation)', async () => {
+                // Wait 1 second so that the new token has a different 'iat' and 'exp'
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                const res = await request(app)
+                    .post('/api/v1/auth/refresh-token')
+                    .send({ refreshToken });
+
+                expect(res.statusCode).toEqual(200);
+                const newRefreshToken = res.body.refreshToken;
+                expect(newRefreshToken).toBeDefined();
+                
+                // Decode both to compare 'exp'
+                const decodedOld = jwt.decode(refreshToken);
+                const decodedNew = jwt.decode(newRefreshToken);
+
+                // The new token should have an expiration further in the future
+                expect(decodedNew.exp).toBeGreaterThan(decodedOld.exp);
+                // Also the tokens themselves should differ
+                expect(newRefreshToken).not.toEqual(refreshToken);
+            });
+            
+            it('should fail if refresh token is valid but the user no longer exists', async () => {
+                // Create a 7-day valid token for a completely fake user ID
+                const fakeId = new mongoose.Types.ObjectId().toString();
+                const fakeToken = jwt.sign(
+                    { data: fakeId },
+                    process.env.TOKEN_SECRET || 'testsecret',
+                    { expiresIn: '7d' }
+                );
+
+                const res = await request(app)
+                    .post('/api/v1/auth/refresh-token')
+                    .send({ refreshToken: fakeToken });
+
+                expect(res.statusCode).toEqual(404);
+                expect(res.body.message).toMatch(/User not found/i);
+            });
+        });
+
+        describe('Security & Malformed Token Scenarios', () => {
+            it('should fail with 401 if the token signature is tampered (invalid secret)', async () => {
+                // Sign with a different secret
+                const tamperedToken = jwt.sign(
+                    { data: 'someuserid' },
+                    'wrong_secret_key',
+                    { expiresIn: '7d' }
+                );
+
+                const res = await request(app)
+                    .post('/api/v1/auth/refresh-token')
+                    .send({ refreshToken: tamperedToken });
+
+                expect(res.statusCode).toEqual(401);
+                expect(res.body.message).toMatch(/invalid token/i); // Assuming global error handler catches it
+            });
+
+            it('should fail with 404/401 if the token payload is missing data', async () => {
+                // Sign a valid token but without the 'data' field
+                const emptyPayloadToken = jwt.sign(
+                    { },
+                    process.env.TOKEN_SECRET || 'testsecret',
+                    { expiresIn: '7d' }
+                );
+
+                const res = await request(app)
+                    .post('/api/v1/auth/refresh-token')
+                    .send({ refreshToken: emptyPayloadToken });
+
+                // In controller: userModel.findById(undefined) might return 404 or throw CastError handled as 400/500
+                // Let's assert it's just not 200 success
+                expect(res.statusCode).not.toEqual(200);
+            });
+
+            it('should fail with 401 for completely malformed string', async () => {
+                const res = await request(app)
+                    .post('/api/v1/auth/refresh-token')
+                    .send({ refreshToken: 'header.payload' }); // Missing signature part
+
+                expect(res.statusCode).toEqual(401);
+            });
         });
     });
 

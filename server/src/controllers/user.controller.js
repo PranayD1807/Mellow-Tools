@@ -198,11 +198,12 @@ export const refreshToken = catchAsync(async (req, res) => {
     const user = await userModel.findById(decoded.data);
     if (!user) throw new AppError("User not found", 404);
 
-    const { token: newToken } = generateTokens(user.id);
+    const { token: newToken, refreshToken: newRefreshToken } = generateTokens(user.id);
 
     res.status(200).json({
         status: "success",
         token: newToken,
+        refreshToken: newRefreshToken,
         message: "Token refreshed successfully.",
     });
 });
