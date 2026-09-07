@@ -1,0 +1,266 @@
+import { jest } from '@jest/globals';
+
+// Mocking modules at the very top before app imports
+jest.unstable_mockModule('cloudinary', () => ({
+    v2: {
+        config: jest.fn(),
+        uploader: {
+            destroy: jest.fn().mockResolvedValue({ result: 'ok' })
+        }
+    }
+}));
+
+jest.unstable_mockModule('multer-storage-cloudinary', () => {
+    return {
+        CloudinaryStorage: jest.fn().mockImplementation((opts) => {
+            return {
+                _handleFile: (req, file, cb) => {
+                    const allowedFormats = opts?.params?.allowed_formats || [];
+                    const ext = file.originalname.split('.').pop().toLowerCase();
+                    if (allowedFormats.length > 0 && !allowedFormats.includes(ext)) {
+                        return cb(new Error("Validation error: Invalid image format."));
+                    }
+                    file.stream.on('data', () => { });
+                    file.stream.on('end', () => {
+                        cb(null, {
+                            path: `https://res.cloudinary.com/dummy-cloud/image/upload/v12345/${file.originalname}`,
+                            filename: `mellowtools_feedbacks/${file.originalname}`
+                        });
+                    });
+                    file.stream.on('error', (err) => {
+                        cb(err);
+                    });
+                },
+                _removeFile: (req, file, cb) => {
+                    cb(null);
+                }
+            };
+        })
+    };
+});
+
+// Import using dynamic await import to ensure mocks are registered first
+const { default: request } = await import('supertest');
+const { default: app } = await import('../app.js');
+const { default: feedbackModel } = await import('../src/models/feedback.model.js');
+const { default: userModel } = await import('../src/models/user.model.js');
+
+describe('Feedback Endpoints & Model Validation', () => {
+    const testNormalUser = {
+        email: 'feedback_user@example.com',
+        password: 'Password123!',
+        displayName: 'Feedback Submitter',
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
+    };
+
+    const testAdminUser = {
+        email: 'feedback_admin@example.com',
+        password: 'Password123!',
+        displayName: 'Feedback Admin',
+        confirmPassword: 'Password123!',
+        passwordKeySalt: 'dummy-salt',
+        encryptedAESKey: 'dummy-encrypted-key'
+    };
+
+    let userToken;
+    let adminToken;
+    let normalUserId;
+
+    beforeEach(async () => {
+        const { v2: cloudinary } = await import('cloudinary');
+        if (cloudinary.uploader && cloudinary.uploader.destroy && typeof cloudinary.uploader.destroy.mockClear === 'function') {
+            cloudinary.uploader.destroy.mockClear();
+        }
+
+        // Create normal user
+        const resNormal = await request(app).post('/api/v1/auth/signup').send(testNormalUser);
+        userToken = resNormal.body.token;
+        normalUserId = resNormal.body.data.id;
+
+        // Create admin user
+        const resAdmin = await request(app).post('/api/v1/auth/signup').send(testAdminUser);
+        adminToken = resAdmin.body.token;
+        await userModel.findByIdAndUpdate(resAdmin.body.data.id, { isAdmin: true });
+    });
+
+    describe('POST /api/v1/feedbacks - Create Feedback', () => {
+        it('should fail if feedback text is empty (400)', async () => {
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({ text: '' });
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toEqual('Feedback text is required.');
+        });
+
+        it('should successfully submit feedback without images (201)', async () => {
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({ text: 'This is a test feedback text.' });
+
+            expect(res.statusCode).toEqual(201);
+            expect(res.body.status).toEqual('success');
+            expect(res.body.data.text).toEqual('This is a test feedback text.');
+            expect(res.body.data.images).toEqual([]);
+        });
+
+        it('should successfully submit feedback with 1 or 2 images (201)', async () => {
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Feedback with images')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-img-data-2'), 'pic2.png');
+
+            expect(res.statusCode).toEqual(201);
+            expect(res.body.status).toEqual('success');
+            expect(res.body.data.text).toEqual('Feedback with images');
+            expect(res.body.data.images).toHaveLength(2);
+            expect(res.body.data.images[0]).toContain('pic1.png');
+            expect(res.body.data.images[1]).toContain('pic2.png');
+        });
+
+        it('should clean up uploaded images from Cloudinary if text validation fails (400)', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', '')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-img-data-2'), 'pic2.png');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toEqual('Feedback text is required.');
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(2);
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(1, 'mellowtools_feedbacks/pic1.png');
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(2, 'mellowtools_feedbacks/pic2.png');
+        });
+
+        it('should clean up uploaded images from Cloudinary if database save fails (500)', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+
+            // Force save to fail by mocking feedbackModel.prototype.save
+            const saveSpy = jest.spyOn(feedbackModel.prototype, 'save')
+                .mockRejectedValue(new Error('Mock DB Save Error'));
+
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Save failure test')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png');
+
+            expect(res.statusCode).toEqual(500);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(1);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/pic1.png');
+
+            saveSpy.mockRestore();
+        });
+
+        it('should fail with 400 and clean up uploaded images if file limit is exceeded (3 images)', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Too many files')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-img-data-2'), 'pic2.png')
+                .attach('images', Buffer.from('mock-img-data-3'), 'pic3.png');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toBeDefined();
+            // It should clean up the first 2 images that were successfully uploaded before the 3rd one triggered the limit error
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(2);
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(1, 'mellowtools_feedbacks/pic1.png');
+            expect(cloudinary.uploader.destroy).toHaveBeenNthCalledWith(2, 'mellowtools_feedbacks/pic2.png');
+        });
+
+        it('should fail with 400 and clean up uploaded images if an invalid format is uploaded', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Invalid format test')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png')
+                .attach('images', Buffer.from('mock-text-data'), 'invalid.txt');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toContain('Validation error: Invalid image format');
+            // The first image was uploaded successfully, so it should be cleaned up. The second one failed upload and didn't generate a public ID.
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(1);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/pic1.png');
+        });
+    });
+
+    describe('GET /api/v1/feedbacks - Admin Fetch Feedbacks', () => {
+        beforeEach(async () => {
+            // Seed a feedback
+            const feedback = new feedbackModel({
+                user: normalUserId,
+                text: 'Seeded User Feedback'
+            });
+            await feedback.save();
+        });
+
+        it('should block non-admin from fetching feedbacks (403)', async () => {
+            const res = await request(app)
+                .get('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`);
+
+            expect(res.statusCode).toEqual(403);
+        });
+
+        it('should allow admin to fetch all feedbacks populated with user details (200)', async () => {
+            const res = await request(app)
+                .get('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.status).toEqual('success');
+            expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+            expect(res.body.data[0].text).toEqual('Seeded User Feedback');
+            expect(res.body.data[0].user).toHaveProperty('displayName', testNormalUser.displayName);
+            expect(res.body.data[0].user).toHaveProperty('email', testNormalUser.email);
+        });
+    });
+
+    describe('Feedback Model Schema Constraints', () => {
+        it('should fail mongoose validation if more than 2 images are provided', async () => {
+            const invalidFeedback = new feedbackModel({
+                user: normalUserId,
+                text: 'Invalid feedback with 3 images',
+                images: ['img1.png', 'img2.png', 'img3.png']
+            });
+
+            let error;
+            try {
+                await invalidFeedback.validate();
+            } catch (err) {
+                error = err;
+            }
+
+            expect(error).toBeDefined();
+            expect(error.errors.images.message).toEqual('A maximum of 2 images are allowed per feedback.');
+        });
+
+        it('should pass mongoose validation if 2 or fewer images are provided', async () => {
+            const validFeedback = new feedbackModel({
+                user: normalUserId,
+                text: 'Valid feedback with 2 images',
+                images: ['img1.png', 'img2.png']
+            });
+
+            let error;
+            try {
+                await validFeedback.validate();
+            } catch (err) {
+                error = err;
+            }
+
+            expect(error).toBeUndefined();
+        });
+    });
+});

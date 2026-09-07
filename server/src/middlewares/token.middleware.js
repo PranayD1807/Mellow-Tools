@@ -16,6 +16,19 @@ export const verifyJWT = catchAsync(async (req, res, next) => {
 
     const user = await userModel.findById(tokenDecoded.data);
     if (!user) throw new AppError("Unauthorized.", 401);
+
+    // Throttled update of lastActiveAt to avoid excessive DB writes.
+    // Use user.isInit('lastActiveAt') to check if the field is physically initialized from the DB document.
+    // Add hasIsInit check to prevent crashes on mocked user objects in unit tests.
+    const now = new Date();
+    const hasIsInit = typeof user.isInit === 'function';
+    if (!hasIsInit || !user.isInit('lastActiveAt') || (now - new Date(user.lastActiveAt)) > 5 * 60 * 1000) {
+        if (hasIsInit) {
+            await userModel.updateOne({ _id: user._id }, { $set: { lastActiveAt: now } });
+            user.lastActiveAt = now;
+        }
+    }
+
     req.user = user;
     next();
 });

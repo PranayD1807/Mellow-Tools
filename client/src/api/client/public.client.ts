@@ -20,7 +20,11 @@ const publicClient = axios.create({
 publicClient.interceptors.request.use(
   (cfg: InternalAxiosRequestConfig) => {
     cfg.headers = cfg.headers || {};
-    cfg.headers["Content-Type"] = "application/json";
+    if (cfg.data instanceof FormData) {
+      delete cfg.headers["Content-Type"];
+    } else if (!cfg.headers["Content-Type"]) {
+      cfg.headers["Content-Type"] = "application/json";
+    }
     return cfg;
   },
   (error) => {

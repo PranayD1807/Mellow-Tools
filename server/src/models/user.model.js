@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    lastActiveAt: {
+        type: Date,
+        default: Date.now
     }
 }, modelOptions);
 
