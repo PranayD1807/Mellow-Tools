@@ -220,6 +220,15 @@ const SignupForm: React.FC<{ toggleAuthMode: () => void }> = ({
                     />
                   </Field>
                 </Grid>
+                {/* Warn users that password-based encryption means we can't recover their data */}
+                <Text
+                  fontSize="xs"
+                  color="orange.400"
+                  textAlign="left"
+                >
+                  ⚠️ Important: Your data is encrypted using this password. We
+                  cannot recover it for you. Please store it securely.
+                </Text>
                 <Button
                   colorScheme="blue"
                   type="submit"
