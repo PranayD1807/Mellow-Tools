@@ -1,17 +1,15 @@
+import "./loadEnv.js";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import hpp from "hpp";
 import cors from "cors";
-import dotenv from "dotenv";
 import globalErrorHandler from "./src/controllers/error.controller.js";
 import routes from "./src/routes/index.js";
 import AppError from "./src/utils/appError.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./src/utils/swagger.js";
-
-dotenv.config({ path: "./.env" });
 
 const app = express();
 

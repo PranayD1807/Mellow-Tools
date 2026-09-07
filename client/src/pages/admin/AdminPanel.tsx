@@ -22,6 +22,7 @@ import {
 import SEO from "@/components/SEO";
 import adminApi, { AdminStatsResponse } from "@/api/modules/admin.api";
 import AdminStatsCard from "@/components/AdminStatsCard";
+import FeedbackViewer from "./FeedbackViewer";
 
 const AdminPanel = () => {
     const [stats, setStats] = useState<AdminStatsResponse | null>(null);
@@ -140,7 +141,7 @@ const AdminPanel = () => {
                                         <XAxis dataKey="date" fontSize={12} minTickGap={20} tickLine={false} axisLine={false} />
                                         <YAxis allowDecimals={false} fontSize={12} domain={[0, (dataMax: number) => Math.max(dataMax, 5)]} tickLine={false} axisLine={false} />
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backgroundColor: '#1A202C', color: '#FFFFFF' }} labelStyle={{ color: '#FFFFFF' }} />
                                         <Area type="monotone" dataKey="users" name="New Users" stroke="#3182CE" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
                                     </AreaChart>
                                 </ResponsiveContainer>
@@ -169,7 +170,7 @@ const AdminPanel = () => {
                                         <XAxis dataKey="date" fontSize={12} minTickGap={20} tickLine={false} axisLine={false} />
                                         <YAxis allowDecimals={false} fontSize={12} domain={[0, (dataMax: number) => Math.max(dataMax, 5)]} tickLine={false} axisLine={false} />
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backgroundColor: '#1A202C', color: '#FFFFFF' }} labelStyle={{ color: '#FFFFFF' }} />
                                         <Legend verticalAlign="top" height={36} iconType="circle" />
                                         <Area type="monotone" dataKey="templatesCreated" name="Created" stroke="#319795" strokeWidth={3} fillOpacity={1} fill="url(#colorTemplatesCreated)" />
                                         <Area type="monotone" dataKey="templatesUpdated" name="Updated" stroke="#D69E2E" strokeWidth={3} fillOpacity={1} fill="url(#colorTemplatesUpdated)" />
@@ -200,7 +201,7 @@ const AdminPanel = () => {
                                         <XAxis dataKey="date" fontSize={12} minTickGap={20} tickLine={false} axisLine={false} />
                                         <YAxis allowDecimals={false} fontSize={12} domain={[0, (dataMax: number) => Math.max(dataMax, 5)]} tickLine={false} axisLine={false} />
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backgroundColor: '#1A202C', color: '#FFFFFF' }} labelStyle={{ color: '#FFFFFF' }} />
                                         <Legend verticalAlign="top" height={36} iconType="circle" />
                                         <Area type="monotone" dataKey="notesCreated" name="Created" stroke="#D69E2E" strokeWidth={3} fillOpacity={1} fill="url(#colorNotesCreated)" />
                                         <Area type="monotone" dataKey="notesUpdated" name="Updated" stroke="#E53E3E" strokeWidth={3} fillOpacity={1} fill="url(#colorNotesUpdated)" />
@@ -231,7 +232,7 @@ const AdminPanel = () => {
                                         <XAxis dataKey="date" fontSize={12} minTickGap={20} tickLine={false} axisLine={false} />
                                         <YAxis allowDecimals={false} fontSize={12} domain={[0, (dataMax: number) => Math.max(dataMax, 5)]} tickLine={false} axisLine={false} />
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backgroundColor: '#1A202C', color: '#FFFFFF' }} labelStyle={{ color: '#FFFFFF' }} />
                                         <Legend verticalAlign="top" height={36} iconType="circle" />
                                         <Area type="monotone" dataKey="bookmarksCreated" name="Created" stroke="#00B5D8" strokeWidth={3} fillOpacity={1} fill="url(#colorBookmarksCreated)" />
                                         <Area type="monotone" dataKey="bookmarksUpdated" name="Updated" stroke="#3182CE" strokeWidth={3} fillOpacity={1} fill="url(#colorBookmarksUpdated)" />
@@ -263,7 +264,7 @@ const AdminPanel = () => {
                                         <XAxis dataKey="date" fontSize={12} minTickGap={20} tickLine={false} axisLine={false} />
                                         <YAxis allowDecimals={false} fontSize={12} domain={[0, (dataMax: number) => Math.max(dataMax, 5)]} tickLine={false} axisLine={false} />
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
-                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
+                                        <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backgroundColor: '#1A202C', color: '#FFFFFF' }} labelStyle={{ color: '#FFFFFF' }} />
                                         <Legend verticalAlign="top" height={36} iconType="circle" />
                                         <Area type="monotone" dataKey="jobsCreated" name="Created" stroke="#805AD5" strokeWidth={3} fillOpacity={1} fill="url(#colorJobsCreated)" />
                                         <Area type="monotone" dataKey="jobsUpdated" name="Updated" stroke="#48BB78" strokeWidth={3} fillOpacity={1} fill="url(#colorJobsUpdated)" />
@@ -273,6 +274,14 @@ const AdminPanel = () => {
                         </Box>
 
                     </SimpleGrid>
+                </Box>
+
+                {/* Feedbacks Section */}
+                <Box mb={8}>
+                    <Heading size="sm" mb={6} textTransform="uppercase" letterSpacing="widest" color="fg.muted" fontWeight="bold">
+                        User Feedbacks
+                    </Heading>
+                    <FeedbackViewer />
                 </Box>
 
             </Flex>

@@ -8,6 +8,7 @@ import noteRoutes from "./note.routes.js"
 import bookmarkRoutes from "./bookmark.routes.js"
 import jobApplicationRoutes from "./jobApplication.routes.js"
 import adminRoutes from "./admin.routes.js"
+import feedbackRoutes from "./feedback.routes.js"
 
 router.use("/auth", authRoutes);
 router.use("/text-templates", verifyJWT, textTemplateRoutes);
@@ -15,5 +16,6 @@ router.use("/notes", verifyJWT, noteRoutes);
 router.use("/bookmarks", verifyJWT, bookmarkRoutes);
 router.use("/job-applications", verifyJWT, jobApplicationRoutes);
 router.use("/admin", adminRoutes);
+router.use("/feedbacks", verifyJWT, feedbackRoutes);
 
 export default router;
