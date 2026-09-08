@@ -21,7 +21,8 @@ import CensoredText from "./CensoredText";
 import { TextNote } from "@/models/TextNote";
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from "./ui/menu";
 import { toast } from "react-toastify";
-import Linkify from "react-linkify";
+import LinkifyModule from "react-linkify";
+const Linkify = (LinkifyModule as unknown as { default?: typeof LinkifyModule }).default || LinkifyModule;
 import { HiOutlineDotsVertical } from "react-icons/hi";
 
 interface NoteItemProps {
