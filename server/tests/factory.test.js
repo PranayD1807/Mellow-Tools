@@ -54,6 +54,31 @@ describe('handlerFactory - Unit Tests', () => {
             );
             expect(mockRes.status).toHaveBeenCalledWith(200);
         });
+
+        it('should sanitize nested query injection operators in request body', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
+            mockReq.body = { name: 'Test', nested: { $ne: null } };
+
+            const handler = factory.updateOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+                { _id: '123' },
+                { name: 'Test', nested: { $eq: { $ne: null } } },
+                expect.any(Object)
+            );
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should pass error to next if body contains prohibited query operators like $where', async () => {
+            mockReq.body = { name: 'Test', $where: '1 == 1' };
+
+            const handler = factory.updateOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(next).toHaveBeenCalledWith(expect.any(Error));
+            expect(mockModel.findOneAndUpdate).not.toHaveBeenCalled();
+        });
     });
 
     describe('getOne', () => {

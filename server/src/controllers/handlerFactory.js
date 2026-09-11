@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import catchAsync from "./../utils/catchAsync.js";
 import AppError from "./../utils/appError.js";
 import APIFeatures from "./../utils/apiFeatures.js";
@@ -19,9 +20,10 @@ export function deleteOne(Model, preFilter = {}) {
 
 export function updateOne(Model, preFilter = {}) {
     return catchAsync(async (req, res, next) => {
+        const safeUpdate = mongoose.sanitizeFilter(req.body);
         const doc = await Model.findOneAndUpdate(
             { _id: req.params.id, ...preFilter },
-            req.body, {
+            safeUpdate, {
             new: true,
             runValidators: true,
         });

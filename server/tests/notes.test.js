@@ -173,6 +173,17 @@ describe('Note Endpoints', () => {
 
             expect(res.statusCode).toEqual(404);
         });
+
+        it('should sanitize and strip prohibited query operators in update body', async () => {
+            const res = await request(app)
+                .patch(`/api/v1/notes/${noteId}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({ title: 'Sanitized Title', $where: '1 == 1' });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.data.title).toEqual('Sanitized Title');
+            expect(res.body.data.$where).toBeUndefined();
+        });
     });
 
     describe('DELETE /api/v1/notes/:id', () => {
