@@ -80,6 +80,21 @@ describe('handlerFactory - Unit Tests', () => {
             expect(mockRes.status).toHaveBeenCalledWith(200);
         });
 
+        it('should handle updateOne with allowedFields when req.body is undefined', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
+            mockReq.body = undefined;
+
+            const handler = factory.updateOne(mockModel, {}, ['title', 'description']);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+                { _id: '123' },
+                { $set: {} },
+                expect.any(Object)
+            );
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
         it('should restrict updates to allowedFields when provided', async () => {
             mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
             mockReq.body = { title: 'Allowed Title', extra: 'Ignored', user: 'hacker' };

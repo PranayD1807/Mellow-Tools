@@ -21,20 +21,21 @@ export function updateOne(Model, preFilter = {}, allowedFields = []) {
     return catchAsync(async (req, res, next) => {
         const updateData = {};
         const protectedFields = new Set(["_id", "id", "user", "createdAt", "updatedAt", "__v"]);
+        const body = req.body || {};
 
         if (Array.isArray(allowedFields) && allowedFields.length > 0) {
             for (const field of allowedFields) {
                 if (
-                    req.body[field] !== undefined &&
+                    body[field] !== undefined &&
                     !protectedFields.has(field) &&
                     !field.startsWith("$") &&
                     !field.includes(".")
                 ) {
-                    updateData[field] = req.body[field];
+                    updateData[field] = body[field];
                 }
             }
         } else {
-            for (const [key, value] of Object.entries(req.body || {})) {
+            for (const [key, value] of Object.entries(body)) {
                 if (
                     !protectedFields.has(key) &&
                     !key.startsWith("$") &&
