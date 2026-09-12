@@ -8,7 +8,8 @@ export const createBookmark = (req, res, next) => {
 
 export const updateBookmark = (req, res, next) => {
     const userFilter = { user: req.user.id };
-    return updateOne(bookmarkModel, userFilter)(req, res, next);
+    const allowedFields = ['label', 'note', 'url', 'logoUrl'];
+    return updateOne(bookmarkModel, userFilter, allowedFields)(req, res, next);
 };
 
 export const getAllBookmarks = (req, res, next) => {

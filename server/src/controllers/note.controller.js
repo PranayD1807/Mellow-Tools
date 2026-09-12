@@ -8,7 +8,8 @@ export const createNote = (req, res, next) => {
 
 export const updateNote = (req, res, next) => {
     const userFilter = { user: req.user.id };
-    return updateOne(noteModel, userFilter)(req, res, next);
+    const allowedFields = ['title', 'text'];
+    return updateOne(noteModel, userFilter, allowedFields)(req, res, next);
 };
 
 export const getAllNotes = (req, res, next) => {
