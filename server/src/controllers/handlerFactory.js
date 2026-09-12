@@ -17,14 +17,43 @@ export function deleteOne(Model, preFilter = {}) {
     });
 }
 
-export function updateOne(Model, preFilter = {}) {
+export function updateOne(Model, preFilter = {}, allowedFields = []) {
     return catchAsync(async (req, res, next) => {
+        const updateData = {};
+        const protectedFields = new Set(["_id", "id", "user", "createdAt", "updatedAt", "__v"]);
+        const body = req.body || {};
+
+        if (Array.isArray(allowedFields) && allowedFields.length > 0) {
+            for (const field of allowedFields) {
+                if (
+                    body[field] !== undefined &&
+                    !protectedFields.has(field) &&
+                    !field.startsWith("$") &&
+                    !field.includes(".")
+                ) {
+                    updateData[field] = body[field];
+                }
+            }
+        } else {
+            for (const [key, value] of Object.entries(body)) {
+                if (
+                    !protectedFields.has(key) &&
+                    !key.startsWith("$") &&
+                    !key.includes(".")
+                ) {
+                    updateData[key] = value;
+                }
+            }
+        }
+
         const doc = await Model.findOneAndUpdate(
             { _id: req.params.id, ...preFilter },
-            req.body, {
-            new: true,
-            runValidators: true,
-        });
+            { $set: updateData },
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
 
         if (!doc) {
             return next(new AppError("No document found with that ID", 404));
@@ -112,12 +141,21 @@ export function bulkUpdate(Model, preFilter = {}) {
             }
         }
 
-        const bulkOps = updates.map((update) => ({
-            updateOne: {
-                filter: { _id: update.id, ...preFilter },
-                update: { $set: update.data },
-            },
-        }));
+        const protectedFields = new Set(["_id", "id", "user", "createdAt", "updatedAt", "__v"]);
+        const bulkOps = updates.map((update) => {
+            const sanitizedData = {};
+            for (const [key, value] of Object.entries(update.data)) {
+                if (!protectedFields.has(key) && !key.startsWith("$") && !key.includes(".")) {
+                    sanitizedData[key] = value;
+                }
+            }
+            return {
+                updateOne: {
+                    filter: { _id: update.id, ...preFilter },
+                    update: { $set: sanitizedData },
+                },
+            };
+        });
 
         const result = await Model.bulkWrite(bulkOps);
 

@@ -10,11 +10,51 @@ jest.unstable_mockModule('cloudinary', () => ({
     }
 }));
 
+import multer from 'multer';
+
 jest.unstable_mockModule('multer-storage-cloudinary', () => {
     return {
         CloudinaryStorage: jest.fn().mockImplementation((opts) => {
             return {
                 _handleFile: (req, file, cb) => {
+                    if (file.originalname === 'generic-err.png') {
+                        if (req.uploadedFeedbackImages) {
+                            req.uploadedFeedbackImages.push('mellowtools_feedbacks/cleanup-fail.png');
+                        }
+                        return cb(new Error("Internal system error"));
+                    }
+                    if (file.originalname === 'multer-no-msg.png') {
+                        const err = new multer.MulterError('LIMIT_UNEXPECTED_FILE');
+                        err.message = '';
+                        return cb(err);
+                    }
+                    if (file.originalname === 'no-filename.png') {
+                        file.stream.on('data', () => { });
+                        file.stream.on('end', () => {
+                            cb(null, {
+                                path: `https://res.cloudinary.com/dummy-cloud/image/upload/v12345/${file.originalname}`
+                            });
+                        });
+                        return;
+                    }
+                    if (file.originalname === 'null-info.png') {
+                        file.stream.on('data', () => { });
+                        file.stream.on('end', () => {
+                            cb(null, null);
+                        });
+                        return;
+                    }
+                    if (file.originalname === 'unset-images.png') {
+                        delete req.uploadedFeedbackImages;
+                        file.stream.on('data', () => { });
+                        file.stream.on('end', () => {
+                            cb(null, {
+                                path: `https://res.cloudinary.com/dummy-cloud/image/upload/v12345/${file.originalname}`,
+                                filename: `mellowtools_feedbacks/${file.originalname}`
+                            });
+                        });
+                        return;
+                    }
                     const allowedFormats = opts?.params?.allowed_formats || [];
                     const ext = file.originalname.split('.').pop().toLowerCase();
                     if (allowedFormats.length > 0 && !allowedFormats.includes(ext)) {
@@ -192,6 +232,136 @@ describe('Feedback Endpoints & Model Validation', () => {
             // The first image was uploaded successfully, so it should be cleaned up. The second one failed upload and didn't generate a public ID.
             expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(1);
             expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/pic1.png');
+        });
+
+        it('should catch and log error if cloudinary destroy fails during text validation cleanup', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            cloudinary.uploader.destroy.mockRejectedValueOnce(new Error('Cloudinary Network Failure'));
+
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', '')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toEqual('Feedback text is required.');
+        });
+
+        it('should catch and log error if cloudinary destroy fails during db save failure cleanup', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            const saveSpy = jest.spyOn(feedbackModel.prototype, 'save')
+                .mockRejectedValueOnce(new Error('Mock DB Save Error'));
+            cloudinary.uploader.destroy.mockRejectedValueOnce(new Error('Cloudinary Delete Error'));
+
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Save failure test')
+                .attach('images', Buffer.from('mock-img-data-1'), 'pic1.png');
+
+            expect(res.statusCode).toEqual(500);
+            saveSpy.mockRestore();
+        });
+
+        it('should handle generic upload error and catch cleanup error in uploadFeedbackImages middleware', async () => {
+            const { v2: cloudinary } = await import('cloudinary');
+            cloudinary.uploader.destroy.mockRejectedValueOnce(new Error('Cloudinary Delete Failed'));
+
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Generic error test')
+                .attach('images', Buffer.from('mock-img-data'), 'generic-err.png');
+
+            expect(res.statusCode).toBe(500);
+            expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('mellowtools_feedbacks/cleanup-fail.png');
+        });
+
+        it('should clean up correctly when the very first file fails upload and uploadedFeedbackImages is empty', async () => {
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'First file invalid')
+                .attach('images', Buffer.from('mock-text-data'), 'invalid.txt');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toContain('Validation error: Invalid image format');
+        });
+
+        it('should handle database save failure when no images are attached', async () => {
+            const saveSpy = jest.spyOn(feedbackModel.prototype, 'save')
+                .mockRejectedValueOnce(new Error('Mock DB Save Error No Images'));
+
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .send({ text: 'Save failure no images' });
+
+            expect(res.statusCode).toEqual(500);
+            saveSpy.mockRestore();
+        });
+
+        it('should fallback to default message if MulterError has empty message', async () => {
+            const res = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Multer empty message')
+                .attach('images', Buffer.from('mock-img-data'), 'multer-no-msg.png');
+
+            expect(res.statusCode).toEqual(400);
+            expect(res.body.message).toEqual('File upload failed');
+        });
+
+        it('should handle file without filename property and null info in _handleFile and cleanups', async () => {
+            // 1. no-filename with valid text
+            const res1 = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'No filename file')
+                .attach('images', Buffer.from('mock-img-data'), 'no-filename.png');
+
+            expect(res1.statusCode).toEqual(201);
+
+            // 2. null-info with valid text
+            const res2 = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Null info file')
+                .attach('images', Buffer.from('mock-img-data'), 'null-info.png');
+
+            expect(res2.statusCode).toEqual(201);
+
+            // 3. unset-images to test req.uploadedFeedbackImages fallback
+            const res3 = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Unset images test')
+                .attach('images', Buffer.from('mock-img-data'), 'unset-images.png');
+
+            expect(res3.statusCode).toEqual(201);
+
+            // 4. no-filename with empty text (line 92 !file.filename branch)
+            const res4 = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', '')
+                .attach('images', Buffer.from('mock-img-data'), 'no-filename.png');
+
+            expect(res4.statusCode).toEqual(400);
+
+            // 5. no-filename with save error (line 126 !file.filename branch)
+            const saveSpy = jest.spyOn(feedbackModel.prototype, 'save')
+                .mockRejectedValueOnce(new Error('Mock DB Save Error No Filename'));
+
+            const res5 = await request(app)
+                .post('/api/v1/feedbacks')
+                .set('Authorization', `Bearer ${userToken}`)
+                .field('text', 'Save error no filename')
+                .attach('images', Buffer.from('mock-img-data'), 'no-filename.png');
+
+            expect(res5.statusCode).toEqual(500);
+            saveSpy.mockRestore();
         });
     });
 

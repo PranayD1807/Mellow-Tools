@@ -8,7 +8,8 @@ export const createTextTemplate = (req, res, next) => {
 
 export const updateTextTemplate = (req, res, next) => {
     const userFilter = { user: req.user.id };
-    return updateOne(textTemplateModel, userFilter)(req, res, next);
+    const allowedFields = ['title', 'content', 'placeholders'];
+    return updateOne(textTemplateModel, userFilter, allowedFields)(req, res, next);
 };
 
 export const getAllTextTemplates = (req, res, next) => {

@@ -54,7 +54,8 @@ export const getJobApplication = (req, res, next) => {
 
 export const updateJobApplication = (req, res, next) => {
     const userFilter = { user: req.user.id };
-    return updateOne(jobApplicationModel, userFilter)(req, res, next);
+    const allowedFields = ['company', 'role', 'location', 'status', 'jobLink', 'appliedOn', 'note', 'interviewStage', 'nextInterviewDate'];
+    return updateOne(jobApplicationModel, userFilter, allowedFields)(req, res, next);
 };
 
 export const deleteJobApplication = (req, res, next) => {

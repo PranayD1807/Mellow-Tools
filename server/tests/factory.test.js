@@ -38,10 +38,20 @@ describe('handlerFactory - Unit Tests', () => {
             expect(mockModel.findOneAndDelete).toHaveBeenCalledWith({ _id: '123' });
             expect(mockRes.status).toHaveBeenCalledWith(204);
         });
+
+        it('should return 404 if document not found in deleteOne', async () => {
+            mockModel.findOneAndDelete.mockResolvedValue(null);
+
+            const handler = factory.deleteOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
+            expect(next.mock.calls[0][0].statusCode).toBe(404);
+        });
     });
 
     describe('updateOne', () => {
-        it('should use default preFilter if not provided', async () => {
+        it('should use default preFilter if not provided and construct $set', async () => {
             mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
 
             const handler = factory.updateOne(mockModel);
@@ -49,10 +59,86 @@ describe('handlerFactory - Unit Tests', () => {
 
             expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
                 { _id: '123' },
-                mockReq.body,
+                { $set: { name: 'Test' } },
                 expect.any(Object)
             );
             expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should handle updateOne when req.body is undefined', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
+            mockReq.body = undefined;
+
+            const handler = factory.updateOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+                { _id: '123' },
+                { $set: {} },
+                expect.any(Object)
+            );
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should handle updateOne with allowedFields when req.body is undefined', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
+            mockReq.body = undefined;
+
+            const handler = factory.updateOne(mockModel, {}, ['title', 'description']);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+                { _id: '123' },
+                { $set: {} },
+                expect.any(Object)
+            );
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should restrict updates to allowedFields when provided', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
+            mockReq.body = { title: 'Allowed Title', extra: 'Ignored', user: 'hacker' };
+
+            const handler = factory.updateOne(mockModel, {}, ['title']);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+                { _id: '123' },
+                { $set: { title: 'Allowed Title' } },
+                expect.any(Object)
+            );
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should reject protected fields like user and update operators in updateOne', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue({ id: '123' });
+            mockReq.body = {
+                name: 'Valid Name',
+                user: 'evilUserId',
+                _id: 'evilDocId',
+                $set: { user: 'evilUserId' },
+                $where: '1 == 1'
+            };
+
+            const handler = factory.updateOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.findOneAndUpdate).toHaveBeenCalledWith(
+                { _id: '123' },
+                { $set: { name: 'Valid Name' } },
+                expect.any(Object)
+            );
+            expect(mockRes.status).toHaveBeenCalledWith(200);
+        });
+
+        it('should return 404 if document not found in updateOne', async () => {
+            mockModel.findOneAndUpdate.mockResolvedValue(null);
+
+            const handler = factory.updateOne(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(next).toHaveBeenCalledWith(expect.any(AppError));
+            expect(next.mock.calls[0][0].statusCode).toBe(404);
         });
     });
 
@@ -145,6 +231,33 @@ describe('handlerFactory - Unit Tests', () => {
                 status: 'success',
                 data: mockDoc
             });
+        });
+    });
+
+    describe('bulkUpdate', () => {
+        it('should bulk update with default preFilter', async () => {
+            mockModel.bulkWrite = jest.fn().mockResolvedValue({
+                matchedCount: 1,
+                modifiedCount: 1
+            });
+            mockReq.body = {
+                updates: [
+                    { id: '123', data: { name: 'Updated', user: 'hacker' } }
+                ]
+            };
+
+            const handler = factory.bulkUpdate(mockModel);
+            await handler(mockReq, mockRes, next);
+
+            expect(mockModel.bulkWrite).toHaveBeenCalledWith([
+                {
+                    updateOne: {
+                        filter: { _id: '123' },
+                        update: { $set: { name: 'Updated' } }
+                    }
+                }
+            ]);
+            expect(mockRes.status).toHaveBeenCalledWith(200);
         });
     });
 });

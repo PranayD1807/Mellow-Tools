@@ -173,6 +173,38 @@ describe('Note Endpoints', () => {
 
             expect(res.statusCode).toEqual(404);
         });
+
+        it('should sanitize and strip prohibited query operators in update body', async () => {
+            const res = await request(app)
+                .patch(`/api/v1/notes/${noteId}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({ title: 'Sanitized Title', $where: '1 == 1' });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.data.title).toEqual('Sanitized Title');
+            expect(res.body.data.$where).toBeUndefined();
+        });
+
+        it('should prevent reassigning the document user field via update body or $set', async () => {
+            const fakeOtherUserId = new mongoose.Types.ObjectId().toString();
+            const res = await request(app)
+                .patch(`/api/v1/notes/${noteId}`)
+                .set('Authorization', `Bearer ${token}`)
+                .send({
+                    title: 'Reassignment Attempt',
+                    user: fakeOtherUserId,
+                    $set: { user: fakeOtherUserId }
+                });
+
+            expect(res.statusCode).toEqual(200);
+            expect(res.body.data.title).toEqual('Reassignment Attempt');
+
+            const verifyRes = await request(app)
+                .get(`/api/v1/notes/${noteId}`)
+                .set('Authorization', `Bearer ${token}`);
+            expect(verifyRes.statusCode).toEqual(200);
+            expect(verifyRes.body.data.title).toEqual('Reassignment Attempt');
+        });
     });
 
     describe('DELETE /api/v1/notes/:id', () => {
