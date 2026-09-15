@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 
 import { HelmetProvider } from "react-helmet-async";
+import { Analytics } from "@vercel/analytics/react";
 import { useSelector } from "react-redux";
 import AppLayout from "./layout/AppLayout";
 import Auth from "./pages/auth/Auth";
@@ -106,6 +107,7 @@ const App = () => {
   return (
     <HelmetProvider>
       <RouterProvider router={router} />
+      <Analytics />
     </HelmetProvider>
   );
 };
