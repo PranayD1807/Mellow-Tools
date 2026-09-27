@@ -7,8 +7,16 @@ import jobApplicationModel from "../models/jobApplication.model.js";
 import catchAsync from "../utils/catchAsync.js";
 
 const getLifetimeStats = async (model, dateField) => {
+    const matchCondition = { [dateField]: { $ne: null } };
+    
+    // If we're tracking 'updatedAt', ensure we only count actual updates
+    // where updatedAt is strictly not equal to createdAt.
+    if (dateField === 'updatedAt') {
+        matchCondition.$expr = { $ne: ["$createdAt", "$updatedAt"] };
+    }
+
     const stats = await model.aggregate([
-        { $match: { [dateField]: { $ne: null } } },
+        { $match: matchCondition },
         { $group: { _id: { $dateToString: { format: "%Y-%m", date: `$${dateField}` } }, count: { $sum: 1 } } }
     ]);
     const map = {};

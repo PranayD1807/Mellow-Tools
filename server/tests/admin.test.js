@@ -140,6 +140,38 @@ describe('Admin Endpoints & Active Users Tracking', () => {
             spyBookmark.mockRestore();
             spyJob.mockRestore();
         });
+
+        it('should correctly distinguish between created and updated items in monthly stats', async () => {
+            // Seed a note (this should only count as created)
+            const note = new noteModel({ user: adminUserId, title: 'Note 1', text: 'Text 1' });
+            await note.save();
+
+            // Fetch stats to see if updates is 0 and creations is 1
+            const res1 = await request(app)
+                .get('/api/v1/admin/stats')
+                .set('Authorization', `Bearer ${adminToken}`);
+            
+            const currentMonth = res1.body.monthlyActivity[res1.body.monthlyActivity.length - 1];
+            expect(currentMonth.notesCreated).toBeGreaterThanOrEqual(1);
+            // Notes created just now should have updatedAt == createdAt, hence notesUpdated is 0
+            expect(currentMonth.notesUpdated).toEqual(0);
+
+            // Now update the note by manually setting a different updatedAt
+            // Mongoose might use exactly the same ms resolution if we don't wait, but we can just use set to simulate
+            await noteModel.collection.updateOne(
+                { _id: note._id },
+                { $set: { updatedAt: new Date(Date.now() + 1000) } }
+            );
+
+            const res2 = await request(app)
+                .get('/api/v1/admin/stats')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            const currentMonth2 = res2.body.monthlyActivity[res2.body.monthlyActivity.length - 1];
+            expect(currentMonth2.notesCreated).toEqual(currentMonth.notesCreated);
+            // Now it should be recorded as an update
+            expect(currentMonth2.notesUpdated).toBeGreaterThanOrEqual(1);
+        });
     });
 
     describe('lastActiveAt Tracking & Throttling', () => {
