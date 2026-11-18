@@ -13,10 +13,26 @@ const jobApplicationEndpoints = {
     bulkUpdate: "job-applications/bulk-update",
 };
 
+export interface DateRangeParams {
+    startDate?: string; // local date, YYYY-MM-DD
+    endDate?: string; // local date, YYYY-MM-DD
+}
+
+// Converts local start/end-of-day to ISO timestamps
+const appendDateRange = (queryParams: URLSearchParams, { startDate, endDate }: DateRangeParams) => {
+    if (startDate) queryParams.append("startDate", new Date(`${startDate}T00:00:00.000`).toISOString());
+    if (endDate) queryParams.append("endDate", new Date(`${endDate}T23:59:59.999`).toISOString());
+};
+
 const jobApplicationApi = {
-    getStats: async (): Promise<ApiResponse<{ total: number; Applied: number; Interviewing: number; Offer: number; Rejected: number }>> => {
+    getStats: async (range: DateRangeParams = {}): Promise<ApiResponse<{ total: number; Applied: number; Interviewing: number; Offer: number; Rejected: number }>> => {
         try {
-            const response = await privateClient.get<ApiResponse<{ total: number; Applied: number; Interviewing: number; Offer: number; Rejected: number }>>(jobApplicationEndpoints.getStats);
+            const queryParams = new URLSearchParams();
+            appendDateRange(queryParams, range);
+            const qs = queryParams.toString();
+            const response = await privateClient.get<ApiResponse<{ total: number; Applied: number; Interviewing: number; Offer: number; Rejected: number }>>(
+                qs ? `${jobApplicationEndpoints.getStats}?${qs}` : jobApplicationEndpoints.getStats
+            );
             return {
                 status: response.data.status,
                 data: response.data.data || { total: 0, Applied: 0, Interviewing: 0, Offer: 0, Rejected: 0 },
@@ -25,7 +41,7 @@ const jobApplicationApi = {
             return handleApiError(err);
         }
     },
-    getAll: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } = {}, signal?: AbortSignal): Promise<ApiResponse<JobApplication[]>> => {
+    getAll: async (params: { search?: string; status?: string; sort?: string; page?: number; limit?: number } & DateRangeParams = {}, signal?: AbortSignal): Promise<ApiResponse<JobApplication[]>> => {
         try {
             // Note: Server-side search/sort on encrypted fields (company, role, etc.) is not possible.
             // We pass status and dates through, but search is handled client-side via Iterative Search.
@@ -37,6 +53,8 @@ const jobApplicationApi = {
 
             // Dates are unencrypted, so we can sort by them on server
             if (params.sort) queryParams.append("sort", params.sort);
+
+            appendDateRange(queryParams, params);
 
             if (params.page) queryParams.append("page", params.page.toString());
             if (params.limit) queryParams.append("limit", params.limit.toString());

@@ -4,6 +4,7 @@ import {
     HStack,
     IconButton,
     Input,
+    Text,
 } from "@chakra-ui/react";
 import { IoSearch } from "react-icons/io5";
 import { HiViewGridAdd } from "react-icons/hi";
@@ -27,12 +28,46 @@ interface JobTrackerFiltersProps {
     statusFilter: string;
     setStatusFilter: (value: string) => void;
     setPage: (value: number) => void;
+    startDate: string;
+    endDate: string;
+    setDateRange: (start: string, end: string) => void;
     sortOrder: string;
     setSortOrder: (value: string) => void;
     statusOptions: ListCollection<{ label: string; value: string }>;
     sortOptions: ListCollection<{ label: string; value: string }>;
     handleCreateApplication: (values: Partial<CreateJobApplicationData>) => Promise<void>;
 }
+
+const toLocalISODate = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const daysAgo = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return toLocalISODate(d);
+};
+
+const presets: { label: string; range: () => [string, string] }[] = [
+    { label: "Last 7 days", range: () => [daysAgo(7), toLocalISODate(new Date())] },
+    { label: "Last 30 days", range: () => [daysAgo(30), toLocalISODate(new Date())] },
+    {
+        label: "This month",
+        range: () => {
+            const now = new Date();
+            return [toLocalISODate(new Date(now.getFullYear(), now.getMonth(), 1)), toLocalISODate(now)];
+        },
+    },
+    {
+        label: "Last 3 months",
+        range: () => {
+            const now = new Date();
+            return [toLocalISODate(new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())), toLocalISODate(now)];
+        },
+    },
+    { label: "All time", range: () => ["", ""] },
+];
 
 const JobTrackerFilters: React.FC<JobTrackerFiltersProps> = ({
     searchInput,
@@ -42,6 +77,9 @@ const JobTrackerFilters: React.FC<JobTrackerFiltersProps> = ({
     statusFilter,
     setStatusFilter,
     setPage,
+    startDate,
+    endDate,
+    setDateRange,
     sortOrder,
     setSortOrder,
     statusOptions,
@@ -132,6 +170,61 @@ const JobTrackerFilters: React.FC<JobTrackerFiltersProps> = ({
                     </JobApplicationDialog>
                 </Box>
             </Flex>
+
+            <HStack gap={2} flexWrap="wrap">
+                <Text fontSize="sm">From</Text>
+                <Input
+                    type="date"
+                    value={startDate}
+                    max={endDate || undefined}
+                    onChange={(e) => {
+                        const v = e.target.value;
+                        setDateRange(v, endDate && v > endDate ? v : endDate);
+                        setPage(1);
+                    }}
+                    w="160px"
+                    h="36px"
+                />
+                <Text fontSize="sm">To</Text>
+                <Input
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(e) => {
+                        const v = e.target.value;
+                        setDateRange(startDate && v && v < startDate ? v : startDate, v);
+                        setPage(1);
+                    }}
+                    w="160px"
+                    h="36px"
+                />
+                {presets.map((p) => (
+                    <Button
+                        key={p.label}
+                        size="xs"
+                        variant="outline"
+                        onClick={() => {
+                            const [s, e] = p.range();
+                            setDateRange(s, e);
+                            setPage(1);
+                        }}
+                    >
+                        {p.label}
+                    </Button>
+                ))}
+                {(startDate || endDate) && (
+                    <Button
+                        size="xs"
+                        variant="ghost"
+                        onClick={() => {
+                            setDateRange("", "");
+                            setPage(1);
+                        }}
+                    >
+                        Clear
+                    </Button>
+                )}
+            </HStack>
         </Flex>
     );
 };

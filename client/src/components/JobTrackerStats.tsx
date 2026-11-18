@@ -1,4 +1,4 @@
-import { SimpleGrid } from "@chakra-ui/react";
+import { SimpleGrid, Text, Flex } from "@chakra-ui/react";
 import { FiBriefcase, FiCheckCircle, FiMessageCircle, FiXCircle } from "react-icons/fi";
 import StatsCard from "./StatsCard";
 
@@ -10,11 +10,20 @@ interface JobTrackerStatsProps {
         Offer: number;
         Rejected: number;
     };
+    startDate?: string;
+    endDate?: string;
 }
 
-const JobTrackerStats: React.FC<JobTrackerStatsProps> = ({ stats }) => {
+const JobTrackerStats: React.FC<JobTrackerStatsProps> = ({ stats, startDate, endDate }) => {
+    const hasRange = !!(startDate || endDate);
     return (
-        <SimpleGrid columns={{ base: 2, md: 5 }} gap={2} w={{ base: "95%", lg: "90%" }}>
+        <Flex direction="column" w={{ base: "95%", lg: "90%" }} gap={1}>
+        {hasRange && (
+            <Text fontSize="xs" color="fg.muted">
+                Stats filtered by date range: {startDate || "..."} to {endDate || "..."}
+            </Text>
+        )}
+        <SimpleGrid columns={{ base: 2, md: 5 }} gap={2} w="100%">
             <StatsCard
                 label="Total"
                 value={stats.total}
@@ -46,6 +55,7 @@ const JobTrackerStats: React.FC<JobTrackerStatsProps> = ({ stats }) => {
                 color="red.500"
             />
         </SimpleGrid>
+        </Flex>
     );
 };
 
