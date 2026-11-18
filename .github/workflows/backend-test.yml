@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,7 +23,7 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '20.x'
         cache: 'npm'
         cache-dependency-path: server/package-lock.json
 
@@ -28,3 +32,54 @@ jobs:
 
     - name: Run tests
       run: npm test
+
+    - name: Publish coverage summary
+      if: always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const file = 'server/coverage/coverage-summary.json';
+          if (!fs.existsSync(file)) {
+            core.warning('coverage-summary.json not found; skipping coverage summary.');
+            return;
+          }
+          const { total } = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const marker = '<!-- backend-coverage-summary -->';
+          const row = (label, m) => `| ${label} | ${m.covered} / ${m.total} | ${m.pct}% |`;
+          const body = [
+            marker,
+            '### Backend Coverage Summary',
+            '',
+            '| Metric | Covered | Percentage |',
+            '| --- | --- | --- |',
+            row('Statements', total.statements),
+            row('Branches', total.branches),
+            row('Functions', total.functions),
+            row('Lines', total.lines),
+          ].join('
+');
+
+          await core.summary.addRaw(body, true).write();
+
+          // Fork PRs get a read-only token, so only comment for same-repo PRs.
+          const pr = context.payload.pull_request;
+          if (!pr || pr.head.repo.full_name !== context.repo.owner + '/' + context.repo.repo) {
+            core.info('Not a same-repo pull request; skipping PR comment.');
+            return;
+          }
+          try {
+            const { owner, repo } = context.repo;
+            const issue_number = pr.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+          } catch (error) {
+            core.warning(`Could not post PR comment: ${error.message}`);
+          }

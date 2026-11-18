@@ -3,5 +3,5 @@ export default {
     transform: {},
     setupFilesAfterEnv: ['./tests/setup.js'],
     testTimeout: 30000,
-    coverageReporters: ["text", "text-summary", "lcov", "clover"],
+    coverageReporters: ["text", "text-summary", "lcov", "clover", "json-summary"],
 };
