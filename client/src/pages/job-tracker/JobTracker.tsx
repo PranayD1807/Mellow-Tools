@@ -26,6 +26,8 @@ const JobTracker = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("-appliedOn");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [stats, setStats] = useState({ total: 0, Applied: 0, Interviewing: 0, Offer: 0, Rejected: 0 });
 
 
@@ -35,9 +37,11 @@ const JobTracker = () => {
       page,
       limit,
       status: statusFilter,
-      sort: sortOrder
+      sort: sortOrder,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
     }, signal);
-  }, [statusFilter, sortOrder]);
+  }, [statusFilter, sortOrder, startDate, endDate]);
   const filterFunction = useCallback((app: JobApplication, query: string) => {
     const lowerQuery = query.toLowerCase();
     return !!(
@@ -69,11 +73,11 @@ const JobTracker = () => {
 
   const fetchStats = useCallback(async () => {
     if (!isLoggedIn) return;
-    const res = await jobApplicationApi.getStats();
+    const res = await jobApplicationApi.getStats({ startDate: startDate || undefined, endDate: endDate || undefined });
     if (res.status === "success" && res.data) {
       setStats(res.data);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, startDate, endDate]);
 
   const handleDelete = async (docId: string) => {
     try {
@@ -151,6 +155,8 @@ const JobTracker = () => {
       setSearchTerm("");
       setStatusFilter("all");
       setSortOrder("-appliedOn");
+      setStartDate("");
+      setEndDate("");
     }
   }, [isLoggedIn, fetchStats, setApplications]);
 
@@ -169,7 +175,7 @@ const JobTracker = () => {
         w="100%"
         mt={2}
       >
-        <JobTrackerStats stats={stats} />
+        <JobTrackerStats stats={stats} startDate={startDate} endDate={endDate} />
 
         {isLoggedIn && (
           <JobTrackerFilters
@@ -180,6 +186,12 @@ const JobTracker = () => {
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
             setPage={(p: number) => setCurrentPage(p - 1)}
+            startDate={startDate}
+            endDate={endDate}
+            setDateRange={(start: string, end: string) => {
+              setStartDate(start);
+              setEndDate(end);
+            }}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
             statusOptions={statusFilterOptions}
